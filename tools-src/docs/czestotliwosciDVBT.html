@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../style.css">
+    <style>
+        * { box-sizing: border-box; }
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: sans-serif;
+    margin: 0;
+    padding: 10px;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--tile-bg);
+    border: 1px solid var(--tile-border);
+    border-radius: 8px;
+}
+
+thead th {
+    background: var(--tile-bg);
+    color: #1a73e8;
+    text-align: left;
+    padding: 12px;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    border-bottom: 2px solid #1a73e8;
+}
+
+td {
+    padding: 12px;
+    border-bottom: 1px solid #eeeeee;
+    vertical-align: middle;
+}
+
+tr:nth-child(even) {
+    background: var(--bg);
+}
+
+/* Styl numeru kanału */
+.ch-num {
+    font-weight: bold;
+    color: #d32f2f; /* Ciemniejszy czerwony/pomarańczowy dla kontrastu na jasnym */
+    font-size: 1.1rem;
+}
+
+/* Styl częstotliwości (MHz) */
+.freq {
+    font-weight: bold;
+    color: #000000;
+    font-size: 1.1rem;
+}
+
+/* Etykiety VHF/UHF - wyraźniejsze na jasnym tle */
+.labelvhf {
+    font-size: 0.75rem;
+    color: #2e7d32; /* Ciemniejsza zieleń */
+    background: #e8f5e9;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.label {
+    font-size: 0.75rem;
+    color: #1565c0; /* Głęboki niebieski */
+    background: #e3f2fd;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+/* Nazwa MUXa */
+.range {
+    color: #555555;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <table>
+        <thead>
+            <tr>
+                <th>K.</th>
+                <th>Częst.</th>
+                <th>MUX</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td><span class="ch-num">5</span></td><td><span class="block freq">177.5</span><span class="block labelvhf">VHF</span></td><td><span class="block range"></span></td></tr>
+            <tr><td><span class="ch-num">6</span></td><td><span class="block freq">184.5</span><span class="block labelvhf">VHF</span></td><td><span class="block range">MUX-8</span></td></tr>
+            <tr><td><span class="ch-num">7</span></td><td><span class="block freq">191.5</span><span class="block labelvhf">VHF</span></td><td><span class="block range">MUX-8</span></td></tr>
+            <tr><td><span class="ch-num">8</span></td><td><span class="block freq">198.5</span><span class="block labelvhf">VHF</span></td><td><span class="block range"></span></td></tr>
+            <tr><td><span class="ch-num">9</span></td><td><span class="block freq">205.5</span><span class="block labelvhf">VHF</span></td><td><span class="block range"></span></td></tr>
+            <tr><td><span class="ch-num">10</span></td><td><span class="block freq">212.5</span><span class="block labelvhf">VHF</span></td><td><span class="block range"></span></td></tr>
+            <tr><td><span class="ch-num">11</span></td><td><span class="block freq">219.5</span><span class="block labelvhf">VHF</span></td><td><span class="block range"></span></td></tr>
+            <tr><td><span class="ch-num">12</span></td><td><span class="block freq">226.5</span><span class="block labelvhf">VHF</span></td><td><span class="block range"></span></td></tr>
+            <tr><td><span class="ch-num">21</span></td><td><span class="block freq">474</span><span class="block label">UHF</span></td><td><span class="block range">MUX-4</span></td></tr>
+            <tr><td><span class="ch-num">22</span></td><td><span class="block freq">482</span><span class="block label">UHF</span></td><td><span class="block range"></span></td></tr>
+            <tr><td><span class="ch-num">23</span></td><td><span class="block freq">490</span><span class="block label">UHF</span></td><td><span class="block range">MUX-2</span></td></tr>
+            <tr><td><span class="ch-num">24</span></td><td><span class="block freq">498</span><span class="block label">UHF</span></td><td><span class="block range">MUX-6</span></td></tr>
+            <tr><td><span class="ch-num">25</span></td><td><span class="block freq">506</span><span class="block label">UHF</span></td><td><span class="block range"></span></td></tr>
+            <tr><td><span class="ch-num">26</span></td><td><span class="block freq">514</span><span class="block label">UHF</span></td><td><span class="block range">CZ-Mux21</span></td></tr>
+            <tr><td><span class="ch-num">27</span></td><td><span class="block freq">522</span><span class="block label">UHF</span></td><td><span class="block range"></span></td></tr>
+            <tr><td><span class="ch-num">28</span></td><td><span class="block freq">530</span><span class="block label">UHF</span></td><td><span class="block range">CZ-Mux22</span></td></tr>
+            <tr><td><span class="ch-num">29</span></td><td><span class="block freq">538</span><span class="block label">UHF</span></td><td><span class="block range"></span></td></tr>
+            <tr><td><span class="ch-num">30</span></td><td><span class="block freq">546</span><span class="block label">UHF</span></td><td><span class="block range"></span></td></tr>
+            <tr><td><span class="ch-num">31</span></td><td><span class="block freq">554</span><span class="block label">UHF</span></td><td><span class="block range">CZ-Mux23</span></td></tr>
+            <tr><td><span class="ch-num">32</span></td><td><span class="block freq">562</span><span class="block label">UHF</span></td><td><span class="block range"></span></td></tr>
+            <tr><td><span class="ch-num">33</span></td><td><span class="block freq">570</span><span class="block label">UHF</span></td><td><span class="block range"></span></td></tr>
+            <tr><td><span class="ch-num">34</span></td><td><span class="block freq">578</span><span class="block label">UHF</span></td><td><span class="block range"></span></td></tr>
+            <tr><td><span class="ch-num">35</span></td><td><span class="block freq">586</span><span class="block label">UHF</span></td><td><span class="block range"></span></td></tr>
+            <tr><td><span class="ch-num">36</span></td><td><span class="block freq">594</span><span class="block label">UHF</span></td><td><span class="block range"></span></td></tr>
+            <tr><td><span class="ch-num">37</span></td><td><span class="block freq">602</span><span class="block label">UHF</span></td><td><span class="block range"></span></td></tr>
+            <tr><td><span class="ch-num">38</span></td><td><span class="block freq">610</span><span class="block label">UHF</span></td><td><span class="block range"></span></td></tr>
+            <tr><td><span class="ch-num">39</span></td><td><span class="block freq">618</span><span class="block label">UHF</span></td><td><span class="block range"></span></td></tr>
+            <tr><td><span class="ch-num">40</span></td><td><span class="block freq">626</span><span class="block label">UHF</span></td><td><span class="block range"></span></td></tr>
+            <tr><td><span class="ch-num">41</span></td><td><span class="block freq">634</span><span class="block label">UHF</span></td><td><span class="block range">MUX-3</span></td></tr>
+            <tr><td><span class="ch-num">42</span></td><td><span class="block freq">642</span><span class="block label">UHF</span></td><td><span class="block range"></span></td></tr>
+            <tr><td><span class="ch-num">43</span></td><td><span class="block freq">650</span><span class="block label">UHF</span></td><td><span class="block range"></span></td></tr>
+            <tr><td><span class="ch-num">44</span></td><td><span class="block freq">658</span><span class="block label">UHF</span></td><td><span class="block range"></span></td></tr>
+            <tr><td><span class="ch-num">45</span></td><td><span class="block freq">666</span><span class="block label">UHF</span></td><td><span class="block range">MUX CZ-slag</span></td></tr>
+            <tr><td><span class="ch-num">46</span></td><td><span class="block freq">674</span><span class="block label">UHF</span></td><td><span class="block range"></span></td></tr>
+            <tr><td><span class="ch-num">47</span></td><td><span class="block freq">682</span><span class="block label">UHF</span></td><td><span class="block range">MUX-L2</span></td></tr>
+            <tr><td><span class="ch-num">48</span></td><td><span class="block freq">690</span><span class="block label">UHF</span></td><td><span class="block range"></span></td></tr>

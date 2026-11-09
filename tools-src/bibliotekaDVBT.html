@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biblioteka DVB-T</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            margin: 0; 
+            background: #f0f2f5; 
+            color: #2c3e50; 
+        }
+        
+        /* NOWY, ELEGANCKI NAGŁÓWEK */
+        header { 
+            background: #1a73e8; 
+            color: white; 
+            padding: 0 16px; 
+            display: flex; 
+            align-items: center; 
+            height: 56px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative; 
+            z-index: 1000; 
+        }
+        
+        .btn-back { 
+            background: rgba(255, 255, 255, 0.15); 
+            border: none; 
+            color: white; 
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            font-size: 1.1rem; 
+            cursor: pointer; 
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, transform 0.1s;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .btn-back:active {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(0.95);
+        }
+
+        h1 { 
+            font-size: 1.1rem; 
+            margin: 0; 
+            position: absolute; 
+            left: 0; 
+            right: 0; 
+            text-align: center; 
+            pointer-events: none; 
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .container { 
+            padding: 12px; 
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        
+        .accordion { 
+            background: #ffffff; 
+            border-radius: 12px; 
+            margin-bottom: 12px; 
+            overflow: hidden; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .acc-header { 
+            background: #1a73e8; 
+            color: white; 
+            padding: 15px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            font-size: 0.95rem;
+            transition: background 0.2s;
+        }
+
+        .acc-header:active {
+            background: #1557b0;
+        }
+        
+        .acc-content { 
+            display: none; 
+            padding: 0; 
+            border-top: 1px solid #eee; 
+            background: #fff; 
+            color: #333; 
+            height: 70vh; 
+        }
+        
+        .acc-content.show { 
+            display: block; 
+        }
+        
+        .acc-content iframe { 
+            width: 100%; 
+            height: 100%; 
+            border: none; 
+            display: block; 
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <button class="btn-back" onclick="window.location.replace('../index.html')">◀</button>
+    <h1>Biblioteka DVB-T</h1>
+</header>
+
+<div class="container">
+    <div class="accordion">
+        <div class="acc-header" onclick="window.open('https://mapy.radiopolska.pl/','_blank')"><span>RadioPolska - Mapa Interaktywna</span><span>▶</span></div>
+    </div>
+
+    <div class="accordion">
+        <div class="acc-header" onclick="window.open('https://emi.emitel.pl/plan_www/','_blank')"><span>Emitel - Planowane przerwy emisji</span><span>▶</span></div>
+    </div>
+
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">CZĘSTOTLIWOŚCI (KANAŁY) <span>+</span></div>
+        <div class="acc-content">
+            <iframe src="docs/czestotliwosciDVBT.html"></iframe>
+        </div>
+    </div>
+
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">LISTA MUX-ÓW <span>+</span></div>
+        <div class="acc-content">
+            <iframe src="docs/muxy.html"></iframe>
+        </div>
+    </div>
+
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">PARAMETRY SYGNAŁU <span>+</span></div>
+        <div class="acc-content">
+            <iframe src="docs/Parametry-DVB-t.html"></iframe>
+        </div>
+    </div>
+
+    <div class="accordion">
+        <div class="acc-header" onclick="window.location.href='docs/KonstelacjaDVbt2.html'"><span>KONSTELACJA DVB-T</span><span>▶</span></div>
+    </div>
+</div>
+
+<script>
+function toggleAcc(header) {
+    const content = header.nextElementSibling;
+    if (!content || !content.classList.contains('acc-content')) return;
+    const span = header.querySelector('span');
+    
+    const allHeaders = document.querySelectorAll('.acc-header');
+    allHeaders.forEach(h => {
+        const c = h.nextElementSibling;
+        const s = h.querySelector('span');
+        if (c && c.classList.contains('acc-content')) {
+            c.classList.remove('show');
+            if (s) s.innerText = '+';
+        }
+    });
+    
+    const isOpening = !content.classList.contains('show');
+    if (isOpening) {
+        content.classList.add('show');
+        if (span) span.innerText = '−';
+    }
+}
+</script>
+</body>
+</html>
+</html>

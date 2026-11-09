@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<link rel="stylesheet" href="../../style.css">
+<style>
+body {
+        font-family: sans-serif;
+        padding: 10px;
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+    }
+    
+    .table-wrapper {
+        overflow-x: auto;
+        box-shadow: var(--tile-shadow);
+        border-radius: 8px;
+        background: var(--tile-bg);
+        border: 1px solid var(--tile-border);
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 450px;
+    }
+
+    th, td {
+        padding: 12px 10px;
+        text-align: left;
+        border-bottom: 1px solid #eeeeee; /* Jasne linie oddzielające wiersze */
+        font-size: 13px;
+    }
+
+    /* Styl nagłówka tabeli */
+    thead tr {
+        background: var(--tile-bg);
+        color: #1a73e8;
+    }
+
+    /* Efekt "zebry" dla lepszej czytelności wierszy */
+    tbody tr:nth-child(even) {
+        background: var(--bg);
+    }
+
+    /* Kropka koloru kabla */
+    .dot {
+        height: 15px;
+        width: 15px;
+        border-radius: 50%;
+        display: inline-block;
+        vertical-align: middle;
+        margin-right: 8px;
+        border: 1px solid #ccc; /* Obramowanie kropki, by biała była widoczna */
+    }
+
+    /* Klasy kolorów kabli multiswitcha */
+    .bg-yellow { background-color: #ffff00; }
+    .bg-green  { background-color: #008000; }
+    .bg-red    { background-color: #ff0000; }
+    .bg-black  { background-color: #000000; }
+    .bg-white  { background-color: #ffffff; }
+
+    /* Styl skrótów oznaczeń (np. H/H) */
+    .tag {
+        font-family: monospace;
+        background: #f0f4f8; /* Jasnoniebieskie tło taga */
+        padding: 2px 4px;
+        border-radius: 3px;
+        color: #1565c0; /* Ciemnoniebieski tekst taga */
+        font-weight: bold;
+    }
+
+    /* Styl napięcia i sygnału (np. 18V / 22kHz) */
+    .voltage {
+        color: #d32f2f; /* Ciemniejszy czerwony dla czytelności na białym */
+        font-weight: bold;
+    }
+</style>
+<script>
+// Motyw: kopiuj ustawienie z localStorage lub systemu
+function applyTheme() {
+    let theme = localStorage.getItem('theme');
+    if (!theme) {
+        theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    document.documentElement.setAttribute('data-theme', theme);
+}
+applyTheme();
+</script>
+</head>
+<body>
+
+
+    <table>
+        <thead>
+            <tr>
+                <th>Kolor</th>
+                <th>Oznaczenie</th>
+                <th>Pasmo / Polaryzacja</th>
+                <th>Sterowanie</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><span class="dot bg-yellow"></span>Żółty</td>
+                <td><span class="tag">H/H</span> (HH, Hi)</td>
+                <td>Górne / Pozioma</td>
+                <td><span class="voltage">18V / 22kHz</span></td>
+            </tr>
+            <tr>
+                <td><span class="dot bg-green"></span>Zielony</td>
+                <td><span class="tag">L/H</span> (HL, Lo)</td>
+                <td>Dolne / Pozioma</td>
+                <td><span class="voltage">18V / 0kHz</span></td>
+            </tr>
+            <tr>
+                <td><span class="dot bg-red"></span>Czerwony</td>
+                <td><span class="tag">H/V</span> (VH, Hi)</td>
+                <td>Górne / Pionowa</td>
+                <td><span class="voltage">13V / 22kHz</span></td>
+            </tr>
+            <tr>
+                <td><span class="dot bg-black"></span>Czarny</td>
+                <td><span class="tag">L/V</span> (VL, Lo)</td>
+                <td>Dolne / Pionowa</td>
+                <td><span class="voltage">13V / 0kHz</span></td>
+            </tr>
+            <tr>
+                <td><span class="dot bg-white"></span>Biały</td>
+                <td colspan="3">Terr.TV / Telewizja Naziemna</td>
+            </tr>
+        </tbody>
+    </table>
+
+
+</body>
+</html>

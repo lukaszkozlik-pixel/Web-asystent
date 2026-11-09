@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <!-- WIDOK MOBILNY: Zapewnia skalowanie do szerokości ekranu telefonu -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Parametry DVB-T2</title>
+    <link rel="stylesheet" href="../../style.css">
+    <style>
+        body {
+            background: var(--bg);
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+            color: var(--text);
+        }
+
+/* KONTENER TABELI Z PRZEWIJANIEM */
+.table-container {
+    overflow-x: auto;
+    border-radius: 8px;
+    background: var(--tile-bg);
+    box-shadow: var(--tile-shadow);
+    border: 1px solid var(--tile-border);
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    color: var(--text);
+    min-width: 900px;
+}
+
+/* STYLE NAGŁÓWKÓW (TH) */
+th {
+    background: var(--tile-bg);
+    color: #1a73e8;
+    text-align: center;
+    padding: 12px 5px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 1px solid var(--tile-border);
+    border-bottom: 2px solid #1a73e8;
+    white-space: nowrap;
+}
+
+/* STYLE KOMÓREK DANYCH (TD) */
+td {
+    padding: 10px 8px;
+    border: 1px solid #eeeeee;
+    font-size: 13px;
+    text-align: center;
+    vertical-align: middle; 
+    white-space: nowrap;
+}
+
+/* Styl dla wierszy parzystych - subtelne rozróżnienie */
+tbody tr:nth-child(even) {
+    background: var(--bg);
+}
+
+/* Wyróżnienie kluczowych wartości */
+td:first-child {
+    font-weight: bold;
+    color: #d32f2f; /* Czerwony dla numeru kanału */
+}
+
+/* Wyróżnienie MUXów */
+td[rowspan] {
+    background-color: #ffffff;
+    font-weight: bold;
+    color: #1a73e8;
+}
+        </style>
+        <script>
+        // Motyw: kopiuj ustawienie z localStorage lub systemu
+        function applyTheme() {
+            let theme = localStorage.getItem('theme');
+            if (!theme) {
+                theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            }
+            document.documentElement.setAttribute('data-theme', theme);
+        }
+        applyTheme();
+        </script>
+</head>
+<body>
+
+<div class="table-container">
+    <table>
+        <thead>
+            <!-- Nagłówki z obrazka -->
+            <tr>
+                <th>Kanał</th>
+                <th>Częstotliwość</th>
+                <th>Polaryzacja</th>
+                <th>MUX</th>
+                <th>Modulacja</th>
+                <th>Przedział ochronny (GI)</th>
+                <th>FEC</th>
+                <th>Min max sygnal</th>
+                <th>MER</th>
+                <th>C/N</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Dane z obrazka, z poprawnymi rowspanami (połączonymi polami) -->
+            <tr>
+                <td>6</td>
+                <td>184.5</td>
+                <td>H</td>
+                <td rowspan="2">MUX-8</td>
+                <td rowspan="2">64-QAM</td>
+                <td rowspan="2">1/4</td>
+                <td rowspan="2">5/6</td>
+                <td rowspan="2">51 - 74</td>
+                <td rowspan="2">&gt;26</td>
+                <td>&gt;27 (min 23)</td>
+            </tr>
+            <tr>
+                <td>7</td>
+                <td>191.5</td>
+                <td style="border-left: none;">V</td>
+                <td>31</td>
+            </tr>
+            <tr>
+                <td>21</td>
+                <td>474</td>
+                <td rowspan="6">H</td>
+                <td>MUX-4</td>
+                <td rowspan="6">256-QAM</td>
+                <td>1/8</td>
+                <td>4/5</td>
+                <td rowspan="6">48-75 (max 85)</td>
+                <td rowspan="6">&gt;32 (min 28)</td>
+                <td rowspan="6">&gt;31 (min 29)</td>
+            </tr>
+            <tr>
+                <td>22</td>
+                <td>482</td>
+                <td>MUX-3 kraków</td>
+                <td rowspan="5">19/128</td>
+                <td rowspan="5">3/4</td>
+               
+            </tr>
+             <tr>
+                <td>23</td>
+                <td>490</td>
+                <td>MUX-2</td>
+           
+            </tr>
+            <tr>
+                <td>24</td>
+                <td>498</td>
+                <td>MUX-6</td>
+         
+            </tr>
+             <tr>
+                <td>41</td>
+                <td>634</td>
+                <td>MUX-3 katowice</td>
+            
+            </tr>
+             <tr>
+                <td>43</td>
+                <td>650</td>
+                <td>MUX-1</td>
+          
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>
