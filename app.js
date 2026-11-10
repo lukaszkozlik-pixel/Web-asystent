@@ -12,12 +12,65 @@ document.addEventListener("DOMContentLoaded", () => {
     aktRok = new Date().getFullYear();
     aktMiesiac = new Date().getMonth();
 
+    // SPRAWDZENIE DOMYŚLNEGO MODUŁU ZAPISANEGO PRZEZ UŻYTKOWNIKA
+    const domyslnyModul = localStorage.getItem('web_asystent_domyslny_modul') || 'narzedzia';
+    
+    // Uruchomienie aplikacji na domyślnym ekranie
+    zmienZakladka(domyslnyModul);
+
     generujKalendarz();
     renderujWizytyDnia();
     renderujListe();
     renderujNotatki();
     inicjalizujGesty();
+    
+    // AKTYWACJA NASŁUCHIWANIA PRZYTRZYMANIA NA ZAKŁADKACH
+    inicjalizujPrzytrzymanieZakladek();
 });
+
+// --- OBSŁUGA PRZYTRZYMANIA (LONG-PRESS) DLA DOMYŚLNEGO MODUŁU ---
+function inicjalizujPrzytrzymanieZakladek() {
+    const ekrany = ['narzedzia', 'kalendarz', 'dziennik', 'notatki'];
+    const czasPrzytrzymania = 600; // milisekundy (0.6 sekundy)
+
+    ekrany.forEach(ekran => {
+        const btn = document.getElementById(`tab-${ekran}`);
+        if (!btn) return;
+
+        let timer = null;
+
+        const startPress = (e) => {
+            // Zapobiegamy domyślnym akcjom kontekstowym na telefonie
+            timer = setTimeout(() => {
+                localStorage.setItem('web_asystent_domyslny_modul', ekran);
+                
+                // Delikatna wibracja zwrotna w telefonie (jeśli wspierana)
+                if (navigator.vibrate) navigator.vibrate(70);
+
+                // Wizualne potwierdzenie dla użytkownika
+                const nazwaModulu = btn.innerText.replace(/[\u{1F000}-\u{1F6FF}]/gu, '').trim();
+                alert(`⭐ Ustawiono domyślny moduł startowy:\n„${nazwaModulu}”`);
+            }, czasPrzytrzymania);
+        };
+
+        const cancelPress = () => {
+            if (timer) {
+                clearTimeout(timer);
+                timer = null;
+            }
+        };
+
+        // Zdarzenia dotykowe (Mobile)
+        btn.addEventListener('touchstart', startPress, {passive: true});
+        btn.addEventListener('touchend', cancelPress);
+        btn.addEventListener('touchmove', cancelPress);
+
+        // Zdarzenia myszy (Desktop / Testy)
+        btn.addEventListener('mousedown', startPress);
+        btn.addEventListener('mouseup', cancelPress);
+        btn.addEventListener('mouseleave', cancelPress);
+    });
+}
 
 let wizyty = JSON.parse(localStorage.getItem('ksiegowosc_wizyty')) || [];
 let wpisy = JSON.parse(localStorage.getItem('ksiegowosc_wpisy')) || [];
@@ -508,8 +561,12 @@ async function eksportujWszystkieWpisyDoSyncthing() {
         return;
     }
 
+    // Zabezpieczenie przed przypadkowym wyczyszczeniem listy
+    if (!confirm(`Czy na pewno chcesz wyeksportować wszystkie wpisy (${wpisy.length}) do Syncthing i usunąć je z aktywnej listy w aplikacji?`)) {
+        return;
+    }
+
     try {
-        // Sprawdzenie i odświeżenie uprawnień zapisu
         const options = { mode: 'readwrite' };
         if ((await syncthingDirHandle.queryPermission(options)) !== 'granted') {
             if ((await syncthingDirHandle.requestPermission(options)) !== 'granted') {
@@ -520,21 +577,15 @@ async function eksportujWszystkieWpisyDoSyncthing() {
 
         let licznik = 0;
 
-        // Pętla po wszystkich wpisach dziennika
         for (const w of wpisy) {
             const naglowek = "Data;Adres;Przychod;Koszt;Opis\n";
-            // Czyszczenie opisu z cudzysłowów na potrzeby CSV
             const czystyOpis = (w.opis || '').replace(/"/g, '""');
             const wiersz = `"${w.data}";"${w.adres || ''}";"${w.przychod}";"${w.koszt}";"${czystyOpis}"\n`;
-            
-            // Dodanie BOM (\uFEFF) żeby Excel poprawnie widział polskie znaki w UTF-8
             const zawartoscPliku = "\uFEFF" + naglowek + wiersz;
 
-            // Przygotowanie bezpiecznej nazwy pliku
             const bezpiecznyAdres = (w.adres || 'brak_adresu').replace(/[\/\\?%*:|"<>]/g, '_');
             const nazwaPliku = `${w.data}_${bezpiecznyAdres}.csv`;
 
-            // Zapis pliku w folderze Syncthing (tworzy nowy lub nadpisuje istniejący)
             const fileHandle = await syncthingDirHandle.getFileHandle(nazwaPliku, { create: true });
             const writable = await fileHandle.createWritable();
             await writable.write(zawartoscPliku);
@@ -543,7 +594,12 @@ async function eksportujWszystkieWpisyDoSyncthing() {
             licznik++;
         }
 
-        alert(`✅ Pomyślnie wyeksportowano ${licznik} plików CSV do folderu Syncthing!`);
+        // WYCZYSZCZENIE LISTY PO POPRAWNYM EKSPORCIE
+        wpisy = [];
+        localStorage.setItem('ksiegowosc_wpisy', JSON.stringify(wpisy));
+        renderujListe();
+
+        alert(`✅ Pomyślnie wyeksportowano ${licznik} plików do Syncthing i wyczyszczono dziennik w aplikacji!`);
     } catch (err) {
         console.error("Błąd podczas masowego eksportu:", err);
         alert("Wystąpił błąd podczas zapisywania plików: " + err.message);
