@@ -124,6 +124,7 @@ function zapiszKopieBazy() {
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
+    zapiszDoSyncthing()
 }
 
 function triggerRestore() {
@@ -399,6 +400,7 @@ function zapiszWizyte() {
     generujKalendarz();
     renderujWizytyDnia();
     pokazWidok('widok-kalendarza');
+    zapiszDoSyncthing()
 }
 
 function edytujWizyte(index) {
@@ -495,6 +497,59 @@ function zapiszWpis() {
     pokazWidok('widok-dziennika');
 }
 
+async function eksportujWszystkieWpisyDoSyncthing() {
+    if (!syncthingDirHandle) {
+        alert("⚠️ Najpierw połącz aplikację z folderem Syncthing!\nPrzejdź do zakładki Kalendarz ➡️ Kopia zapasowa ➡️ Połącz z folderem Syncthing.");
+        return;
+    }
+
+    if (!wpisy || wpisy.length === 0) {
+        alert("Brak wpisów w dzienniku do wyeksportowania.");
+        return;
+    }
+
+    try {
+        // Sprawdzenie i odświeżenie uprawnień zapisu
+        const options = { mode: 'readwrite' };
+        if ((await syncthingDirHandle.queryPermission(options)) !== 'granted') {
+            if ((await syncthingDirHandle.requestPermission(options)) !== 'granted') {
+                alert("Brak uprawnień do zapisu w wskazanym folderze.");
+                return;
+            }
+        }
+
+        let licznik = 0;
+
+        // Pętla po wszystkich wpisach dziennika
+        for (const w of wpisy) {
+            const naglowek = "Data;Adres;Przychod;Koszt;Opis\n";
+            // Czyszczenie opisu z cudzysłowów na potrzeby CSV
+            const czystyOpis = (w.opis || '').replace(/"/g, '""');
+            const wiersz = `"${w.data}";"${w.adres || ''}";"${w.przychod}";"${w.koszt}";"${czystyOpis}"\n`;
+            
+            // Dodanie BOM (\uFEFF) żeby Excel poprawnie widział polskie znaki w UTF-8
+            const zawartoscPliku = "\uFEFF" + naglowek + wiersz;
+
+            // Przygotowanie bezpiecznej nazwy pliku
+            const bezpiecznyAdres = (w.adres || 'brak_adresu').replace(/[\/\\?%*:|"<>]/g, '_');
+            const nazwaPliku = `${w.data}_${bezpiecznyAdres}.csv`;
+
+            // Zapis pliku w folderze Syncthing (tworzy nowy lub nadpisuje istniejący)
+            const fileHandle = await syncthingDirHandle.getFileHandle(nazwaPliku, { create: true });
+            const writable = await fileHandle.createWritable();
+            await writable.write(zawartoscPliku);
+            await writable.close();
+            
+            licznik++;
+        }
+
+        alert(`✅ Pomyślnie wyeksportowano ${licznik} plików CSV do folderu Syncthing!`);
+    } catch (err) {
+        console.error("Błąd podczas masowego eksportu:", err);
+        alert("Wystąpił błąd podczas zapisywania plików: " + err.message);
+    }
+}
+
 function renderujListe() {
     const kontener = document.getElementById('lista-zdarzen');
     kontener.innerHTML = "";
@@ -549,6 +604,7 @@ function eksportujIUsun(index) {
     wpisy.splice(index, 1);
     localStorage.setItem('ksiegowosc_wpisy', JSON.stringify(wpisy));
     renderujListe();
+    
 }
 
 function edytujWpis(index) {
@@ -603,6 +659,7 @@ function zapiszNotatke() {
     localStorage.setItem('ksiegowosc_notatki', JSON.stringify(notatki));
     renderujNotatki();
     pokazWidok('widok-notatek');
+    zapiszDoSyncthing()
 }
 
 function renderujNotatki() {
@@ -646,6 +703,63 @@ function usunNotatke(index) {
     }
 }
 
+// obługa przycisku do wybierania folderu sychronizacji
+let syncthingDirHandle = null;
+
+// 1. Wybór folderu Syncthing przez użytkownika (wystarczy raz)
+async function podlaczFolderSyncthing() {
+    if (!('showDirectoryPicker' in window)) {
+        alert("Twoja przeglądarka nie wspiera bezpośredniego dostępu do folderów. Używaj Chrome na Androidzie.");
+        return;
+    }
+
+    try {
+        syncthingDirHandle = await window.showDirectoryPicker();
+        alert("✅ Folder Syncthing został pomyślnie podłączony! Od teraz dane będą zapisywane tam automatycznie.");
+        // Wykonaj natychmiastowy zapis testowy
+        await zapiszDoSyncthing();
+    } catch (err) {
+        if (err.name !== 'AbortError') {
+            console.error("Błąd wyboru folderu:", err);
+            alert("Nie udało się uzyskać dostępu do folderu.");
+        }
+    }
+}
+
+// 2. Automatyczny zapis pliku w podłączonym folderze
+async function zapiszDoSyncthing() {
+    if (!syncthingDirHandle) return;
+
+    try {
+        // Sprawdź lub poproś o uprawnienia zapisu
+        const options = { mode: 'readwrite' };
+        if ((await syncthingDirHandle.queryPermission(options)) !== 'granted') {
+            if ((await syncthingDirHandle.requestPermission(options)) !== 'granted') {
+                return;
+            }
+        }
+
+        const pelnaBaza = {
+            wersja: "3.0.0",
+            ostatniaModyfikacja: new Date().toISOString(),
+            wizyty: wizyty,
+            wpisy: wpisy,
+            notatki: notatki
+        };
+
+        // Tworzy lub nadpisuje plik web_asystent_dane.json w wybranym folderze
+        const fileHandle = await syncthingDirHandle.getFileHandle("web_asystent_dane.json", { create: true });
+        const writable = await fileHandle.createWritable();
+        await writable.write(JSON.stringify(pelnaBaza, null, 2));
+        await writable.close();
+        
+        console.log("🔄 Zsynchronizowano automatycznie z folderem Syncthing.");
+    } catch (err) {
+        console.error("Błąd zapisu do Syncthing:", err);
+    }
+}
+
+
 // Rejestracja Service Workera dla PWA
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -654,3 +768,5 @@ if ('serviceWorker' in navigator) {
             .catch(err => console.log('Błąd SW:', err));
     });
 }
+
+

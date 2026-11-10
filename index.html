@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
     <title>Web-Asystent</title>
-    <meta name="version" content="3.0.0">
+    <meta name="version" content="3.0.1">
     <meta name="build-date" content="2026-11-09">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -71,6 +71,7 @@
             
             <div class="backup-panel-toggle" onclick="toggleBackupMenu()">⚙️ Kopia zapasowa / Przywracanie danych</div>
             <div class="backup-actions" id="backup-actions-container">
+                <button class="btn-backup" onclick="podlaczFolderSyncthing()">🔗 Połącz z folderem Syncthing</button>
                 <button class="btn-backup" onclick="zapiszKopieBazy()">💾 Pobierz kopię zapasową (JSON)</button>
                 <button class="btn-restore" onclick="triggerRestore()">📂 Przywróć dane z pliku</button>
                 <input type="file" id="restore-file-input" style="display: none;" accept=".json" onchange="przywracajBaze(event)">
@@ -82,6 +83,7 @@
     <!-- WIDOK 2: DZIENNIK PRAC -->
     <div id="widok-dziennika" class="view">
         <button class="btn-add-main" style="background-color: #2ecc71;" onclick="otworzFormularzWpisu()">＋ Dodaj nowy wpis</button>
+        <button class="btn-secondary" style="background-color: #2980b9; margin-bottom: 15px;" onclick="eksportujWszystkieWpisyDoSyncthing()">📂 Eksportuj wszystkie0</button>
         <div class="card">
             <h3>Lista zdarzeń</h3>
             <div id="lista-zdarzen"></div>
