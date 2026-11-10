@@ -561,7 +561,6 @@ async function eksportujWszystkieWpisyDoSyncthing() {
         return;
     }
 
-    // Zabezpieczenie przed przypadkowym wyczyszczeniem listy
     if (!confirm(`Czy na pewno chcesz wyeksportować wszystkie wpisy (${wpisy.length}) do Syncthing i usunąć je z aktywnej listy w aplikacji?`)) {
         return;
     }
@@ -576,33 +575,51 @@ async function eksportujWszystkieWpisyDoSyncthing() {
         }
 
         let licznik = 0;
+        let indeksyDoUsuniecia = [];
 
-        for (const w of wpisy) {
-            const naglowek = "Data;Adres;Przychod;Koszt;Opis\n";
-            const czystyOpis = (w.opis || '').replace(/"/g, '""');
-            const wiersz = `"${w.data}";"${w.adres || ''}";"${w.przychod}";"${w.koszt}";"${czystyOpis}"\n`;
-            const zawartoscPliku = "\uFEFF" + naglowek + wiersz;
+        // Pętla eksportująca
+        for (let i = 0; i < wpisy.length; i++) {
+            const w = wpisy[i];
+            try {
+                const naglowek = "Data;Adres;Przychod;Koszt;Opis\n";
+                const czystyOpis = (w.opis || '').replace(/"/g, '""');
+                const wiersz = `"${w.data}";"${w.adres || ''}";"${w.przychod}";"${w.koszt}";"${czystyOpis}"\n`;
+                const zawartoscPliku = "\uFEFF" + naglowek + wiersz;
 
-            const bezpiecznyAdres = (w.adres || 'brak_adresu').replace(/[\/\\?%*:|"<>]/g, '_');
-            const nazwaPliku = `${w.data}_${bezpiecznyAdres}.csv`;
+                const bezpiecznyAdres = (w.adres || 'brak_adresu').replace(/[\/\\?%*:|"<>]/g, '_').trim();
+                const nazwaPliku = `${w.data}_${bezpiecznyAdres}.csv`;
 
-            const fileHandle = await syncthingDirHandle.getFileHandle(nazwaPliku, { create: true });
-            const writable = await fileHandle.createWritable();
-            await writable.write(zawartoscPliku);
-            await writable.close();
-            
-            licznik++;
+                const fileHandle = await syncthingDirHandle.getFileHandle(nazwaPliku, { create: true });
+                const writable = await fileHandle.createWritable();
+                await writable.write(zawartoscPliku);
+                await writable.close();
+                
+                licznik++;
+                indeksyDoUsuniecia.push(i); // Zapisujemy indeks pomyślnie wyeksportowanego wpisu
+            } catch (fileErr) {
+                console.error(`Błąd przy eksporcie wpisu ${w.data}:`, fileErr);
+            }
         }
 
-        // WYCZYSZCZENIE LISTY PO POPRAWNYM EKSPORCIE
-        wpisy = [];
+        // Usuwamy z głównej tablicy wpisy, które się powiodły (od końca, żeby nie zaburzyć indeksów)
+        indeksyDoUsuniecia.sort((a, b) => b - a).forEach(idx => {
+            wpisy.splice(idx, 1);
+        });
+
+        // Zapisujemy stan do localStorage i odświeżamy listę na ekranie
         localStorage.setItem('ksiegowosc_wpisy', JSON.stringify(wpisy));
         renderujListe();
 
-        alert(`✅ Pomyślnie wyeksportowano ${licznik} plików do Syncthing i wyczyszczono dziennik w aplikacji!`);
+        // Krótkie opóźnienie, żeby przeglądarka zdążyła wyczyścić listę przed pokazaniem alertu
+        setTimeout(() => {
+            alert(`✅ Pomyślnie wyeksportowano ${licznik} plików do Syncthing i usunięto je z listy!`);
+        }, 50);
+
     } catch (err) {
         console.error("Błąd podczas masowego eksportu:", err);
-        alert("Wystąpił błąd podczas zapisywania plików: " + err.message);
+        setTimeout(() => {
+            alert("Wystąpił błąd podczas masowego eksportu: " + err.message);
+        }, 50);
     }
 }
 
