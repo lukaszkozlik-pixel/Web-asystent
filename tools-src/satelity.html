@@ -154,15 +154,6 @@
             transform: scale(0.95);
         }
 
-        .phone-heading {
-            width: 0; 
-            height: 0;
-            border-left: 9px solid transparent;
-            border-right: 9px solid transparent;
-            border-bottom: 22px solid #004ba0;
-            filter: drop-shadow(0 1px 3px rgba(0,0,0,0.4));
-        }
-
         .leaflet-control-attribution {
             font-size: 8px !important; 
             background: rgba(255, 255, 255, 0.6) !important; 
@@ -172,15 +163,15 @@
         
         .btn-fullscreen {
             position: fixed; 
-            top: calc(30% + 58px); /* tuż pod przyciskiem wyśrodkowania w nadajnikach */
+            top: calc(30% + 58px);
             right: 5%;
             background: #ffffff; 
-            border: 2px solid #1a73e8; /* (lub #004ba0 w satelitach) */
+            border: 2px solid #004ba0;
             border-radius: 50%; 
             width: 48px; 
             height: 48px;
             font-size: 1.2rem; 
-            color: #1a73e8; /* (lub #004ba0 w satelitach) */
+            color: #004ba0; 
             z-index: 1000;
             display: flex; 
             align-items: center; 
@@ -194,27 +185,26 @@
             background: #e8f0fe;
         }
 
-        /* Styl mapy w trybie pełnoekranowym */
         #map:fullscreen {
             height: 100vh !important;
             width: 100vw !important;
         }
-/* PISTACJOWA, WYRAŹNA IGŁA KOMPASU (3px szerokości, 150px długości) */
+
+        /* PISTACJOWA, WYRAŹNA IGŁA KOMPASU (3px szerokości, 150px długości) */
         .phone-heading {
-            width: 3px;                    /* Odchudzenie linii do 3px */
-            height: 150px;                 /* Wydłużenie linii do 150px */
-            background-color: #98fb98;     /* Jaskrawy, dobrze widoczny pistacjowy kolor */
-            border: 1px solid rgba(0, 0, 0, 0.4); /* Cienka obwódka dla lepszego kontrastu w słońcu */
+            width: 3px;                    
+            height: 150px;                 
+            background-color: #98fb98;     
+            border: 1px solid rgba(0, 0, 0, 0.4); 
             border-radius: 2px;            
-            box-shadow: 0 0 6px rgba(0, 0, 0, 0.7); /* Wyraźny cień ułatwiający widoczność na mapie */
-            transform-origin: 50% 50%;     /* Obrót dokładnie względem środka igły */
-            transition: transform 0.1s ease-out; /* Płynne wygładzenie ruchu */
+            box-shadow: 0 0 6px rgba(0, 0, 0, 0.7); 
+            transform-origin: 50% 50px;     /* Obrót wokół punktu GPS (w 1/3 wysokości igły) */
+            transition: transform 0.08s ease-out; 
         }
         
         .phone-heading-wrapper {
-            /* Kontener centrujący długą igłę w punkcie GPS użytkownika */
             margin-left: -1.5px;
-            margin-top: -75px;             /* Połowa długości (150px / 2), aby środek bazy był na markerze */
+            margin-top: -50px;             
         }
     </style>
 </head>
@@ -240,11 +230,11 @@
     let userCoords = null;
 
     const satellites = [
-        { name: "Hotbird 13°E", lon: 13.0 },
-        { name: "Astra 19.2°E", lon: 19.2 },
-        { name: "Astra 23.5°E", lon: 23.5 },
-        { name: "Thor 0.8°W", lon: -0.8 },
-        { name: "Hispasat 30°W", lon: -30.0 }
+        { name: "Hotbird 13°E", lon: 13.0, lat: 0.0 }, // Satelita geostacjonarny leży nad równikiem
+        { name: "Astra 19.2°E", lon: 19.2, lat: 0.0 },
+        { name: "Astra 23.5°E", lon: 23.5, lat: 0.0 },
+        { name: "Thor 0.8°W", lon: -0.8, lat: 0.0 },
+        { name: "Hispasat 30°W", lon: -30.0, lat: 0.0 }
     ];
 
     window.addEventListener('load', () => {
@@ -270,7 +260,7 @@
         map = L.map('map', {
             center: [52.23, 21.01],
             zoom: 6,
-            layers: [satellite], // Domyślnie satelita
+            layers: [satellite], 
             zoomControl: false
         });
 
@@ -298,8 +288,8 @@
                     const headingIcon = L.divIcon({
                         className: 'phone-heading-wrapper',
                         html: '<div class="phone-heading" id="phone-arrow"></div>',
-                        iconSize: [20, 22],
-                        iconAnchor: [10, 11]
+                        iconSize: [3, 150],
+                        iconAnchor: [1.5, 50]
                     });
                     headingMarker = L.marker(userCoords, { icon: headingIcon }).addTo(map);
                 } else {
@@ -315,72 +305,29 @@
     }
 
     // Obsługa kompasu
-window.addEventListener('load', () => {
-        updateLocation();
-        // Automatyczna próba uruchomienia kompasu przy starcie
-        tryStartCompass();
-    });
-
-    function tryStartCompass() {
-        // Dla przeglądarek opartych na Chromium (Vanadium / Android)
-        if ('AbsoluteOrientationSensor' in window) {
-            try {
-                const sensor = new AbsoluteOrientationSensor({ frequency: 60 });
-                sensor.addEventListener('reading', () => {
-                    // Kwaternion na kąt azymutu (Heading)
-                    const q = sensor.quaternion;
-                    const heading = Math.atan2(2 * (q[0] * q[1] + q[2] * q[3]), 1 - 2 * (q[1] * q[1] + q[2] * q[2])) * (180 / Math.PI);
-                    const normalizedHeading = (heading + 360) % 360;
-                    
-                    const arrow = document.getElementById('phone-arrow');
-                    if (arrow) arrow.style.transform = `rotate(${normalizedHeading}deg)`;
-                });
-                sensor.start();
-                document.getElementById('compass-btn').style.display = 'none'; // Ukryj przycisk, jeśli sensor ruszył
-                return;
-            } catch (err) {
-                console.log("AbsoluteOrientationSensor niedostępny, próbuję DeviceOrientation:", err);
-            }
-        }
-
-        // Standardowy fallback dla DeviceOrientation
+    function setupCompass() {
         if (window.DeviceOrientationEvent) {
             if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-                // iOS
                 document.getElementById('compass-btn').style.display = 'block';
             } else {
-                // Android / Vanadium
                 window.addEventListener('deviceorientationabsolute', handleOrientation, true);
                 window.addEventListener('deviceorientation', handleOrientation, true);
-                document.getElementById('compass-btn').style.display = 'none';
             }
-        } else {
-            alert("Twoje urządzenie nie obsługuje czujnika kompasu.");
         }
     }
 
-    // Funkcja wywoływana po kliknięciu przycisku "Kompas" przez użytkownika
     function initCompass() {
         if (typeof DeviceOrientationEvent.requestPermission === 'function') {
             DeviceOrientationEvent.requestPermission().then(response => {
                 if (response === 'granted') {
                     window.addEventListener('deviceorientation', handleOrientation, true);
                     document.getElementById('compass-btn').style.display = 'none';
-                } else {
-                    alert("Brak zgody na dostęp do czujnika.");
                 }
-            }).catch(err => {
-                alert("Błąd żądania kompasu: " + err.message);
-            });
-        } else {
-            // Wymuszenie nasłuchu bezpośrednio po kliknięciu w Vanadium
-            window.addEventListener('deviceorientationabsolute', handleOrientation, true);
-            window.addEventListener('deviceorientation', handleOrientation, true);
-            document.getElementById('compass-btn').style.display = 'none';
+            }).catch(console.error);
         }
     }
 
-let currentHeading = 0; // Zmienna do wygładzania ruchu strzałki
+    let currentHeading = 0;
 
     function handleOrientation(e) {
         let heading = e.webkitCompassHeading || e.alpha;
@@ -389,14 +336,11 @@ let currentHeading = 0; // Zmienna do wygładzania ruchu strzałki
                 heading = 360 - e.alpha; 
             }
 
-            // --- FILTR WYGŁADZAJĄCY (niweluje skoki o 90/180 stopni) ---
-            // Obliczamy najkrótszą drogę obrotu, aby uniknąć przeskoku przez 0/360 stopni
             let diff = heading - currentHeading;
             if (diff > 180) diff -= 360;
             if (diff < -180) diff += 360;
             
-            // Współczynnik wygładzania (im mniejsza wartość, tym bardziej płynny, ale wolniejszy ruch)
-            currentHeading += diff * 0.2; 
+            currentHeading += diff * 0.25; 
             currentHeading = (currentHeading + 360) % 360;
 
             const arrow = document.getElementById('phone-arrow');
@@ -430,10 +374,11 @@ let currentHeading = 0; // Zmienna do wygładzania ruchu strzałki
                 </div>
                 <button class="btn-line" onclick="drawLine(${az}, this)">WYBIERZ</button>
             `;
-            list.appendChild(card);
+            list.item ? list.appendChild(card) : list.append(card);
         });
     }
 
+    // POPRAWIONE RYSOWANIE LINII: startuje dokładnie z punktu GPS użytkownika
     function drawLine(az, btn) {
         if (!userCoords) return;
 
@@ -442,16 +387,27 @@ let currentHeading = 0; // Zmienna do wygładzania ruchu strzałki
 
         if (currentLine) map.removeLayer(currentLine);
 
+        // Wyznaczamy punkt docelowy w kierunku azymutu oddalony o ok. 5-10 km, żeby linia przecinała horyzont mapy
         const angleRad = (az - 90) * Math.PI / 180;
-        const d = 0.005; 
-        const endPoint = [
-            userCoords[0] - d * Math.sin(angleRad), 
-            userCoords[1] + d * Math.cos(angleRad)
-        ];
+        const distanceKm = 10.0; 
+        const latDelta = (distanceKm / 111) * Math.sin(angleRad + Math.PI/2); // uproszczenie lokalne
+        // Dokładniejsze wyznaczenie punktu na podstawie azymutu:
+        const R = 6371; // promień Ziemi w km
+        const lat1 = userCoords[0] * Math.PI / 180;
+        const lon1 = userCoords[1] * Math.PI / 180;
+        const brng = az * Math.PI / 180;
 
+        // Formuła punktu docelowego na podstawie dystansu i azymutu
+        const dR = 5.0 / R; // 5 km długości linii na mapie
+        const lat2 = Math.asin(Math.sin(lat1) * Math.cos(dR) + Math.cos(lat1) * Math.sin(dR) * Math.cos(brng));
+        const lon2 = lon1 + Math.atan2(Math.sin(brng) * Math.sin(dR) * Math.cos(lat1), Math.cos(dR) - Math.sin(lat1) * Math.sin(lat2));
+
+        const endPoint = [lat2 * 180 / Math.PI, lon2 * 180 / Math.PI];
+
+        // Linia startuje TERAZ precyzyjnie z userCoords (Twojej pozycji)
         currentLine = L.polyline([userCoords, endPoint], { 
             color: '#00c853', 
-            weight: 6, 
+            weight: 5, 
             dashArray: '8, 8' 
         }).addTo(map);
 
@@ -478,29 +434,17 @@ let currentHeading = 0; // Zmienna do wygładzania ruchu strzałki
     
     function toggleFullscreen() {
         const mapElement = document.getElementById('map');
-        
         if (!document.fullscreenElement) {
-            if (mapElement.requestFullscreen) {
-                mapElement.requestFullscreen();
-            } else if (mapElement.webkitRequestFullscreen) { /* Safari / iOS */
-                mapElement.webkitRequestFullscreen();
-            }
+            if (mapElement.requestFullscreen) mapElement.requestFullscreen();
+            else if (mapElement.webkitRequestFullscreen) mapElement.webkitRequestFullscreen();
         } else {
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-            } else if (document.webkitExitFullscreen) {
-                document.webkitExitFullscreen();
-            }
+            if (document.exitFullscreen) document.exitFullscreen();
+            else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
         }
     }
 
-    // Automatyczna poprawka rozmiaru mapy Leaflet po zmianie trybu ekranu
-    document.addEventListener("fullscreenchange", () => {
-        setTimeout(() => { map.invalidateSize(); }, 200);
-    });
-    document.addEventListener("webkitfullscreenchange", () => {
-        setTimeout(() => { map.invalidateSize(); }, 200);
-    });
+    document.addEventListener("fullscreenchange", () => { setTimeout(() => { map.invalidateSize(); }, 200); });
+    document.addEventListener("webkitfullscreenchange", () => { setTimeout(() => { map.invalidateSize(); }, 200); });
 </script>
 
 </body>
