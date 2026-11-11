@@ -18,20 +18,18 @@
             height: 100vh; 
         }
         
-        /* NOWY, ELEGANCKI NAGŁÓWEK */
         header { 
-            
             padding: 0 16px; 
             display: flex; 
             align-items: center; 
+            justify-content: space-between;
             height: 56px;
-      
             position: relative; 
             z-index: 1000; 
+            background: #fff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
         }
         
-       
-
         h1 { 
             font-size: 1.1rem; 
             margin: 0; 
@@ -44,11 +42,44 @@
             letter-spacing: 0.3px;
         }
 
+        .btn-compass {
+            background: #e8f0fe;
+            border: 1px solid #004ba0;
+            color: #004ba0;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 1001;
+            margin-left: auto;
+            display: none;
+        }
+
         #map { 
             height: 40%; 
             width: 100%; 
             z-index: 1; 
             border-bottom: 2px solid rgba(0,0,0,0.08); 
+        }
+
+        .btn-recenter {
+            position: fixed; 
+            top: 30%; 
+            right: 5%;
+            background: #ffffff; 
+            border: 2px solid #004ba0;
+            border-radius: 50%; 
+            width: 48px; 
+            height: 48px;
+            font-size: 1.4rem; 
+            color: #004ba0; 
+            z-index: 1000;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            cursor: pointer;
         }
         
         .list-container { 
@@ -123,23 +154,63 @@
             transform: scale(0.95);
         }
 
-        /* Dyskretny podpis na mapie */
+        .phone-heading {
+            width: 0; 
+            height: 0;
+            border-left: 9px solid transparent;
+            border-right: 9px solid transparent;
+            border-bottom: 22px solid #004ba0;
+            filter: drop-shadow(0 1px 3px rgba(0,0,0,0.4));
+        }
+
         .leaflet-control-attribution {
             font-size: 8px !important; 
             background: rgba(255, 255, 255, 0.6) !important; 
             max-width: 60%; 
             border-top-left-radius: 4px;
         }
+        
+        .btn-fullscreen {
+            position: fixed; 
+            top: calc(30% + 58px); /* tuż pod przyciskiem wyśrodkowania w nadajnikach */
+            right: 5%;
+            background: #ffffff; 
+            border: 2px solid #1a73e8; /* (lub #004ba0 w satelitach) */
+            border-radius: 50%; 
+            width: 48px; 
+            height: 48px;
+            font-size: 1.2rem; 
+            color: #1a73e8; /* (lub #004ba0 w satelitach) */
+            z-index: 1000;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: transform 0.15s, background 0.15s;
+        }
+        .btn-fullscreen:active {
+            transform: scale(0.92);
+            background: #e8f0fe;
+        }
+
+        /* Styl mapy w trybie pełnoekranowym */
+        #map:fullscreen {
+            height: 100vh !important;
+            width: 100vw !important;
+        }
     </style>
 </head>
-<body onload="initMap()">
+<body>
 
 <header>
-
     <h1>Kierunki Satelit</h1>
+    <button id="compass-btn" class="btn-compass" onclick="initCompass()">🧭 Kompas</button>
 </header>
 
 <div id="map"></div>
+<button class="btn-recenter" title="Wycentruj na mojej pozycji" onclick="wycentrujMape()">⌖</button>
+<button class="btn-fullscreen" title="Pełny ekran" onclick="toggleFullscreen()">⛶</button>
 
 <div class="list-container" id="satList">
     <div style="padding: 30px; text-align: center; color: #666; font-size: 0.95rem;">
@@ -148,7 +219,7 @@
 </div>
 
 <script>
-    let map, userMarker, currentLine;
+    let map, userMarker, headingMarker, currentLine;
     let userCoords = null;
 
     const satellites = [
@@ -159,10 +230,20 @@
         { name: "Hispasat 30°W", lon: -30.0 }
     ];
 
+    window.addEventListener('load', () => {
+        initMap();
+        setupCompass();
+    });
+
     function initMap() {
         const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '© OpenStreetMap'
+        });
+
+        const topoMap = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+            maxZoom: 17,
+            attribution: '© OpenTopoMap (CC-BY-SA)'
         });
 
         const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
@@ -178,29 +259,87 @@
 
         const baseMaps = {
             "Satelita": satellite,
+            "Topografia": topoMap,
             "Mapa": osm
         };
         L.control.layers(baseMaps, null, { position: 'topright' }).addTo(map);
 
         if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(position => {
+            navigator.geolocation.watchPosition(position => {
                 userCoords = [position.coords.latitude, position.coords.longitude];
                 
-                map.setView(userCoords, 17);
-                
-                if (userMarker) map.removeLayer(userMarker);
-                userMarker = L.circleMarker(userCoords, {
-                    color: '#ffffff',
-                    fillColor: '#004ba0',
-                    fillOpacity: 1,
-                    weight: 3,
-                    radius: 9
-                }).addTo(map).bindPopup("Twoja pozycja");
+                if (!userMarker) {
+                    map.setView(userCoords, 16);
+                    userMarker = L.circleMarker(userCoords, {
+                        color: '#ffffff',
+                        fillColor: '#004ba0',
+                        fillOpacity: 1,
+                        weight: 3,
+                        radius: 9
+                    }).addTo(map).bindPopup("Twoja pozycja");
+
+                    const headingIcon = L.divIcon({
+                        className: 'phone-heading-wrapper',
+                        html: '<div class="phone-heading" id="phone-arrow"></div>',
+                        iconSize: [20, 22],
+                        iconAnchor: [10, 11]
+                    });
+                    headingMarker = L.marker(userCoords, { icon: headingIcon }).addTo(map);
+                } else {
+                    userMarker.setLatLng(userCoords);
+                    headingMarker.setLatLng(userCoords);
+                }
                 
                 displaySatellites();
             }, () => {
                 document.getElementById('satList').innerHTML = "<p style='text-align:center; padding:20px; color:#d93025; font-weight:bold;'>Błąd GPS. Włącz lokalizację w telefonie.</p>";
             }, { enableHighAccuracy: true });
+        }
+    }
+
+    // Obsługa kompasu
+    function setupCompass() {
+        if (window.DeviceOrientationEvent) {
+            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                document.getElementById('compass-btn').style.display = 'block';
+            } else {
+                startListeningCompass();
+            }
+        }
+    }
+
+    function initCompass() {
+        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+            DeviceOrientationEvent.requestPermission().then(response => {
+                if (response === 'granted') {
+                    startListeningCompass();
+                    document.getElementById('compass-btn').style.display = 'none';
+                }
+            }).catch(console.error);
+        }
+    }
+
+    function startListeningCompass() {
+        window.addEventListener('deviceorientationabsolute', handleOrientation, true);
+        window.addEventListener('deviceorientation', handleOrientation, true);
+    }
+
+    function handleOrientation(e) {
+        let heading = e.webkitCompassHeading || e.alpha;
+        if (heading !== null && heading !== undefined) {
+            if (!e.webkitCompassHeading && e.alpha) {
+                heading = 360 - e.alpha;
+            }
+            const arrow = document.getElementById('phone-arrow');
+            if (arrow) {
+                arrow.style.transform = `rotate(${heading}deg)`;
+            }
+        }
+    }
+
+    function wycentrujMape() {
+        if (userCoords && map) {
+            map.setView(userCoords, 16, { animate: true });
         }
     }
 
@@ -247,10 +386,9 @@
             dashArray: '8, 8' 
         }).addTo(map);
 
-        map.setView(userCoords, 17, { animate: true });
+        map.setView(userCoords, 16, { animate: true });
     }
 
-    // Obliczenia trygonometryczne
     function calculateAzimuth(lat, lon, satLon) {
         const phi = lat * Math.PI / 180;
         const dL = (lon - satLon) * Math.PI / 180;
@@ -268,6 +406,32 @@
         const el = Math.atan2(num, den);
         return Math.round(el * 180 / Math.PI);
     }
+    
+    function toggleFullscreen() {
+        const mapElement = document.getElementById('map');
+        
+        if (!document.fullscreenElement) {
+            if (mapElement.requestFullscreen) {
+                mapElement.requestFullscreen();
+            } else if (mapElement.webkitRequestFullscreen) { /* Safari / iOS */
+                mapElement.webkitRequestFullscreen();
+            }
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            }
+        }
+    }
+
+    // Automatyczna poprawka rozmiaru mapy Leaflet po zmianie trybu ekranu
+    document.addEventListener("fullscreenchange", () => {
+        setTimeout(() => { map.invalidateSize(); }, 200);
+    });
+    document.addEventListener("webkitfullscreenchange", () => {
+        setTimeout(() => { map.invalidateSize(); }, 200);
+    });
 </script>
 
 </body>

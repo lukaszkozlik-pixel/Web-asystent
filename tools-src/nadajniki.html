@@ -18,19 +18,17 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
-        /* NOWY, ELEGANCKI NAGŁÓWEK */
         header { 
-            
-           
             padding: 0 16px; 
             display: flex; 
             align-items: center; 
+            justify-content: space-between;
             height: 56px;
-           
             position: relative;
             z-index: 1000; 
+            background: #fff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
         }
-        
 
         h1 { 
             font-size: 1.1rem; 
@@ -44,7 +42,20 @@
             letter-spacing: 0.3px;
         }
 
-        /* MAPA I KONTROLKI */
+        /* Przycisk aktywacji kompasu dla iOS */
+        .btn-compass {
+            background: #e8f0fe;
+            border: 1px solid #1a73e8;
+            color: #1a73e8;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 1001;
+            margin-left: auto;
+        }
+
         #map { 
             height: 42%; 
             width: 100%; 
@@ -54,29 +65,27 @@
 
         .btn-recenter {
             position: fixed; 
-            top: 40%; 
-            right: 14px;
+            top: 30%; 
+            right: 5%;
             background: #ffffff; 
-            border: 2px solid #1a73e8;
+            border: 2px solid #004ba0;
             border-radius: 50%; 
             width: 48px; 
             height: 48px;
             font-size: 1.4rem; 
-            color: #1a73e8; 
+            color: #004ba0; 
             z-index: 1000;
             display: flex; 
             align-items: center; 
             justify-content: center;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
             cursor: pointer;
-            transition: transform 0.15s, background 0.15s;
         }
         .btn-recenter:active {
             transform: scale(0.92);
             background: #e8f0fe;
         }
 
-        /* LISTA NADAJNIKÓW */
         .list-container { 
             flex: 1; 
             overflow-y: auto; 
@@ -140,7 +149,6 @@
             font-weight: 500;
         }
 
-        /* IKONA KIERUNKU TELEFONU (KOMPAS) */
         .phone-heading {
             width: 0; 
             height: 0;
@@ -150,7 +158,6 @@
             filter: drop-shadow(0 1px 3px rgba(0,0,0,0.4));
         }
 
-        /* KONTROLKI LEAFLET */
         .leaflet-control-layers {
             margin-top: 10px !important;
             margin-right: 10px !important;
@@ -169,17 +176,48 @@
             max-width: 60%; 
             border-top-left-radius: 4px;
         }
+        
+        .btn-fullscreen {
+            position: fixed; 
+            top: calc(30% + 58px); /* tuż pod przyciskiem wyśrodkowania w nadajnikach */
+            right: 5%;
+            background: #ffffff; 
+            border: 2px solid #1a73e8; /* (lub #004ba0 w satelitach) */
+            border-radius: 50%; 
+            width: 48px; 
+            height: 48px;
+            font-size: 1.2rem; 
+            color: #1a73e8; /* (lub #004ba0 w satelitach) */
+            z-index: 1000;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: transform 0.15s, background 0.15s;
+        }
+        .btn-fullscreen:active {
+            transform: scale(0.92);
+            background: #e8f0fe;
+        }
+
+        /* Styl mapy w trybie pełnoekranowym */
+        #map:fullscreen {
+            height: 100vh !important;
+            width: 100vw !important;
+        }
     </style>
 </head>
 <body>
 
     <header>
-        
         <h1>Kierunki DVB-T</h1>
+        <button id="compass-btn" class="btn-compass" onclick="initCompass()">🧭 Kompas</button>
     </header>
 
     <div id="map"></div>
     <button class="btn-recenter" title="Wycentruj na mojej pozycji" onclick="wycentrujMape()">⌖</button>
+    <button class="btn-fullscreen" title="Pełny ekran" onclick="toggleFullscreen()">⛶</button>
 
     <div class="list-container" id="transmitter-list">
         <div style="padding: 30px; text-align: center; color: #666; font-size: 0.95rem;">
@@ -201,23 +239,31 @@
 
     window.addEventListener('load', () => {
         updateLocation();
+        setupCompass();
     });
 
     function initMap(lat, lon) {
-        map = L.map('map', { zoomControl: false }).setView([lat, lon], 16);
+        map = L.map('map', { zoomControl: false }).setView([lat, lon], 15);
 
+        // Darmowe warstwy map
         const streetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap'
+        });
+
+        const topoMap = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+            maxZoom: 17,
+            attribution: '© OpenTopoMap (CC-BY-SA)'
         });
 
         const satMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
             attribution: 'Esri Satellite'
         });
 
-        satMap.addTo(map); // Domyślnie tryb satelitarny
+        satMap.addTo(map); // Domyślnie satelita
 
         const baseMaps = {
             "Satelita": satMap,
+            "Topografia": topoMap,
             "Mapa": streetMap
         };
         L.control.layers(baseMaps, null, { position: 'topright' }).addTo(map);
@@ -240,12 +286,6 @@
     }
 
     function updateLocation() {
-        const gpsOptions = {
-            enableHighAccuracy: true,
-            timeout: 12000,
-            maximumAge: 0
-        };
-
         navigator.geolocation.watchPosition(pos => {
             const { latitude, longitude } = pos.coords;
             userCoords = [latitude, longitude];
@@ -261,19 +301,58 @@
             console.error("Błąd GPS:", err);
             document.getElementById("transmitter-list").innerHTML = 
                 `<div style="padding:20px; text-align:center; color:#d93025; font-weight:bold;">
-                    ⚠️ Brak sygnału GPS (${err.message}).<br><small style="color:#666;">Włącz lokalizację w ustawieniach telefonu.</small>
+                    ⚠️ Brak sygnału GPS (${err.message}).<br><small style="color:#666;">Włącz lokalizację w ustawieniach.</small>
                  </div>`;
-        }, gpsOptions);
+        }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 });
     }
 
-    // Obsługa kompasu urządzenia
-    window.addEventListener('deviceorientationabsolute', e => {
-        let heading = e.alpha || e.webkitCompassHeading;
-        if (heading !== undefined) {
-            const arrow = document.getElementById('phone-arrow');
-            if (arrow) arrow.style.transform = `rotate(${heading}deg)`;
+    // Obsługa kompasu z uwzględnieniem iOS i Androida
+    function setupCompass() {
+        if (window.DeviceOrientationEvent) {
+            // Sprawdź czy iOS wymaga zgody
+            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                document.getElementById('compass-btn').style.display = 'block';
+            } else {
+                document.getElementById('compass-btn').style.display = 'none';
+                startListeningCompass();
+            }
+        } else {
+            document.getElementById('compass-btn').style.display = 'none';
         }
-    }, true);
+    }
+
+    function initCompass() {
+        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+            DeviceOrientationEvent.requestPermission()
+                .then(response => {
+                    if (response === 'granted') {
+                        startListeningCompass();
+                        document.getElementById('compass-btn').style.display = 'none';
+                    } else {
+                        alert("Brak zgody na dostęp do czujnika kompasu.");
+                    }
+                }).catch(console.error);
+        }
+    }
+
+    function startListeningCompass() {
+        window.addEventListener('deviceorientationabsolute', handleOrientation, true);
+        window.addEventListener('deviceorientation', handleOrientation, true);
+    }
+
+    function handleOrientation(e) {
+        let heading = e.webkitCompassHeading || e.alpha;
+        if (heading !== null && heading !== undefined) {
+            // Jeśli event używa alpha (Android), trzeba odwrócić lub dostosować, zależnie od urządzenia
+            if (!e.webkitCompassHeading && e.alpha) {
+                heading = 360 - e.alpha; 
+            }
+            const arrow = document.getElementById('phone-arrow');
+            if (arrow) {
+                arrow.style.transform = `rotate(${heading}deg)`;
+            }
+        }
+    }
 
     function wycentrujMape() {
         if (userCoords && map) {
@@ -342,6 +421,32 @@
         const y = Math.sin(dl)*Math.cos(l2), x = Math.cos(l1)*Math.sin(l2)-Math.sin(l1)*Math.cos(l2)*Math.cos(dl);
         return Math.round((Math.atan2(y, x)*180/Math.PI + 360) % 360);
     }
+    
+    function toggleFullscreen() {
+        const mapElement = document.getElementById('map');
+        
+        if (!document.fullscreenElement) {
+            if (mapElement.requestFullscreen) {
+                mapElement.requestFullscreen();
+            } else if (mapElement.webkitRequestFullscreen) { /* Safari / iOS */
+                mapElement.webkitRequestFullscreen();
+            }
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            }
+        }
+    }
+
+    // Automatyczna poprawka rozmiaru mapy Leaflet po zmianie trybu ekranu
+    document.addEventListener("fullscreenchange", () => {
+        setTimeout(() => { map.invalidateSize(); }, 200);
+    });
+    document.addEventListener("webkitfullscreenchange", () => {
+        setTimeout(() => { map.invalidateSize(); }, 200);
+    });
 </script>
 </body>
 </html>
