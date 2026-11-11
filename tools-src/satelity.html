@@ -336,6 +336,14 @@
                 heading = 360 - e.alpha; 
             }
 
+            // --- KOREKTA KALIBRACJI KOMPASU ---
+            // Jeśli igła jest odchylona (np. wskazuje godzinę 4-5 zamiast północy),
+            // dodajemy lub odejmujemy stały offset (np. -135 lub +135 stopni).
+            // Możesz w razie potrzeby zmienić tę wartość (np. na -90, -135, lub +135).
+            const OFFSET = -135; // Skoryguj tę wartość w zależności od testów w terenie
+            heading = (heading + OFFSET + 360) % 360;
+
+            // --- FILTR WYGŁADZAJĄCY ---
             let diff = heading - currentHeading;
             if (diff > 180) diff -= 360;
             if (diff < -180) diff += 360;
