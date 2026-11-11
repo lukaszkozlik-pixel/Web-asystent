@@ -199,6 +199,23 @@
             height: 100vh !important;
             width: 100vw !important;
         }
+
+        /* DUŻA, WYRAŹNA IGŁA KOMPASU (5px szerokości, ~50px długości) */
+        .phone-heading {
+            width: 8px;                    /* Szerokość podstawy igły */
+            height: 50px;                  /* Długość całej igły */
+            background: linear-gradient(to bottom, #ff3d00 50%, #2979ff 50%); /* Dwukolorowa: czerwona północ, niebieska południe */
+            border-radius: 4px;            /* Zaokrąglone rogi */
+            box-shadow: 0 0 6px rgba(0, 0, 0, 0.7); /* Wyraźny cień ułatwiający widoczność na mapie */
+            transform-origin: 50% 50%;     /* Obrót dokładnie względem środka */
+            transition: transform 0.1s ease-out; /* Płynne wygładzenie ruchu */
+        }
+        
+        .phone-heading-wrapper {
+            /* Kontener centrujący marker w punkcie GPS użytkownika */
+            margin-left: -4px;
+            margin-top: -25px;
+        }
     </style>
 </head>
 <body>
@@ -363,28 +380,28 @@ window.addEventListener('load', () => {
         }
     }
 
+let currentHeading = 0; // Zmienna do wygładzania ruchu strzałki
+
     function handleOrientation(e) {
         let heading = e.webkitCompassHeading || e.alpha;
         if (heading !== null && heading !== undefined) {
             if (!e.webkitCompassHeading && e.alpha) {
                 heading = 360 - e.alpha; 
             }
-            const arrow = document.getElementById('phone-arrow');
-            if (arrow) {
-                arrow.style.transform = `rotate(${heading}deg)`;
-            }
-        }
-    }
 
-    function handleOrientation(e) {
-        let heading = e.webkitCompassHeading || e.alpha;
-        if (heading !== null && heading !== undefined) {
-            if (!e.webkitCompassHeading && e.alpha) {
-                heading = 360 - e.alpha;
-            }
+            // --- FILTR WYGŁADZAJĄCY (niweluje skoki o 90/180 stopni) ---
+            // Obliczamy najkrótszą drogę obrotu, aby uniknąć przeskoku przez 0/360 stopni
+            let diff = heading - currentHeading;
+            if (diff > 180) diff -= 360;
+            if (diff < -180) diff += 360;
+            
+            // Współczynnik wygładzania (im mniejsza wartość, tym bardziej płynny, ale wolniejszy ruch)
+            currentHeading += diff * 0.2; 
+            currentHeading = (currentHeading + 360) % 360;
+
             const arrow = document.getElementById('phone-arrow');
             if (arrow) {
-                arrow.style.transform = `rotate(${heading}deg)`;
+                arrow.style.transform = `rotate(${currentHeading}deg)`;
             }
         }
     }
