@@ -207,21 +207,22 @@
             width: 100vw !important;
         }
 
-        /* DUŻA, WYRAŹNA IGŁA KOMPASU (5px szerokości, ~50px długości) */
+/* PISTACJOWA, WYRAŹNA IGŁA KOMPASU (3px szerokości, 150px długości) */
         .phone-heading {
-            width: 8px;                    /* Szerokość podstawy igły */
-            height: 50px;                  /* Długość całej igły */
-            background: linear-gradient(to bottom, #ff3d00 50%, #2979ff 50%); /* Dwukolorowa: czerwona północ, niebieska południe */
-            border-radius: 4px;            /* Zaokrąglone rogi */
+            width: 3px;                    /* Odchudzenie linii do 3px */
+            height: 150px;                 /* Wydłużenie linii do 150px */
+            background-color: #98fb98;     /* Jaskrawy, dobrze widoczny pistacjowy kolor */
+            border: 1px solid rgba(0, 0, 0, 0.4); /* Cienka obwódka dla lepszego kontrastu w słońcu */
+            border-radius: 2px;            
             box-shadow: 0 0 6px rgba(0, 0, 0, 0.7); /* Wyraźny cień ułatwiający widoczność na mapie */
-            transform-origin: 50% 50%;     /* Obrót dokładnie względem środka */
+            transform-origin: 50% 50%;     /* Obrót dokładnie względem środka igły */
             transition: transform 0.1s ease-out; /* Płynne wygładzenie ruchu */
         }
         
         .phone-heading-wrapper {
-            /* Kontener centrujący marker w punkcie GPS użytkownika */
-            margin-left: -4px;
-            margin-top: -25px;
+            /* Kontener centrujący długą igłę w punkcie GPS użytkownika */
+            margin-left: -1.5px;
+            margin-top: -75px;             /* Połowa długości (150px / 2), aby środek bazy był na markerze */
         }
     </style>
 </head>
