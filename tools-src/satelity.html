@@ -298,30 +298,82 @@
     }
 
     // Obsługa kompasu
-    function setupCompass() {
+window.addEventListener('load', () => {
+        updateLocation();
+        // Automatyczna próba uruchomienia kompasu przy starcie
+        tryStartCompass();
+    });
+
+    function tryStartCompass() {
+        // Dla przeglądarek opartych na Chromium (Vanadium / Android)
+        if ('AbsoluteOrientationSensor' in window) {
+            try {
+                const sensor = new AbsoluteOrientationSensor({ frequency: 60 });
+                sensor.addEventListener('reading', () => {
+                    // Kwaternion na kąt azymutu (Heading)
+                    const q = sensor.quaternion;
+                    const heading = Math.atan2(2 * (q[0] * q[1] + q[2] * q[3]), 1 - 2 * (q[1] * q[1] + q[2] * q[2])) * (180 / Math.PI);
+                    const normalizedHeading = (heading + 360) % 360;
+                    
+                    const arrow = document.getElementById('phone-arrow');
+                    if (arrow) arrow.style.transform = `rotate(${normalizedHeading}deg)`;
+                });
+                sensor.start();
+                document.getElementById('compass-btn').style.display = 'none'; // Ukryj przycisk, jeśli sensor ruszył
+                return;
+            } catch (err) {
+                console.log("AbsoluteOrientationSensor niedostępny, próbuję DeviceOrientation:", err);
+            }
+        }
+
+        // Standardowy fallback dla DeviceOrientation
         if (window.DeviceOrientationEvent) {
             if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                // iOS
                 document.getElementById('compass-btn').style.display = 'block';
             } else {
-                startListeningCompass();
+                // Android / Vanadium
+                window.addEventListener('deviceorientationabsolute', handleOrientation, true);
+                window.addEventListener('deviceorientation', handleOrientation, true);
+                document.getElementById('compass-btn').style.display = 'none';
             }
+        } else {
+            alert("Twoje urządzenie nie obsługuje czujnika kompasu.");
         }
     }
 
+    // Funkcja wywoływana po kliknięciu przycisku "Kompas" przez użytkownika
     function initCompass() {
         if (typeof DeviceOrientationEvent.requestPermission === 'function') {
             DeviceOrientationEvent.requestPermission().then(response => {
                 if (response === 'granted') {
-                    startListeningCompass();
+                    window.addEventListener('deviceorientation', handleOrientation, true);
                     document.getElementById('compass-btn').style.display = 'none';
+                } else {
+                    alert("Brak zgody na dostęp do czujnika.");
                 }
-            }).catch(console.error);
+            }).catch(err => {
+                alert("Błąd żądania kompasu: " + err.message);
+            });
+        } else {
+            // Wymuszenie nasłuchu bezpośrednio po kliknięciu w Vanadium
+            window.addEventListener('deviceorientationabsolute', handleOrientation, true);
+            window.addEventListener('deviceorientation', handleOrientation, true);
+            document.getElementById('compass-btn').style.display = 'none';
         }
     }
 
-    function startListeningCompass() {
-        window.addEventListener('deviceorientationabsolute', handleOrientation, true);
-        window.addEventListener('deviceorientation', handleOrientation, true);
+    function handleOrientation(e) {
+        let heading = e.webkitCompassHeading || e.alpha;
+        if (heading !== null && heading !== undefined) {
+            if (!e.webkitCompassHeading && e.alpha) {
+                heading = 360 - e.alpha; 
+            }
+            const arrow = document.getElementById('phone-arrow');
+            if (arrow) {
+                arrow.style.transform = `rotate(${heading}deg)`;
+            }
+        }
     }
 
     function handleOrientation(e) {
