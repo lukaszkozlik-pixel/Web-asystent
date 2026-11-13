@@ -350,6 +350,30 @@ function wybierzDzien(dataStr) {
     renderujWizytyDnia();
 }
 
+function toggleMenuAkcji(index, event) {
+    event.stopPropagation();
+    
+    // Zamknij wszystkie inne otwarte menu rozwijane na liście
+    document.querySelectorAll('[id^="menu-akcji-"]').forEach(el => {
+        if (el.id !== `menu-akcji-${index}`) {
+            el.style.display = 'none';
+        }
+    });
+
+    const menu = document.getElementById(`menu-akcji-${index}`);
+    if (menu) {
+        menu.style.display = (menu.style.display === 'flex') ? 'none' : 'flex';
+    }
+}
+
+// Opcjonalnie: kliknięcie gdziekolwiek poza menu na stronie zamyka otwarte listy
+document.addEventListener('click', () => {
+    document.querySelectorAll('[id^="menu-akcji-"]').forEach(el => {
+        el.style.display = 'none';
+    });
+});
+
+
 function renderujWizytyDnia() {
     const kontener = document.getElementById('lista-wizyt-dnia');
     const tytulDnia = document.getElementById('selected-day-title');
@@ -371,26 +395,148 @@ function renderujWizytyDnia() {
         const czasInfo = w.calyDzien ? '📅 Cały dzień' : `🕒 ${w.godzina}`;
         
         const adresHTML = w.adres 
-            ? `📍 <a href="geo:0,0?q=${encodeURIComponent(w.adres)}" style="color: #2980b9; text-decoration: underline; font-weight: 500;">${w.adres}</a><br>` 
+            ? `<div class="visit-address-row">📍 <a href="geo:0,0?q=${encodeURIComponent(w.adres)}" style="color: #2980b9; text-decoration: underline; font-weight: 500;" onclick="event.stopPropagation()">${w.adres}</a></div>` 
+            : '';
+
+        const opisHTML = w.opis 
+            ? `<div class="visit-desc-row">${w.opis}</div>` 
             : '';
 
         kontener.innerHTML += `
-            <div class="visit-item ${isPriv ? 'prywatny' : ''}" style="margin-top: 8px;">
-                <div class="visit-info">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                        <strong style="font-size: 1.1rem; color: ${isPriv ? '#2980b9' : '#d35400'};">${czasInfo}</strong>
-                        <span style="font-weight: bold; font-size: 1.05rem; color: #2c3e50;">📞 <a href="tel:${w.klient}" style="color: #2980b9; text-decoration: underline;">${w.klient}</a></span>
+            <div class="visit-item ${isPriv ? 'prywatny' : ''}" style="position: relative;">
+                <div class="visit-info" style="margin-bottom: 0;">
+                    <!-- 1. Wiersz: Godzina po lewej, przycisk menu po prawej -->
+                    <div class="visit-header-row">
+                        <strong style="font-size: 1.15rem; color: ${isPriv ? '#2980b9' : '#d35400'};">${czasInfo}</strong>
+                        <button class="visit-menu-btn" onclick="toggleMenuAkcji(${globalIndex}, event)">⋮</button>
                     </div>
+
+                    <!-- 2. Wiersz: Numer telefonu pod spodem -->
+                    <div class="visit-phone-row">
+                        📞 <a href="tel:${w.klient}" style="color: #2980b9; text-decoration: underline;" onclick="event.stopPropagation()">${w.klient}</a>
+                    </div>
+
+                    <!-- 3. Wiersz: Adres -->
                     ${adresHTML}
-                    ${w.opis ? `<small style="font-size: 0.9rem;">${w.opis}</small>` : ''}
+
+                    <!-- 4. Wiersz: Opis z zachowaniem łamania linii -->
+                    ${opisHTML}
                 </div>
-                <div class="event-actions" style="margin-top: 8px;">
-                    <button class="btn-edit" onclick="edytujWizyte(${globalIndex})">Edytuj</button>
-                    <button class="btn-delete" onclick="usunWizyte(${globalIndex})">Usuń</button>
+
+                <!-- ROZWIJANE MENU Z 4 AKCJAMI -->
+                <div id="menu-akcji-${globalIndex}" class="visit-dropdown-menu" style="display: none;">
+                    <button style="background-color: #f39c12; color: white;" onclick="edytujWizyte(${globalIndex})">✏️ Edytuj wizytę</button>
+                    <button style="background-color: #16a085; color: white;" onclick="kopiujWizyte(${globalIndex})">📋 Kopiuj wizytę</button>
+                    <button style="background-color: #8e44ad; color: white;" onclick="przeniesDoDziennikaZwizyty(${globalIndex})">📋 Przenieś do Dziennika</button>
+                    <button style="background-color: #e74c3c; color: white;" onclick="usunWizyte(${globalIndex})">🗑️ Usuń wizytę</button>
                 </div>
             </div>
         `;
     });
+}
+
+function przeniesDoDziennikaZwizyty(index) {
+    const w = wizyty[index];
+    if (!w) return;
+
+    // Najpierw zmieniamy zakładkę, żeby górny pasek poprawnie się podświetlił
+    zmienZakladka('dziennik');
+
+    // Przygotowanie formularza nowego wpisu w dzienniku
+    document.getElementById('edit-index').value = "-1";
+    document.getElementById('form-title').innerText = "Nowy wpis (z wizyty)";
+    
+    document.getElementById('data').value = w.data || wybranaData;
+    document.getElementById('adres').value = w.adres || "";
+    document.getElementById('przychod').value = "0,00";
+    document.getElementById('koszt').value = "0,00";
+    
+    let opisTekst = "";
+    if (w.klient) opisTekst += `Tel/Klient: ${w.klient}. `;
+    if (w.opis) opisTekst += w.opis;
+    document.getElementById('opis').innerHTML = opisTekst;
+
+    // Przechodzimy do widoku formularza
+    pokazWidok('widok-formularza');
+}
+
+// --- OBSŁUGA PRZYTRZYMANIA KARTY WIZYTY ---
+document.addEventListener("DOMContentLoaded", () => {
+    // ... (Twoje dotychczasowe inicjalizacje)
+    inicjalizujGestWizyt();
+});
+
+function inicjalizujGestWizyt() {
+    const kontener = document.getElementById('lista-wizyt-dnia');
+    if (!kontener) return;
+
+    let pressTimer = null;
+
+    kontener.addEventListener('touchstart', (e) => {
+        const card = e.target.closest('.visit-item');
+        if (!card) return;
+        const index = parseInt(card.getAttribute('data-index'));
+
+        pressTimer = setTimeout(() => {
+            if (navigator.vibrate) navigator.vibrate(50);
+            pokazMenuAkcjiWizyty(index);
+        }, 600); // 0.6 sekundy przytrzymania
+    }, {passive: true});
+
+    kontener.addEventListener('touchend', () => clearTimeout(pressTimer));
+    kontener.addEventListener('touchmove', () => clearTimeout(pressTimer));
+
+    // Obsługa myszy dla testów na PC
+    kontener.addEventListener('mousedown', (e) => {
+        const card = e.target.closest('.visit-item');
+        if (!card || e.target.tagName === 'A' || e.target.tagName === 'BUTTON') return;
+        const index = parseInt(card.getAttribute('data-index'));
+
+        pressTimer = setTimeout(() => {
+            pokazMenuAkcjiWizyty(index);
+        }, 600);
+    });
+
+    kontener.addEventListener('mouseup', () => clearTimeout(pressTimer));
+    kontener.addEventListener('mouseleave', () => clearTimeout(pressTimer));
+}
+
+function pokazMenuAkcjiWizyty(index) {
+    const w = wizyty[index];
+    if (!w) return;
+
+    const wybor = prompt(`Wizyta: ${w.klient || 'Bez nazwy'} (${w.data})\nWybierz akcję:\n\n1 - Przenieś do Dziennika\n2 - Kopiuj wizytę`, "1");
+
+    if (wybor === "1") {
+        przeniesDoDziennikaZwizyty(index);
+    } else if (wybor === "2") {
+        kopiujWizyte(index);
+    }
+}
+
+function kopiujWizyte(index) {
+    const w = wizyty[index];
+    if (!w) return;
+
+    // Ustawiamy formularz w tryb "Nowa wizyta" (edit-index = -1)
+    document.getElementById('edit-visit-index').value = "-1";
+    document.getElementById('visit-form-title').innerText = "Kopiuj wizytę";
+    
+    // Wypełniamy pola danymi ze skopiowanej wizyty
+    document.getElementById('visit-type').value = w.typ || 'sluzbowy';
+    document.getElementById('visit-all-day').checked = w.calyDzien || false;
+    document.getElementById('container-godzina').style.display = w.calyDzien ? 'none' : 'block';
+    document.getElementById('visit-time').value = w.godzina || "10:00";
+    document.getElementById('visit-client').value = w.klient || "";
+    document.getElementById('visit-address').value = w.adres || "";
+    document.getElementById('visit-desc').value = w.opis || "";
+    
+    // Datę ustawiamy domyślnie na aktualnie wybraną w kalendarzu (lub dzisiejszą), 
+    // żeby użytkownik od razu zapisał ją tam, gdzie chce, albo mógł ją zmienić w polu date.
+    document.getElementById('visit-date').value = wybranaData || new Date().toISOString().split('T')[0];
+
+    // Otwieramy formularz wizyty
+    pokazWidok('widok-formularza-wizyty');
 }
 
 function toggleCałyDzień() {
