@@ -435,6 +435,26 @@ function renderujWizytyDnia() {
     });
 }
 
+// --- AUTOMATYCZNE CZYSZCZENIE POLA TELEFONU ---
+document.addEventListener("DOMContentLoaded", () => {
+    const inputTelefon = document.getElementById('visit-client');
+    if (inputTelefon) {
+        // Gdy klikniesz w pole i jest tam dokładnie "Brak numeru" -> czyścimy
+        inputTelefon.addEventListener('focus', () => {
+            if (inputTelefon.value === "Brak numeru") {
+                inputTelefon.value = "";
+            }
+        });
+
+        // Jeśli wyjdziesz z pola i nic nie wpiszesz -> przywracamy "Brak numeru"
+        inputTelefon.addEventListener('blur', () => {
+            if (inputTelefon.value.trim() === "") {
+                inputTelefon.value = "Brak numeru";
+            }
+        });
+    }
+});
+
 function przeniesDoDziennikaZwizyty(index) {
     const w = wizyty[index];
     if (!w) return;
@@ -450,11 +470,6 @@ function przeniesDoDziennikaZwizyty(index) {
     document.getElementById('adres').value = w.adres || "";
     document.getElementById('przychod').value = "0,00";
     document.getElementById('koszt').value = "0,00";
-    
-    let opisTekst = "";
-    if (w.klient) opisTekst += `Tel/Klient: ${w.klient}. `;
-    if (w.opis) opisTekst += w.opis;
-    document.getElementById('opis').innerHTML = opisTekst;
 
     // Przechodzimy do widoku formularza
     pokazWidok('widok-formularza');
