@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Przelicznik dBµV / dBm</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            margin: 0; 
+            background: #f0f2f5; 
+            color: #2c3e50; 
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* NOWY, ELEGANCKI NAGŁÓWEK */
+        header { 
+        
+            padding: 0 16px; 
+            display: flex; 
+            align-items: center; 
+            height: 56px;
+            
+            position: relative; 
+            z-index: 1000; 
+        }
+        
+
+
+        h1 { 
+            font-size: 1.1rem; 
+            margin: 0; 
+            position: absolute; 
+            left: 0; 
+            right: 0; 
+            text-align: center; 
+            pointer-events: none; 
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .container { 
+            padding: 20px; 
+            max-width: 400px; 
+            margin: auto; 
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .card { 
+            background: #ffffff; 
+            padding: 25px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06); 
+            text-align: center; 
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .input-group { 
+            margin-bottom: 20px; 
+        }
+        
+        label { 
+            display: block; 
+            margin-bottom: 8px; 
+            font-weight: 600; 
+            color: #555; 
+            font-size: 0.95rem;
+        }
+        
+        input { 
+            width: 100%; 
+            padding: 14px; 
+            border: 2px solid #e0e0e0; 
+            border-radius: 8px;
+            font-size: 1.4rem; 
+            text-align: center; 
+            box-sizing: border-box; 
+            transition: 0.2s; 
+            background: #fff; 
+            color: #2c3e50;
+            font-weight: bold;
+        }
+        
+        input:focus { 
+            border-color: #455a64; 
+            outline: none; 
+            background: #f8f9fa; 
+        }
+
+        .arrow { 
+            font-size: 1.8rem; 
+            color: #95a5a6; 
+            margin: 5px 0 15px 0; 
+        }
+        
+        .info-table { 
+            margin-top: 25px; 
+            width: 100%; 
+            border-collapse: collapse; 
+            font-size: 0.88rem; 
+            color: #2c3e50;
+            text-align: left;
+        }
+        
+        .info-table tr {
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .info-table tr:last-child {
+            border-bottom: none;
+        }
+
+        .info-table td { 
+            padding: 8px 4px; 
+        }
+        
+        .info-table td:nth-child(2), .info-table td:nth-child(3) {
+            text-align: right;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+
+    <h1>Przelicznik Jednostek 75 Ω</h1>
+</header>
+
+<div class="container">
+    <div class="card">
+        <div class="input-group">
+            <label>Napięcie (dBµV)</label>
+            <input type="number" id="dbuv" placeholder="np. 60" oninput="convert('dbuv')">
+        </div>
+
+        <div class="arrow">⇅</div>
+
+        <div class="input-group">
+            <label>Moc (dBm)</label>
+            <input type="number" id="dbm" placeholder="np. -48" oninput="convert('dbm')">
+        </div>
+
+        <table class="info-table">
+            <tr><td><b>DVB-T2 min:</b></td><td>48 dBµV</td><td>-60 dBm</td></tr>
+            <tr><td><b>DVB-T2 max:</b></td><td>74 dBµV</td><td>-35 dBm</td></tr>
+            <tr><td><b>SAT min:</b></td><td>47 dBµV</td><td>-62 dBm</td></tr>
+            <tr><td><b>SAT max:</b></td><td>77 dBµV</td><td>-32 dBm</td></tr>
+        </table>
+    </div>
+</div>
+
+<script>
+    const OFFSET = 108.75; // Stała dla impedancji 75 Ohm
+
+    function convert(source) {
+        const dbuvInput = document.getElementById('dbuv');
+        const dbmInput = document.getElementById('dbm');
+
+        if (source === 'dbuv') {
+            const val = parseFloat(dbuvInput.value);
+            if (!isNaN(val)) {
+                dbmInput.value = (val - OFFSET).toFixed(2);
+            } else {
+                dbmInput.value = '';
+            }
+        } else {
+            const val = parseFloat(dbmInput.value);
+            if (!isNaN(val)) {
+                dbuvInput.value = (val + OFFSET).toFixed(2);
+            } else {
+                dbuvInput.value = '';
+            }
+        }
+    }
+</script>
+
+</body>
+</html>

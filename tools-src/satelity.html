@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Satelita - Kierunki</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        body { 
+            margin: 0; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            background: #f0f2f5; 
+            color: #2c3e50; 
+            display: flex; 
+            flex-direction: column; 
+            height: 100vh; 
+        }
+        
+        header { 
+            padding: 0 16px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between;
+            height: 56px;
+            position: relative; 
+            z-index: 1000; 
+            background: #fff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        
+        h1 { 
+            font-size: 1.1rem; 
+            margin: 0; 
+            position: absolute; 
+            left: 0; 
+            right: 0; 
+            text-align: center; 
+            pointer-events: none; 
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .btn-compass {
+            background: #e8f0fe;
+            border: 1px solid #004ba0;
+            color: #004ba0;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 1001;
+            margin-left: auto;
+            display: none;
+        }
+
+        #map { 
+            height: 40%; 
+            width: 100%; 
+            z-index: 1; 
+            border-bottom: 2px solid rgba(0,0,0,0.08); 
+        }
+
+        .btn-recenter {
+            position: fixed; 
+            top: 30%; 
+            right: 5%;
+            background: #ffffff; 
+            border: 2px solid #004ba0;
+            border-radius: 50%; 
+            width: 48px; 
+            height: 48px;
+            font-size: 1.4rem; 
+            color: #004ba0; 
+            z-index: 1000;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            cursor: pointer;
+        }
+        
+        .list-container { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 12px; 
+            box-sizing: border-box;
+        }
+        
+        .sat-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+        }
+
+        .sat-card:active {
+            transform: scale(0.98);
+        }
+
+        .sat-card.active { 
+            border: 2px solid #00c853; 
+            background: #f1f8e9; 
+            box-shadow: 0 4px 12px rgba(0, 200, 83, 0.15);
+        }
+
+        .sat-info { 
+            display: flex; 
+            flex-direction: column; 
+        }
+        
+        .sat-name { 
+            font-weight: 700; 
+            font-size: 1.05rem; 
+            color: #004ba0; 
+            margin-bottom: 2px;
+        }
+        
+        .sat-pos { 
+            font-size: 0.8rem; 
+            color: #656d76; 
+        }
+        
+        .sat-angles { 
+            margin-top: 6px; 
+            font-weight: 700; 
+            color: #333; 
+            font-size: 0.9rem;
+        }
+
+        .btn-line { 
+            background: #004ba0; 
+            color: white; 
+            border: none; 
+            padding: 10px 18px; 
+            border-radius: 8px; 
+            font-weight: bold; 
+            font-size: 0.8rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .btn-line:active {
+            background: #00c853; 
+            transform: scale(0.95);
+        }
+
+        .leaflet-control-attribution {
+            font-size: 8px !important; 
+            background: rgba(255, 255, 255, 0.6) !important; 
+            max-width: 60%; 
+            border-top-left-radius: 4px;
+        }
+        
+        .btn-fullscreen {
+            position: fixed; 
+            top: calc(30% + 58px);
+            right: 5%;
+            background: #ffffff; 
+            border: 2px solid #004ba0;
+            border-radius: 50%; 
+            width: 48px; 
+            height: 48px;
+            font-size: 1.2rem; 
+            color: #004ba0; 
+            z-index: 1000;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: transform 0.15s, background 0.15s;
+        }
+        .btn-fullscreen:active {
+            transform: scale(0.92);
+            background: #e8f0fe;
+        }
+
+        #map:fullscreen {
+            height: 100vh !important;
+            width: 100vw !important;
+        }
+
+        /* PISTACJOWA, WYRAŹNA IGŁA KOMPASU (3px szerokości, 150px długości) */
+        .phone-heading {
+            width: 3px;                    
+            height: 150px;                 
+            background-color: #98fb98;     
+            border: 1px solid rgba(0, 0, 0, 0.4); 
+            border-radius: 2px;            
+            box-shadow: 0 0 6px rgba(0, 0, 0, 0.7); 
+            transform-origin: 50% 50px;     /* Obrót wokół punktu GPS (w 1/3 wysokości igły) */
+            transition: transform 0.08s ease-out; 
+        }
+        
+        .phone-heading-wrapper {
+            margin-left: -1.5px;
+            margin-top: -50px;             
+        }
+        
+        /* PANEL KALIBRACJI KOMPASU */
+        .compass-calibration {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            border-bottom: 1px solid #ddd;
+            z-index: 999;
+        }
+        .compass-calibration input[type="range"] {
+            flex: 1;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Kierunki Satelit</h1>
+    <button id="compass-btn" class="btn-compass" onclick="initCompass()">🧭 Kompas</button>
+</header>
+
+<!-- Panel szybkiej korekcji kompasu -->
+    <div class="compass-calibration">
+        <span>🧭 Korekta kompasu: <b id="offset-val">0</b>°</span>
+        <input type="range" id="offsetRange" min="-180" max="180" value="0" step="5" oninput="zmienOffset(this.value)">
+        <button onclick="resetOffset()" style="background:none; border:1px solid #ccc; border-radius:4px; cursor:pointer; padding:2px 6px; font-size:0.75rem;">Reset</button>
+    </div>
+
+<div id="map"></div>
+<button class="btn-recenter" title="Wycentruj na mojej pozycji" onclick="wycentrujMape()">⌖</button>
+<button class="btn-fullscreen" title="Pełny ekran" onclick="toggleFullscreen()">⛶</button>
+
+<div class="list-container" id="satList">
+    <div style="padding: 30px; text-align: center; color: #666; font-size: 0.95rem;">
+        ⏳ Pobieram pozycję GPS...
+    </div>
+</div>
+
+<script>
+    let map, userMarker, headingMarker, currentLine;
+    let userCoords = null;
+
+    const satellites = [
+        { name: "Hotbird 13°E", lon: 13.0, lat: 0.0 }, // Satelita geostacjonarny leży nad równikiem
+        { name: "Astra 19.2°E", lon: 19.2, lat: 0.0 },
+        { name: "Astra 23.5°E", lon: 23.5, lat: 0.0 },
+        { name: "Thor 0.8°W", lon: -0.8, lat: 0.0 },
+        { name: "Hispasat 30°W", lon: -30.0, lat: 0.0 }
+    ];
+
+    window.addEventListener('load', () => {
+        initMap();
+        setupCompass();
+    });
+
+    function initMap() {
+        const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        });
+
+        const topoMap = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+            maxZoom: 17,
+            attribution: '© OpenTopoMap (CC-BY-SA)'
+        });
+
+        const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Esri Satellite'
+        });
+
+        map = L.map('map', {
+            center: [52.23, 21.01],
+            zoom: 6,
+            layers: [satellite], 
+            zoomControl: false
+        });
+
+        const baseMaps = {
+            "Satelita": satellite,
+            "Topografia": topoMap,
+            "Mapa": osm
+        };
+        L.control.layers(baseMaps, null, { position: 'topright' }).addTo(map);
+
+        if (navigator.geolocation) {
+            navigator.geolocation.watchPosition(position => {
+                userCoords = [position.coords.latitude, position.coords.longitude];
+                
+                if (!userMarker) {
+                    map.setView(userCoords, 16);
+                    userMarker = L.circleMarker(userCoords, {
+                        color: '#ffffff',
+                        fillColor: '#004ba0',
+                        fillOpacity: 1,
+                        weight: 3,
+                        radius: 9
+                    }).addTo(map).bindPopup("Twoja pozycja");
+
+                    const headingIcon = L.divIcon({
+                        className: 'phone-heading-wrapper',
+                        html: '<div class="phone-heading" id="phone-arrow"></div>',
+                        iconSize: [3, 150],
+                        iconAnchor: [1.5, 50]
+                    });
+                    headingMarker = L.marker(userCoords, { icon: headingIcon }).addTo(map);
+                } else {
+                    userMarker.setLatLng(userCoords);
+                    headingMarker.setLatLng(userCoords);
+                }
+                
+                displaySatellites();
+            }, () => {
+                document.getElementById('satList').innerHTML = "<p style='text-align:center; padding:20px; color:#d93025; font-weight:bold;'>Błąd GPS. Włącz lokalizację w telefonie.</p>";
+            }, { enableHighAccuracy: true });
+        }
+    }
+
+    // Obsługa kompasu
+    function setupCompass() {
+        if (window.DeviceOrientationEvent) {
+            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                document.getElementById('compass-btn').style.display = 'block';
+            } else {
+                window.addEventListener('deviceorientationabsolute', handleOrientation, true);
+                window.addEventListener('deviceorientation', handleOrientation, true);
+            }
+        }
+    }
+
+    function initCompass() {
+        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+            DeviceOrientationEvent.requestPermission().then(response => {
+                if (response === 'granted') {
+                    window.addEventListener('deviceorientation', handleOrientation, true);
+                    document.getElementById('compass-btn').style.display = 'none';
+                }
+            }).catch(console.error);
+        }
+    }
+
+   // Pobieranie zapisanego offsetu z pamięci przeglądarki (domyślnie 0)
+    let compassOffset = parseInt(localStorage.getItem('compass_offset') || '0');
+    
+    // Inicjalizacja suwaka przy starcie
+    window.addEventListener('DOMContentLoaded', () => {
+        const range = document.getElementById('offsetRange');
+        if (range) {
+            range.value = compassOffset;
+            document.getElementById('offset-val').innerText = compassOffset;
+        }
+    });
+
+    function zmienOffset(val) {
+        compassOffset = parseInt(val);
+        document.getElementById('offset-val').innerText = compassOffset;
+        localStorage.setItem('compass_offset', compassOffset); // Zapis do pamięci
+    }
+
+    function resetOffset() {
+        compassOffset = 0;
+        const range = document.getElementById('offsetRange');
+        if (range) range.value = 0;
+        document.getElementById('offset-val').innerText = '0';
+        localStorage.setItem('compass_offset', '0');
+    }
+
+    let currentHeading = 0;
+
+    function handleOrientation(e) {
+        let heading = e.webkitCompassHeading || e.alpha;
+        if (heading !== null && heading !== undefined) {
+            if (!e.webkitCompassHeading && e.alpha) {
+                heading = 360 - e.alpha; 
+            }
+
+            // --- UWZGLEDNIENIE RĘCZNEGO OFFSETU UŻYTKOWNIKA ---
+            heading = (heading + compassOffset + 360) % 360;
+
+            // --- FILTR WYGŁADZAJĄCY ---
+            let diff = heading - currentHeading;
+            if (diff > 180) diff -= 360;
+            if (diff < -180) diff += 360;
+            
+            currentHeading += diff * 0.25; 
+            currentHeading = (currentHeading + 360) % 360;
+
+            const arrow = document.getElementById('phone-arrow');
+            if (arrow) {
+                arrow.style.transform = `rotate(${currentHeading}deg)`;
+            }
+        }
+    }
+
+    function wycentrujMape() {
+        if (userCoords && map) {
+            map.setView(userCoords, 16, { animate: true });
+        }
+    }
+
+    function displaySatellites() {
+        const list = document.getElementById('satList');
+        list.innerHTML = "";
+
+        satellites.forEach(sat => {
+            const az = calculateAzimuth(userCoords[0], userCoords[1], sat.lon);
+            const el = calculateElevation(userCoords[0], userCoords[1], sat.lon);
+            
+            const card = document.createElement('div');
+            card.className = 'sat-card';
+            card.innerHTML = `
+                <div class="sat-info">
+                    <span class="sat-name">${sat.name}</span>
+                    <span class="sat-pos">Pozycja: ${sat.lon}°</span>
+                    <span class="sat-angles">Azymut: ${az}° | Elewacja: ${el}°</span>
+                </div>
+                <button class="btn-line" onclick="drawLine(${az}, this)">WYBIERZ</button>
+            `;
+            list.item ? list.appendChild(card) : list.append(card);
+        });
+    }
+
+    // POPRAWIONE RYSOWANIE LINII: startuje dokładnie z punktu GPS użytkownika
+    function drawLine(az, btn) {
+        if (!userCoords) return;
+
+        document.querySelectorAll('.sat-card').forEach(c => c.classList.remove('active'));
+        btn.closest('.sat-card').classList.add('active');
+
+        if (currentLine) map.removeLayer(currentLine);
+
+        // Wyznaczamy punkt docelowy w kierunku azymutu oddalony o ok. 5-10 km, żeby linia przecinała horyzont mapy
+        const angleRad = (az - 90) * Math.PI / 180;
+        const distanceKm = 10.0; 
+        const latDelta = (distanceKm / 111) * Math.sin(angleRad + Math.PI/2); // uproszczenie lokalne
+        // Dokładniejsze wyznaczenie punktu na podstawie azymutu:
+        const R = 6371; // promień Ziemi w km
+        const lat1 = userCoords[0] * Math.PI / 180;
+        const lon1 = userCoords[1] * Math.PI / 180;
+        const brng = az * Math.PI / 180;
+
+        // Formuła punktu docelowego na podstawie dystansu i azymutu
+        const dR = 5.0 / R; // 5 km długości linii na mapie
+        const lat2 = Math.asin(Math.sin(lat1) * Math.cos(dR) + Math.cos(lat1) * Math.sin(dR) * Math.cos(brng));
+        const lon2 = lon1 + Math.atan2(Math.sin(brng) * Math.sin(dR) * Math.cos(lat1), Math.cos(dR) - Math.sin(lat1) * Math.sin(lat2));
+
+        const endPoint = [lat2 * 180 / Math.PI, lon2 * 180 / Math.PI];
+
+        // Linia startuje TERAZ precyzyjnie z userCoords (Twojej pozycji)
+        currentLine = L.polyline([userCoords, endPoint], { 
+            color: '#00c853', 
+            weight: 5, 
+            dashArray: '8, 8' 
+        }).addTo(map);
+
+        map.setView(userCoords, 16, { animate: true });
+    }
+
+    function calculateAzimuth(lat, lon, satLon) {
+        const phi = lat * Math.PI / 180;
+        const dL = (lon - satLon) * Math.PI / 180;
+        const az = Math.PI + Math.atan2(Math.tan(dL), Math.sin(phi));
+        return Math.round((az * 180 / Math.PI) % 360);
+    }
+
+    function calculateElevation(lat, lon, satLon) {
+        const phi = lat * Math.PI / 180;
+        const dL = (lon - satLon) * Math.PI / 180;
+        const R = 6371; 
+        const r = 42164; 
+        const num = Math.cos(phi) * Math.cos(dL) - (R/r);
+        const den = Math.sqrt(1 - Math.pow(Math.cos(phi) * Math.cos(dL), 2));
+        const el = Math.atan2(num, den);
+        return Math.round(el * 180 / Math.PI);
+    }
+    
+    function toggleFullscreen() {
+        const mapElement = document.getElementById('map');
+        if (!document.fullscreenElement) {
+            if (mapElement.requestFullscreen) mapElement.requestFullscreen();
+            else if (mapElement.webkitRequestFullscreen) mapElement.webkitRequestFullscreen();
+        } else {
+            if (document.exitFullscreen) document.exitFullscreen();
+            else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+        }
+    }
+
+    document.addEventListener("fullscreenchange", () => { setTimeout(() => { map.invalidateSize(); }, 200); });
+    document.addEventListener("webkitfullscreenchange", () => { setTimeout(() => { map.invalidateSize(); }, 200); });
+</script>
+
+</body>
+</html>

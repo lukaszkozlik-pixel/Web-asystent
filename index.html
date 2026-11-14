@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <title>Web-Asystent</title>
+    <meta name="version" content="3.2.1">
+    <meta name="build-date" content="2026-11-09">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Górny pasek nawigacji z zakładkami -->
+    <div id="glowne-menu-zakladek" class="top-nav">
+        <button id="tab-narzedzia" onclick="zmienZakladka('narzedzia')">🧰 Narzędzia</button>
+        <button id="tab-kalendarz" class="active-tab" onclick="zmienZakladka('kalendarz')">📅 Kalendarz</button>
+        <button id="tab-dziennik" onclick="zmienZakladka('dziennik')">📋 Dziennik</button>
+        <button id="tab-notatki" onclick="zmienZakladka('notatki')">📝 Notatki</button>
+    </div>
+
+    <!-- WIDOK 0: KAFLE NARZĘDZI TECHNICZNYCH -->
+    <div id="widok-narzedzia" class="view">
+        <div class="tile-grid">
+            <div class="tile" onclick="location.href='tools-src/nadajniki.html'">
+                <span class="icon">🗼</span>
+                <span class="label">Kierunki do nadajników DVB-T</span>
+            </div>
+            <div class="tile" onclick="location.href='tools-src/bibliotekaDVBT.html'">
+                <span class="icon">📺</span>
+                <span class="label">Baza wiedzy DVB-T</span>
+            </div>
+            <div class="tile" onclick="location.href='tools-src/satelity.html'">
+                <span class="icon">📡</span>
+                <span class="label">Kalkulator azymutu SAT</span>
+            </div>
+            <div class="tile" onclick="location.href='tools-src/bibliotekaSAT.html'">
+                <span class="icon">🛰️</span>
+                <span class="label">Baza wiedzy SAT</span>
+            </div>
+            <div class="tile" onclick="location.href='tools-src/Jednostki.html'">
+                <span class="icon">↔️</span>
+                <span class="label">Przelicznik jednostek sygnału</span>
+            </div>
+            <div class="tile" onclick="location.href='tools-src/internet.html'">
+                <span class="icon">🌐</span>
+                <span class="label">Internet, kable i LTE</span>
+            </div>
+        </div>
+        <div class="swipe-hint">💡 Przesuń palcem w lewo ➡️ Kalendarz</div>
+    </div>
+
+    <!-- WIDOK 1: KALENDARZ / WIZYTY -->
+    <div id="widok-kalendarza" class="view active">
+        <div class="card" style="padding: 10px;">
+            <div class="cal-header-nav">
+                <button id="cal-btn-prev" onclick="zmienMiesiac(-1)" style="display:none;">❮</button>
+                <h3 id="cal-month-title" style="margin: 0; font-size: 1rem; flex: 1; text-align: center;">Miesiąc Roku</h3>
+                <button id="cal-btn-next" onclick="zmienMiesiac(1)" style="display:none;">❯</button>
+            </div>
+            <div class="cal-grid" id="calendar-grid"></div>
+            <button class="btn-toggle-cal" id="btn-toggle-cal" onclick="toggleKalendarzTryb()">▼ Rozwiń pełny miesiąc</button>
+        </div>
+
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h3 id="selected-day-title" style="margin: 0; font-size: 1rem; font-weight: bold;">Wizyty w dniu</h3>
+                <button onclick="otworzFormularzWizytyDlaWybranegoDnia()" style="background: #e67e22; color: white; border: none; padding: 8px 12px; border-radius: 4px; font-weight: bold; cursor: pointer;">＋ Dodaj</button>
+            </div>
+            <div id="lista-wizyt-dnia"></div>
+            
+            <div class="backup-panel-toggle" onclick="toggleBackupMenu()">⚙️ Kopia zapasowa / Przywracanie danych</div>
+            <div class="backup-actions" id="backup-actions-container">
+                <button class="btn-backup" onclick="podlaczFolderSyncthing()">🔗 Połącz z folderem Syncthing</button>
+                <button class="btn-backup" onclick="zapiszKopieBazy()">💾 Pobierz kopię zapasową (JSON)</button>
+                <button class="btn-restore" onclick="triggerRestore()">📂 Przywróć dane z pliku</button>
+                <input type="file" id="restore-file-input" style="display: none;" accept=".json" onchange="przywracajBaze(event)">
+            </div>
+        </div>
+        <div class="swipe-hint">💡 Przesuń w lewo ➡️ Dziennik prac | W prawo ➡️ Narzędzia</div>
+    </div>
+
+    <!-- WIDOK 2: DZIENNIK PRAC -->
+    <div id="widok-dziennika" class="view">
+        <button class="btn-add-main" style="background-color: #2ecc71;" onclick="otworzFormularzWpisu()">＋ Dodaj nowy wpis</button>
+        <button class="btn-secondary" style="background-color: #2980b9; margin-bottom: 15px;" onclick="eksportujWszystkieWpisyDoSyncthing()">📂 Eksportuj wszystkie</button>
+        <div class="card">
+            <h3>Lista zdarzeń</h3>
+            <div id="lista-zdarzen"></div>
+        </div>
+        <div class="swipe-hint">💡 Przesuń w lewo ➡️ Notatki | W prawo ➡️ Kalendarz</div>
+    </div>
+
+    <!-- WIDOK 3: NOTATKI -->
+    <div id="widok-notatek" class="view">
+        <button class="btn-add-main" style="background-color: #3498db;" onclick="otworzFormularzNotatki()">＋ Dodaj nową notatkę</button>
+        <div class="card">
+            <h3>Twoje notatki</h3>
+            <div id="lista-notatek"></div>
+        </div>
+        <div class="swipe-hint">💡 Przesuń palcem w prawo ➡️ Dziennik prac</div>
+    </div>
+
+    <!-- FORMULARZ WIZYTY -->
+    <div id="widok-formularza-wizyty" class="view card">
+        <h2 id="visit-form-title">Nowa wizyta</h2>
+        <input type="hidden" id="edit-visit-index" value="-1">
+        
+        <label>Typ wpisu:</label>
+        <select id="visit-type">
+            <option value="sluzbowy">Służbowy</option>
+            <option value="prywatny">Prywatny</option>
+        </select>
+
+        <label>Data wizyty:</label>
+        <input type="date" id="visit-date">
+
+        <div style="margin-top: 10px; display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" id="visit-all-day" style="width: 20px; height: 20px;" onchange="toggleCałyDzień()">
+            <label for="visit-all-day" style="margin: 0; cursor: pointer;">Cały dzień</label>
+        </div>
+
+        <div id="container-godzina">
+            <label>Godzina:</label>
+            <input type="time" id="visit-time">
+        </div>
+
+        <label>Telefon:</label>
+        <input type="text" id="visit-client" placeholder="Numer telefonu lub imię...">
+
+        <label>Adres:</label>
+        <input type="text" id="visit-address" placeholder="Adres spotkania...">
+
+        <label>Opis / Zakres prac:</label>
+        <textarea id="visit-desc" rows="4" placeholder="Szczegóły wizyty..."></textarea>
+
+        <button class="btn-primary" style="background-color: #e67e22;" onclick="zapiszWizyte()">Zapisz wizytę</button>
+        <button class="btn-secondary" onclick="zamknijFormularzWizyty()">Anuluj</button>
+    </div>
+
+    <!-- FORMULARZ WPISU KSIĘGOWEGO -->
+    <div id="widok-formularza" class="view card">
+        <h2 id="form-title">Nowy wpis</h2>
+        <input type="hidden" id="edit-index" value="-1">
+        
+        <label>Data wpisu:</label>
+        <input type="date" id="data">
+
+        <label>Adres:</label>
+        <input type="text" id="adres">
+
+        <label>Przychód:</label>
+        <input type="number" id="przychod" value="0,00" step="0.01">
+
+        <label>Koszt:</label>
+        <input type="number" id="koszt" value="0,00" step="0.01">
+
+        <label>Formatowanie:</label>
+        <div class="toolbar">
+            <button onclick="formatText('bold')">B</button>
+            <button onclick="formatText('italic')">I</button>
+            <button onclick="formatText('underline')">U</button>
+            <button class="btn-clear-format" onclick="usunFormatowanie()">❌</button>
+        </div>
+
+        <label>Typ:</label>
+        <div class="types-bar">
+            <button class="btn-type btn-karta" onclick="zastosujSchemat('#e74c3c', 'white')">Karta/Blik</button>
+            <button class="btn-type btn-koszt" onclick="zastosujSchemat('#ffaa00', 'black')">koszt</button>
+            <button class="btn-type btn-przychod" onclick="zastosujSchemat('#ffff00', 'black')">przychód</button>
+            <button class="btn-type btn-sklep" onclick="zastosujSchemat('#55ffff', 'black')">Sklep</button>
+            <button class="btn-type btn-opis" onclick="zastosujSchemat('#dddcd8', 'black')">Opis</button>
+            <button class="btn-type btn-zus" onclick="zastosujSchemat('#ffaaff', 'white')">ZUS</button>
+        </div>
+
+        <label>Opis:</label>
+        <div id="opis" contenteditable="true"></div>
+
+        <button class="btn-primary" onclick="zapiszWpis()">Zapisz wpis</button>
+        <button class="btn-secondary" onclick="zamknijFormularzWpisu()">Anuluj</button>
+    </div>
+
+    <!-- FORMULARZ NOTATKI -->
+    <div id="widok-formularza-notatki" class="view card">
+        <h2 id="note-form-title">Nowa notatka</h2>
+        <input type="hidden" id="edit-note-index" value="-1">
+        
+        <label>Tytuł:</label>
+        <input type="text" id="note-title" placeholder="Tytuł lub temat...">
+
+        <label>Treść notatki:</label>
+        <textarea id="note-content" rows="6" placeholder="Wpisz treść notatki..."></textarea>
+
+        <button class="btn-primary" style="background-color: #3498db;" onclick="zapiszNotatke()">Zapisz notatkę</button>
+        <button class="btn-secondary" onclick="zamknijFormularzNotatki()">Anuluj</button>
+    </div>
+
+    <!-- Stopka -->
+    <footer style="text-align: center; margin-top: 20px; margin-bottom: 10px; color: #888; font-size: 0.8rem;">
+        Web-asystent<span id="app-version"></span>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>

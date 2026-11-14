@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DVB-T2 Pro Diagnostic Tool</title>
+    <link rel="stylesheet" href="../../style.css">
+    <style>
+        :root { --bg: #f1f5f9; --brand: #0056b3; --border: #cbd5e1; --accent: #e0f2fe; }
+        body { background: var(--bg); color: var(--text, #1e293b); font-family: -apple-system, sans-serif; margin: 0; -webkit-font-smoothing:antialiased; }
+
+        /* Full-width sticky header for PWA */
+        .ks-header { width:100%; position:sticky; top:0; z-index:20; display:flex; align-items:center; gap:12px; padding:12px 14px; box-sizing:border-box; background:var(--brand); color:#fff; box-shadow:0 2px 6px rgba(0,0,0,0.08); }
+        .ks-back { background:none; border:none; color:inherit; font-size:1.1rem; padding:6px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; width:40px; height:40px; }
+        .ks-title { flex:1; text-align:center; margin:0; font-size:1rem; font-weight:700; }
+
+        .container { max-width: 760px; width: 100%; margin:0 auto; padding:12px; box-sizing:border-box; }
+        h2 { font-size: 1.1rem; color: var(--brand); text-align: center; margin: 10px 0; }
+
+        .metrics { display: flex; gap: 10px; margin-bottom: 12px; }
+        .card { flex: 1; background: var(--tile-bg, #fff); padding: 10px; border-radius: 10px; text-align: center; border: 1px solid var(--tile-border, var(--border)); box-shadow: var(--tile-shadow, 0 2px 4px rgba(0,0,0,0.05)); }
+        .label { font-size: 10px; color: #64748b; font-weight: bold; text-transform: uppercase; }
+        .val { font-size: 20px; font-weight: 800; font-family: monospace; margin-top: 2px; }
+
+        .monitor-frame { background: var(--tile-bg, #fff); border: 2px solid var(--tile-border, #475569); border-radius: 8px; padding: 5px; box-shadow: inset 0 0 10px rgba(0,0,0,0.05); }
+        canvas { display: block; width: 100%; height: auto; background: var(--tile-bg, #fff); border-radius:6px; }
+
+        #diag-panel { margin: 12px 0; padding: 12px; border-radius: 8px; background: var(--tile-bg, var(--accent)); border-left: 5px solid var(--brand); font-size: 13px; line-height: 1.5; }
+        .action-list { margin-top: 8px; padding-left: 18px; color: #0369a1; font-weight: 500; }
+        .action-list li { margin-bottom: 4px; }
+
+        /* Mobile-friendly controls */
+        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
+        .controls .header { grid-column: span 2; font-size: 12px; color: #64748b; margin-top: 10px; font-weight: 700; border-bottom: 1px solid #e6eef8; padding-bottom:6px }
+        .controls button { appearance:none; -webkit-appearance:none; padding: 12px; font-size: 15px; border-radius: 10px; border: 1px solid var(--tile-border, var(--border)); background:var(--tile-bg, #fff); font-weight:700; cursor:pointer; }
+        .controls button.active { background: var(--brand); color:#fff; box-shadow: 0 6px 18px rgba(0,86,179,0.18); }
+        .controls button:focus { outline:3px solid rgba(0,86,179,0.12); outline-offset:2px }
+    </style>
+    <script>
+    // Motyw: kopiuj ustawienie z localStorage lub systemu
+    function applyTheme() {
+        let theme = localStorage.getItem('theme');
+        if (!theme) {
+            theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        document.documentElement.setAttribute('data-theme', theme);
+    }
+    applyTheme();
+    </script>
+</head>
+<body>
+<header class="ks-header">
+    <button class="ks-back" aria-label="Wstecz" onclick="window.location.replace('../bibliotekaDVBT.html')">◀</button>
+    <h1 class="ks-title">Konstelacje DVB-T</h1>
+</header>
+<div class="container">
+  
+    <div class="metrics">
+        <div class="card"><div class="label">MER (dB)</div><div id="merVal" class="val">--</div></div>
+        <div class="card"><div class="label">Pre-BER</div><div id="berVal" class="val">--</div></div>
+    </div>
+
+    <div class="monitor-frame"><canvas id="const"></canvas></div>
+
+    <div id="diag-panel">
+        <div id="diag-title"><b>Status:</b> Czekam na dane...</div>
+        <ul id="diag-actions" class="action-list"></ul>
+    </div>
+
+    <div class="controls">
+        <div class="header">Standard Modulacji</div>
+        <button data-group="mod" onclick="setMod(8, this)">64-QAM (DVB-T)</button>
+        <button data-group="mod" onclick="setMod(16, this)" class="active">256-QAM (DVB-T2)</button>
+
+        <div class="header">Symulacja Usterek</div>
+        <button data-group="err" onclick="setError('none', this)" class="active">Sygnał OK</button>
+        <button data-group="err" onclick="setError('noise', this)">Szum (AWGN)</button>
+        <button data-group="err" onclick="setError('phase', this)">Szum fazowy</button>
+        <button data-group="err" onclick="setError('jitter', this)">Jitter (Timing)</button>
+        <button data-group="err" onclick="setError('comp', this)" style="grid-column: span 2">Przesterowanie (Wzmacniacz)</button>
+    </div>
+</div>
+
+<script>
+    (function(){
+        const canvas = document.getElementById('const');
+        const ctx = canvas.getContext('2d');
+        let pointsPerRow = 16, errorType = 'none', frameCount = 0;
+        const maxFrames = 8;
+        let dpr = window.devicePixelRatio || 1;
+        let displaySize = 400;
+
+        function resizeCanvas(){
+            dpr = window.devicePixelRatio || 1;
+            const frame = document.querySelector('.monitor-frame');
+            const maxWidth = frame ? (frame.clientWidth) : window.innerWidth;
+            // leave small padding so borders don't clip drawing
+            const available = Math.max(160, maxWidth - 8);
+            displaySize = Math.max(220, Math.min(available, 760));
+            canvas.style.width = displaySize + 'px';
+            canvas.style.height = displaySize + 'px';
+            canvas.width = Math.floor(displaySize * dpr);
+            canvas.height = Math.floor(displaySize * dpr);
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 200));
+        resizeCanvas();
+
+        function setMod(n, btn) { pointsPerRow = n; updateButtons(btn, 'mod'); resetCycle(); }
+        function setError(type, btn) { errorType = type; updateButtons(btn, 'err'); }
+        function updateButtons(activeBtn, group) {
+            const btns = document.querySelectorAll('.controls button[data-group]');
+            btns.forEach(b => {
+                if (b.getAttribute('data-group') === group) b.classList.remove('active');
+            });
+            if (activeBtn) activeBtn.classList.add('active');
+        }
+        // expose for inline onclick handlers
+        window.setMod = setMod;
+        window.setError = setError;
+
+        function resetCycle() { frameCount = 0; ctx.clearRect(0, 0, displaySize, displaySize); drawGrid(); }
+        function drawGrid() {
+            const size = displaySize;
+            ctx.clearRect(0,0,size,size);
+            ctx.strokeStyle = '#f1f5f9'; ctx.lineWidth = 1; ctx.beginPath();
+            const stepGrid = Math.max(40, Math.round(size/10));
+            for(let i=0; i<=size; i+=stepGrid) { ctx.moveTo(i,0); ctx.lineTo(i,size); ctx.moveTo(0,i); ctx.lineTo(size,i); }
+            ctx.stroke();
+            ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5; ctx.beginPath();
+            ctx.moveTo(size/2,0); ctx.lineTo(size/2,size); ctx.moveTo(0,size/2); ctx.lineTo(size,size/2); ctx.stroke();
+        }
+
+        function draw() {
+            frameCount++;
+            if (frameCount > maxFrames) resetCycle();
+
+            let targetMER = (errorType === 'none' ? 32.8 : 20.5) + (Math.random()*0.4);
+            document.getElementById('merVal').innerText = targetMER.toFixed(1);
+            document.getElementById('berVal').innerText = errorType === 'none' ? "1.0E-9" : "3.8E-4";
+
+            const margin = Math.round(displaySize * 0.12), step = (displaySize - margin * 2) / (pointsPerRow - 1);
+            ctx.fillStyle = '#0056b3';
+
+            for (let i = 0; i < pointsPerRow; i++) {
+                for (let j = 0; j < pointsPerRow; j++) {
+                    let px = margin + i * step, py = margin + j * step;
+                    for (let k = 0; k < 3; k++) {
+                        let dx = 0, dy = 0;
+                        if (errorType === 'noise') {
+                            dx = (Math.random()-0.5) * 40; dy = (Math.random()-0.5) * 40;
+                        } else if (errorType === 'phase') {
+                            let angle = (Math.random()-0.5) * 0.12; 
+                            let rX = px - displaySize/2, rY = py - displaySize/2;
+                            dx = rX * Math.cos(angle) - rY * Math.sin(angle) - rX;
+                            dy = rX * Math.sin(angle) + rY * Math.cos(angle) - rY;
+                        } else if (errorType === 'jitter') {
+                            dx = (Math.random()-0.5) * 35; dy = (Math.random()-0.5) * 6; 
+                        } else if (errorType === 'comp') {
+                            dx = (displaySize/2 - px) * 0.15; dy = (displaySize/2 - py) * 0.15;
+                        } else {
+                            dx = (Math.random()-0.5) * 2; dy = (Math.random()-0.5) * 2;
+                        }
+                        ctx.globalAlpha = 0.5;
+                        ctx.beginPath(); ctx.arc(px + dx, py + dy, Math.max(1, displaySize/420), 0, Math.PI * 2); ctx.fill();
+                    }
+                }
+            }
+            updateDiagnostics();
+            setTimeout(draw, 500);
+        }
+
+        function updateDiagnostics() {
+            const title = document.getElementById('diag-title');
+            const actions = document.getElementById('diag-actions');
+            actions.innerHTML = "";
+
+            const db = {
+                none: {
+                    t: "<b>Sygnał optymalny:</b> System pracuje stabilnie.",
+                    a: ["Brak wymaganych działań.", "Zabezpiecz złącza przed wilgocią."]
+                },
+                noise: {
+                    t: "<b>Szum (AWGN):</b> Słaby stosunek sygnału do szumu.",
+                    a: ["Sprawdź nakierowanie anteny.", "Wymień stary kabel koncentryczny.", "Sprawdź, czy antena nie jest zasłonięta."]
+                },
+                phase: {
+                    t: "<b>Szum fazowy:</b> Niestabilność częstotliwości.",
+                    a: ["Wymień zasilacz antenowy na stabilizowany.", "Sprawdź luty w puszce anteny.", "W skrajnych przypadkach wymień tuner/TV."]
+                },
+                jitter: {
+                    t: "<b>Jitter:</b> Problemy z synchronizacją czasową.",
+                    a: ["Usuń zbędne rozgałęźniki sygnału.", "Sprawdź, czy kabel nie biegnie przy silnikach/pompach.", "Wymień odbiornik na model lepszej klasy."]
+                },
+                comp: {
+                    t: "<b>Przesterowanie:</b> Sygnał przekracza zakres głowicy.",
+                    a: ["Zmniejsz wzmocnienie na wzmacniaczu.", "Zastosuj tłumik antenowy (np. -10dB).", "Zamień wzmacniacz na symetryzator."]
+                }
+            };
+
+            title.innerHTML = db[errorType].t;
+            db[errorType].a.forEach(text => {
+                let li = document.createElement('li');
+                li.innerText = text;
+                actions.appendChild(li);
+            });
+        }
+
+        // start
+        drawGrid(); draw();
+    })();
+</script>
+</body>
+</html>

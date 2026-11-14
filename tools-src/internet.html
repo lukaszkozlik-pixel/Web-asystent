@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Internet - Narzędzia</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            margin: 0; 
+            background: #f0f2f5; 
+            color: #2c3e50; 
+        }
+        
+        /* NOWY, ELEGANCKI NAGŁÓWEK */
+        header { 
+        
+            padding: 0 16px; 
+            display: flex; 
+            align-items: center; 
+            height: 56px;
+          
+            position: relative; 
+            z-index: 1000; 
+        }
+        
+ 
+
+        h1 { 
+            font-size: 1.1rem; 
+            margin: 0; 
+            position: absolute; 
+            left: 0; 
+            right: 0; 
+            text-align: center; 
+            pointer-events: none; 
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .container { 
+            padding: 12px; 
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        
+        .accordion {
+            background: #ffffff; 
+            border-radius: 12px; 
+            margin-bottom: 12px;
+            overflow: hidden; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .acc-header {
+            background: #673ab7; 
+            color: white; 
+            padding: 15px;
+            font-weight: bold; 
+            cursor: pointer; 
+            display: flex;
+            justify-content: space-between; 
+            align-items: center;
+            font-size: 0.95rem;
+            transition: background 0.2s;
+        }
+
+        .acc-header:active {
+            background: #5e35b1;
+        }
+        
+        .acc-content {
+            display: none; 
+            padding: 15px; 
+            border-top: 1px solid #eee;
+            background: #ffffff;
+            color: #2c3e50;
+        }
+        
+        .acc-content.show { 
+            display: block; 
+        }
+        
+        .tool-btn { 
+            display: block; 
+            background: #ede7f6; 
+            border: 1px solid #673ab7; 
+            color: #673ab7; 
+            padding: 12px; 
+            border-radius: 8px; 
+            text-align: center; 
+            text-decoration: none; 
+            font-weight: bold; 
+            margin-bottom: 10px;
+            transition: background 0.2s;
+        }
+
+        .tool-btn:active {
+            background: #d1c4e9;
+        }
+        
+        input { 
+            width: 100%; 
+            padding: 12px; 
+            margin: 10px 0; 
+            border: 1px solid #ccc; 
+            border-radius: 6px; 
+            box-sizing: border-box; 
+            font-size: 1rem;
+        }
+        
+        input:focus {
+            border-color: #673ab7;
+            outline: none;
+        }
+
+        .res-box { 
+            background: #f9f9f9; 
+            padding: 15px; 
+            border-radius: 6px; 
+            font-weight: bold; 
+            text-align: center; 
+            border: 1px dashed #673ab7; 
+            color: #2c3e50;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+
+    <h1>Narzędzia Internetowe</h1>
+</header>
+
+<div class="container">
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">AWARIE SIECI <span>+</span></div>
+        <div class="acc-content">
+            <a href="https://downdetector.pl/" target="_blank" class="tool-btn" style="background: #73862e; color: white; border-color: #73862e;">DOWNDETECTOR.pl</a>
+        </div>
+    </div>
+
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">LOKALIZACJA NADAJNIKÓW (BTS) <span>+</span></div>
+        <div class="acc-content">
+            <p style="font-size: 0.85rem; margin-bottom: 15px;">Darmowa wyszukiwarka masztów LTE/5G wszystkich operatorów:</p>
+            <a href="https://beta.btsearch.pl/" target="_blank" class="tool-btn">OTWÓRZ BTSEARCH.PL</a>
+        </div>
+    </div>
+
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">PRZELICZNIK PRĘDKOŚCI <span>+</span></div>
+        <div class="acc-content">
+            <label style="font-size: 0.85rem; font-weight: bold;">Prędkość łącza (Mb/s):</label>
+            <input type="number" id="speedMbps" placeholder="np. 300" oninput="calcSpeed()">
+            <div class="res-box" id="speedRes">Realne pobieranie: 0 MB/s</div>
+            <p style="font-size: 0.8rem; color: #555; margin-top: 10px;">
+                Czas pobierania 1GB: <span id="timeRes" style="color:#673ab7; font-weight:bold;">-</span>
+            </p>
+        </div>
+    </div>
+
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">POMIAR PRĘDKOŚCI (SPEEDTEST) <span>+</span></div>
+        <div class="acc-content">
+            <p style="font-size: 0.85rem; margin-bottom: 15px;">Wybierz narzędzie do pomiaru parametrów łącza (Download/Upload/Ping):</p>
+            
+            <a href="https://www.speedtest.net" target="_blank" class="tool-btn" style="background: #141526; color: white; border-color: #141526;">SPEEDTEST.NET</a>
+            <a href="https://fast.com/pl/" target="_blank" class="tool-btn" style="background: #db0000; color: white; border-color: #db0000;">FAST.COM (Netflix)</a>
+            <a href="https://speed.cloudflare.com" target="_blank" class="tool-btn" style="background: #f38020; color: white; border-color: #f38020;">CLOUDFLARE SPEED</a>
+
+            <p style="font-size: 0.75rem; color: #666; margin-top: 10px;">
+                <i>Pamiętaj: Najdokładniejszy wynik uzyskasz na kablu, przy wyłączonych innych urządzeniach.</i>
+            </p>
+        </div>
+    </div>
+    
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">SCHEMATY ZAKUWANIA RJ45 <span>+</span></div>
+        <div class="acc-content">
+            <div style="margin-bottom: 20px;">
+                <p style="font-weight: bold; color: #1a73e8; margin-bottom: 5px;">Standard T568B (Typowy)</p>
+                <div style="display: flex; gap: 3px; margin-bottom: 8px;">
+                    <div style="width:12.5%; height:25px; border:2px solid #888; border-radius:2px; background: linear-gradient(90deg, #fff 50%, #ff9800 50%);"></div>
+                    <div style="width:12.5%; height:25px; border:2px solid #888; border-radius:2px; background: #f57c00;"></div>
+                    <div style="width:12.5%; height:25px; border:2px solid #888; border-radius:2px; background: linear-gradient(90deg, #fff 50%, #81c784 50%);"></div>
+                    <div style="width:12.5%; height:25px; border:2px solid #888; border-radius:2px; background: #2196f3;"></div>
+                    <div style="width:12.5%; height:25px; border:2px solid #888; border-radius:2px; background: linear-gradient(90deg, #fff 50%, #64b5f6 50%);"></div>
+                    <div style="width:12.5%; height:25px; border:2px solid #888; border-radius:2px; background: #4caf50;"></div>
+                    <div style="width:12.5%; height:25px; border:2px solid #888; border-radius:2px; background: linear-gradient(90deg, #fff 50%, #a1887f 50%);"></div>
+                    <div style="width:12.5%; height:25px; border:2px solid #888; border-radius:2px; background: #795548;"></div>
+                </div>
+                 <div style="display: flex; gap: 3px; margin-bottom: 8px; font-size: 0.7rem; color: #555; text-align: center;">
+                    <div style="width:12.5%;">Pom.+Biały</div>
+                    <div style="width:12.5%;">Pomarańczowy</div>
+                    <div style="width:12.5%;">Ziel.+Biały</div>
+                    <div style="width:12.5%;">Niebieski</div>
+                    <div style="width:12.5%;">Nieb.+Biały</div>
+                    <div style="width:12.5%;">Zielony</div>
+                    <div style="width:12.5%;">Brąz.+Biały</div>
+                    <div style="width:12.5%;">Brązowy</div>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <p style="font-weight: bold; color: #2e7d32; margin-bottom: 5px;">Standard T568A</p>
+                <div style="display: flex; gap: 3px; margin-bottom: 8px;">
+                    <div style="width:12.5%; height:25px; border:2px solid #888; border-radius:2px; background: linear-gradient(90deg, #fff 50%, #81c784 50%);"></div>
+                    <div style="width:12.5%; height:25px; border:2px solid #888; border-radius:2px; background: #4caf50;"></div>
+                    <div style="width:12.5%; height:25px; border:2px solid #888; border-radius:2px; background: linear-gradient(90deg, #fff 50%, #ff9800 50%);"></div>
+                    <div style="width:12.5%; height:25px; border:2px solid #888; border-radius:2px; background: #2196f3;"></div>
+                    <div style="width:12.5%; height:25px; border:2px solid #888; border-radius:2px; background: linear-gradient(90deg, #fff 50%, #64b5f6 50%);"></div>
+                    <div style="width:12.5%; height:25px; border:2px solid #888; border-radius:2px; background: #f57c00;"></div>
+                    <div style="width:12.5%; height:25px; border:2px solid #888; border-radius:2px; background: linear-gradient(90deg, #fff 50%, #a1887f 50%);"></div>
+                    <div style="width:12.5%; height:25px; border:2px solid #888; border-radius:2px; background: #795548;"></div>
+                </div>
+                <div style="display: flex; gap: 3px; margin-bottom: 8px; font-size: 0.7rem; color: #555; text-align: center;">
+                    <div style="width:12.5%;">Ziel.+Biały</div>
+                    <div style="width:12.5%;">Zielony</div>
+                    <div style="width:12.5%;">Pom.+Biały</div>
+                    <div style="width:12.5%;">Niebieski</div>
+                    <div style="width:12.5%;">Nieb.+Biały</div>
+                    <div style="width:12.5%;">Pomarańczowy</div>
+                    <div style="width:12.5%;">Brąz.+Biały</div>
+                    <div style="width:12.5%;">Brązowy</div>
+                </div>
+            </div>
+
+            <div style="padding: 10px; background: #fffde7; border: 1px dashed #fbc02d; border-radius: 8px;">
+                <p style="font-weight: bold; color: #f57f17; margin: 0 0 5px 0; font-size: 0.85rem;">Kabel Skrosowany (PC do PC)</p>
+                <p style="font-size: 0.75rem; margin: 0;">
+                    Zakończ jedną stronę w <b>Standardzie A</b>, <br>
+                    a drugą stronę w <b>Standardzie B</b>.
+                </p>
+            </div>
+
+            <p style="font-size: 0.7rem; color: #888; text-align: center; margin-top: 15px;">
+                <i>Widok od strony pinów (zatrzask pod spodem).</i>
+            </p>
+        </div>
+    </div>
+   
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">KATEGORIE KABLI (SKRĘTKA) <span>+</span></div>
+        <div class="acc-content">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; background: white;">
+                <thead>
+                    <tr style="background: #673ab7; color: white;">
+                        <th style="padding: 8px; border: 1px solid #ddd;">Kat.</th>
+                        <th style="padding: 8px; border: 1px solid #ddd;">Prędkość</th>
+                        <th style="padding: 8px; border: 1px solid #ddd;">Częst.</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">5e</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">do 1 Gb/s</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">100 MHz</td>
+                    </tr>
+                    <tr style="background: #f9f9f9;">
+                        <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">6</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">do 10 Gb/s*</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">250 MHz</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">6a</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">10 Gb/s</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">500 MHz</td>
+                    </tr>
+                    <tr style="background: #f9f9f9;">
+                        <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">7</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">10 Gb/s+</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">600 MHz</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div style="margin-top: 15px; font-size: 0.85rem; line-height: 1.4; color: #444;">
+                <p><b>💡 Wskazówki dla instalatora:</b></p>
+                <ul>
+                    <li><b>Kat. 5e:</b> Absolutne minimum. Wystarcza do domowego internetu do 1 Gb/s na dystansie do 100m.</li>
+                    <li><b>Kat. 6:</b> Standard dla nowych domów. Obsłuży 10 Gb/s, ale tylko na krótkich odcinkach (do ok. 35-55m).</li>
+                    <li><b>Kat. 6a:</b> Najlepszy wybór pod przyszłe standardy i światłowody 10 Gb/s na pełnym dystansie 100m.</li>
+                </ul>
+                
+                <p><b>🛡️ Ekranowanie kabli (U/UTP vs F/UTP vs S/FTP):</b></p>
+                <ul>
+                    <li><b>U/UTP:</b> Brak ekranu. Najlepsza do 95% instalacji wewnątrz budynków.</li>
+                    <li><b>F/UTP:</b> Cały kabel w folii aluminiowej. Do koryt z kablami 230V/400V.</li>
+                    <li><b>S/FTP:</b> Każda para w folii + oplot. Do przemysłu.</li>
+                </ul>
+
+                <p style="background: #fff3e0; padding: 10px; border-radius: 5px; border-left: 4px solid #ff9800;">
+                    <b>⚠️ Złota zasada uziemienia:</b><br>
+                    Jeśli kładziesz kabel ekranowany (FTP/STP), <b>musisz</b> użyć metalowych wtyków RJ45 i uziemić je. Brak uziemienia sprawia, że folia działa jak antena zbierająca zakłócenia!
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleAcc(header) {
+    const content = header.nextElementSibling;
+    const span = header.querySelector('span');
+    document.querySelectorAll('.acc-content').forEach(c => {
+        if (c !== content) c.classList.remove('show');
+    });
+    document.querySelectorAll('.acc-header span').forEach(s => {
+        if (s !== span) s.innerText = '+';
+    });
+    content.classList.toggle('show');
+    span.innerText = content.classList.contains('show') ? '−' : '+';
+}
+
+function calcSpeed() {
+    const mbps = parseFloat(document.getElementById('speedMbps').value) || 0;
+    const mbs = mbps / 8;
+    document.getElementById('speedRes').innerText = `Realne pobieranie: ${mbs.toFixed(2)} MB/s`;
+    if (mbs > 0) {
+        const seconds = 1024 / mbs;
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.round(seconds % 60);
+        document.getElementById('timeRes').innerText = `${mins}m ${secs}s`;
+    } else {
+        document.getElementById('timeRes').innerText = "-";
+    }
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+      
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DVB-S2 SAT Diagnostic - Phase Correction</title>
+    <link rel="stylesheet" href="../../style.css">
+    <style>
+        :root { 
+            --bg: #f8fafc; 
+            --brand: #0284c7; 
+            --border: #cbd5e1; 
+            --panel: #ffffff;
+            --accent: #f0f9ff;
+            --lte: #e11d48;
+        }
+        body { background: var(--bg); color: var(--text, #1e293b); font-family: -apple-system, sans-serif; margin: 0; -webkit-font-smoothing:antialiased; }
+        /* Full-width sticky header for PWA */
+        .ks-header { width:100%; position:sticky; top:0; z-index:20; display:flex; align-items:center; gap:12px; padding:12px 14px; box-sizing:border-box; background:var(--brand); color:#fff; box-shadow:0 2px 6px rgba(0,0,0,0.08); }
+        .ks-back { background:none; border:none; color:inherit; font-size:1.1rem; padding:6px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; width:40px; height:40px; }
+        .ks-title { flex:1; text-align:center; margin:0; font-size:1rem; font-weight:700; }
+        .container { max-width: 760px; width: 100%; margin:0 auto; padding:12px; box-sizing:border-box; }
+        h2 { font-size: 1.1rem; color: var(--brand); text-align: center; margin: 10px 0; }
+        
+        .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px; margin-bottom: 12px; }
+        .card { background: var(--tile-bg, var(--panel)); padding: 10px 5px; border-radius: 10px; text-align: center; border: 1px solid var(--tile-border, var(--border)); box-shadow: var(--tile-shadow, 0 2px 4px rgba(0,0,0,0.05)); }
+        .label { font-size: 9px; color: #64748b; font-weight: bold; text-transform: uppercase; }
+        .val { font-size: 18px; font-weight: 800; font-family: monospace; margin-top: 4px; color: var(--brand); }
+
+        .monitor-frame { background: var(--tile-bg, #fff); border: 2px solid var(--tile-border, #475569); border-radius: 50%; padding: 12px; width: calc(100% - 48px); max-width: 420px; margin: 0 auto; position: relative; box-shadow: var(--tile-shadow, 0 4px 12px rgba(0,0,0,0.1)); }
+        canvas { display: block; width: 100%; height: auto; border-radius: 50%; background: var(--tile-bg, #fff); }
+
+        #diag-panel { 
+            margin: 15px 0; padding: 15px; border-radius: 8px; 
+            background: var(--tile-bg, var(--accent)); border-left: 5px solid var(--brand); 
+            font-size: 13px; line-height: 1.5; border: 1px solid var(--tile-border, var(--border));
+        }
+        .diag-title { font-weight: bold; margin-bottom: 5px; display: block; }
+        .action-list { margin: 8px 0 0 0; padding-left: 18px; color: #0369a1; }
+        .lte-warning { color: var(--lte); border-left-color: var(--lte) !important; background: #fff1f2 !important; }
+
+        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
+        .header { grid-column: span 2; font-size: 11px; color: #94a3b8; margin-top: 10px; font-weight: bold; border-bottom: 1px solid #ddd; padding-bottom: 2px; text-transform: uppercase; }
+        
+        select { grid-column: span 2; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: white; font-weight: 600; }
+        button { background: var(--tile-bg, white); border: 1px solid var(--tile-border, var(--border)); padding: 12px; cursor: pointer; border-radius: 10px; font-size: 14px; font-weight: 700; transition: 0.15s; touch-action: manipulation; }
+        button.active { background: var(--brand); color: white; border-color: var(--brand); }
+        button.lte-btn.active { background: var(--lte); border-color: var(--lte); }
+    </style>
+    <script>
+    // Motyw: kopiuj ustawienie z localStorage lub systemu
+    function applyTheme() {
+        let theme = localStorage.getItem('theme');
+        if (!theme) {
+            theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        document.documentElement.setAttribute('data-theme', theme);
+    }
+    applyTheme();
+    </script>
+</head>
+<body>
+
+<header class="ks-header">
+    <button class="ks-back" aria-label="Wstecz" onclick="window.location.replace('../bibliotekaSAT.html')">◀</button>
+    <h1 class="ks-title">Konstelacja SAT</h1>
+</header>
+
+<div class="container">
+    <h2>Miernik Satelitarny Pro (Phase Focus)</h2>
+
+    <div class="metrics">
+        <div class="card"><div class="label">SNR (dB)</div><div id="snrVal" class="val">--</div></div>
+        <div class="card"><div class="label">MER (dB)</div><div id="merVal" class="val">--</div></div>
+        <div class="card"><div class="label">Pre-BER</div><div id="berVal" class="val">--</div></div>
+    </div>
+
+    <div class="monitor-frame">
+        <canvas id="const"></canvas>
+    </div>
+
+    <div id="diag-panel">
+        <span id="diag-title" class="diag-title">Gotowy do pomiaru...</span>
+        <ul id="diag-actions" class="action-list"></ul>
+    </div>
+
+    <div class="controls">
+        <div class="header">Standard (Hotbird 13E)</div>
+        <select id="tpSelect" onchange="changeTP()">
+            <option value="8PSK" selected>11488 H (8PSK) - TVP HD</option>
+            <option value="QPSK">10719 V (QPSK) - SD Channels</option>
+        </select>
+
+        <div class="header">Diagnostyka</div>
+        <button onclick="setError('none', this)" class="active">Sygnał OK</button>
+        <button onclick="setError('skew', this)">Zły Skew</button>
+        <button onclick="setError('noise', this)">Deszcz/Szum</button>
+        <button onclick="setError('lte', this)" class="lte-btn">Interferencja LTE</button>
+        <button onclick="setError('phase', this)" style="grid-column: span 2">Szum fazowy (Kreseczki)</button>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('const');
+    const ctx = canvas.getContext('2d');
+    let modType = '8PSK', errorType = 'none', frameCount = 0;
+    const maxFrames = 8;
+    let dpr = window.devicePixelRatio || 1;
+    let displaySize = 360; // CSS pixels
+
+    function resizeCanvas(){
+        dpr = window.devicePixelRatio || 1;
+        const frame = document.querySelector('.monitor-frame');
+        const maxWidth = frame ? frame.clientWidth : window.innerWidth - 24;
+        const available = Math.max(160, maxWidth - 12);
+        displaySize = Math.min(available, 420);
+        canvas.style.width = displaySize + 'px';
+        canvas.style.height = displaySize + 'px';
+        canvas.width = Math.floor(displaySize * dpr);
+        canvas.height = Math.floor(displaySize * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        resetCycle();
+    }
+    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 200));
+    resizeCanvas();
+
+    function changeTP() { modType = document.getElementById('tpSelect').value; resetCycle(); }
+    function setError(type, btn) { errorType = type; updateButtons(btn); }
+
+    function updateButtons(activeBtn) {
+        const btns = document.querySelectorAll('.controls button');
+        btns.forEach(b => b.classList.remove('active'));
+        activeBtn.classList.add('active');
+        const panel = document.getElementById('diag-panel');
+        if(errorType === 'lte') panel.classList.add('lte-warning'); else panel.classList.remove('lte-warning');
+    }
+
+    function resetCycle() { frameCount = 0; ctx.clearRect(0, 0, displaySize, displaySize); drawGrid(); }
+
+    function drawGrid() {
+        const center = displaySize / 2;
+        const radius = Math.round(displaySize * 0.35);
+        ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = Math.max(1, displaySize/200);
+        ctx.beginPath(); ctx.arc(center, center, radius, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(center, center - radius - Math.round(displaySize*0.15)); ctx.lineTo(center, center + radius + Math.round(displaySize*0.15)); ctx.moveTo(center - radius - Math.round(displaySize*0.15), center); ctx.lineTo(center + radius + Math.round(displaySize*0.15), center); ctx.stroke();
+    }
+
+    function draw() {
+        frameCount++;
+        if (frameCount > maxFrames) resetCycle();
+
+        let baseVal = (errorType === 'none' ? 14.8 : (errorType === 'lte' ? 7.5 : 9.8)) + (Math.random()*0.3);
+        document.getElementById('snrVal').innerText = (baseVal + 1.1).toFixed(1);
+        document.getElementById('merVal').innerText = baseVal.toFixed(1);
+        document.getElementById('berVal').innerText = errorType === 'none' ? "1.0E-9" : (errorType === 'lte' ? "5.4E-2" : "2.8E-3");
+
+        const center = displaySize / 2;
+        const radius = Math.round(displaySize * 0.35);
+        ctx.fillStyle = errorType === 'lte' ? '#e11d48' : '#0284c7';
+        let points = modType === 'QPSK' ? 4 : 8;
+
+        for (let i = 0; i < points; i++) {
+            let angle = (i * (2 * Math.PI / points)) + (modType === 'QPSK' ? Math.PI/4 : 0);
+
+            for (let k = 0; k < 6; k++) {
+                let cAngle = angle, cRadius = radius;
+                let spread = (16 - baseVal);
+
+                if (errorType === 'noise') {
+                    cAngle += (Math.random()-0.5) * (spread * 0.08);
+                    cRadius += (Math.random()-0.5) * (spread * (radius/12));
+                } else if (errorType === 'lte') {
+                    cAngle += (Math.random()-0.5) * 0.3;
+                    cRadius += (Math.random()-0.5) * (radius * 0.28);
+                } else if (errorType === 'skew') {
+                    cAngle += 0.35 + (Math.random()-0.5) * 0.04;
+                } else if (errorType === 'phase') {
+                    cAngle += (Math.random()-0.5) * (spread * 0.09);
+                } else {
+                    cAngle += (Math.random()-0.5) * 0.02; cRadius += (Math.random()-0.5) * (radius * 0.03);
+                }
+
+                let x = center + cRadius * Math.cos(cAngle);
+                let y = center + cRadius * Math.sin(cAngle);
+                ctx.globalAlpha = 0.5;
+                ctx.beginPath(); ctx.arc(x, y, Math.max(1, displaySize/200), 0, Math.PI * 2); ctx.fill();
+            }
+        }
+        updateDiagnostics();
+        setTimeout(draw, 500);
+    }
+
+    function updateDiagnostics() {
+        const title = document.getElementById('diag-title');
+        const actions = document.getElementById('diag-actions');
+        actions.innerHTML = "";
+        const db = {
+            none: { t: "Sygnał stabilny", a: ["Wszystko w normie.", "Idealne parametry dla Hotbird."] },
+            skew: { t: "Błąd SKEW (Skręcenie)", a: ["Obróć konwerter w obejmie.", "Szukaj najwyższego MER."] },
+            noise: { t: "Deszcz / Zły wymiar", a: ["Sprawdź czy antena nie jest za mała.", "Możliwe zachmurzenie lub deszcz."] },
+            phase: { t: "Szum fazowy (Phase)", a: ["Wymień konwerter LNB.", "Sprawdź zasilanie multiswitcha."] },
+            lte: { t: "ZAKŁÓCENIA LTE / 5G", a: ["Wymień kabel na klasę 'A'.", "Zastosuj złącza kompresyjne."] }
+        };
+        title.innerHTML = "<b>Diagnoza:</b> " + db[errorType].t;
+        db[errorType].a.forEach(text => {
+            let li = document.createElement('li'); li.innerText = text; actions.appendChild(li);
+        });
+    }
+    // initial draw
+    drawGrid(); draw();
+</script>
+</body>
+</html>

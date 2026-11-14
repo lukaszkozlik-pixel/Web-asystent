@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kierunki DVB-T</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        body { 
+            margin: 0; 
+            background: #f0f2f5; 
+            color: #2c3e50; 
+            display: flex; 
+            flex-direction: column; 
+            height: 100vh; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        header { 
+            padding: 0 16px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between;
+            height: 56px;
+            position: relative;
+            z-index: 1000; 
+            background: #fff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        h1 { 
+            font-size: 1.1rem; 
+            margin: 0; 
+            position: absolute; 
+            left: 0; 
+            right: 0; 
+            text-align: center; 
+            pointer-events: none;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .btn-compass {
+            background: #e8f0fe;
+            border: 1px solid #1a73e8;
+            color: #1a73e8;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 1001;
+            margin-left: auto;
+            display: none;
+        }
+
+        #map { 
+            height: 42%; 
+            width: 100%; 
+            z-index: 1; 
+            border-bottom: 2px solid rgba(0,0,0,0.08); 
+        }
+
+        .btn-recenter {
+            position: fixed; 
+            top: 30%; 
+            right: 5%;
+            background: #ffffff; 
+            border: 2px solid #004ba0;
+            border-radius: 50%; 
+            width: 48px; 
+            height: 48px;
+            font-size: 1.4rem; 
+            color: #004ba0; 
+            z-index: 1000;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            cursor: pointer;
+        }
+        .btn-recenter:active {
+            transform: scale(0.92);
+            background: #e8f0fe;
+        }
+
+        .list-container { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 12px; 
+            box-sizing: border-box;
+        }
+
+        .transmitter-card {
+            background: #ffffff; 
+            margin-bottom: 10px; 
+            padding: 14px 16px;
+            border-radius: 12px; 
+            display: flex; 
+            justify-content: space-between;
+            align-items: center; 
+            border-left: 6px solid #b0bec5; 
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+            color: #2c3e50;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.05);
+            border-left-width: 6px;
+        }
+
+        .transmitter-card:active {
+            transform: scale(0.98);
+        }
+
+        .transmitter-card.active { 
+            border-left-color: #d93025; 
+            background: #fce8e6; 
+            box-shadow: 0 4px 12px rgba(217, 48, 37, 0.15);
+        }
+
+        .tx-name {
+            font-weight: 700;
+            font-size: 1.02rem;
+            color: #1f2937;
+            margin-bottom: 3px;
+        }
+
+        .azimuth-container {
+            text-align: right;
+            min-width: 70px;
+        }
+
+        .azimuth-val { 
+            font-size: 1.35rem; 
+            font-weight: 800; 
+            color: #1a73e8; 
+            line-height: 1;
+        }
+        
+        .transmitter-card.active .azimuth-val {
+            color: #d93025;
+        }
+
+        .distance { 
+            font-size: 0.82rem; 
+            color: #656d76; 
+            font-weight: 500;
+        }
+
+        .leaflet-control-layers {
+            margin-top: 10px !important;
+            margin-right: 10px !important;
+            border-radius: 8px !important;
+            border: none !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important;
+        }
+        .leaflet-control-layers-toggle {
+            width: 40px !important;
+            height: 40px !important;
+            background-size: 24px 24px !important;
+        }
+        .leaflet-control-attribution {
+            font-size: 8px !important; 
+            background: rgba(255, 255, 255, 0.6) !important; 
+            max-width: 60%; 
+            border-top-left-radius: 4px;
+        }
+        
+        .btn-fullscreen {
+            position: fixed; 
+            top: calc(30% + 58px); 
+            right: 5%;
+            background: #ffffff; 
+            border: 2px solid #1a73e8; 
+            border-radius: 50%; 
+            width: 48px; 
+            height: 48px;
+            font-size: 1.2rem; 
+            color: #1a73e8; 
+            z-index: 1000;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: transform 0.15s, background 0.15s;
+        }
+        .btn-fullscreen:active {
+            transform: scale(0.92);
+            background: #e8f0fe;
+        }
+
+        #map:fullscreen {
+            height: 100vh !important;
+            width: 100vw !important;
+        }
+
+        /* PISTACJOWA, WYRAŹNA IGŁA KOMPASU (3px szerokości, 150px długości) */
+        .phone-heading {
+            width: 3px;                    
+            height: 150px;                 
+            background-color: #98fb98;     
+            border: 1px solid rgba(0, 0, 0, 0.4); 
+            border-radius: 2px;            
+            box-shadow: 0 0 6px rgba(0, 0, 0, 0.7); 
+            transform-origin: 50% 50px;     
+            transition: transform 0.08s ease-out; 
+        }
+        
+        .phone-heading-wrapper {
+            margin-left: -1.5px;
+            margin-top: -50px;             
+        }
+        
+        /* PANEL KALIBRACJI KOMPASU */
+        .compass-calibration {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            border-bottom: 1px solid #ddd;
+            z-index: 999;
+        }
+        .compass-calibration input[type="range"] {
+            flex: 1;
+            margin: 0;
+        }
+        
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Kierunki DVB-T</h1>
+        <button id="compass-btn" class="btn-compass" onclick="initCompass()">🧭 Kompas</button>
+    </header>
+    
+    <!-- Panel szybkiej korekcji kompasu -->
+    <div class="compass-calibration">
+        <span>🧭 Korekta kompasu: <b id="offset-val">0</b>°</span>
+        <input type="range" id="offsetRange" min="-180" max="180" value="0" step="5" oninput="zmienOffset(this.value)">
+        <button onclick="resetOffset()" style="background:none; border:1px solid #ccc; border-radius:4px; cursor:pointer; padding:2px 6px; font-size:0.75rem;">Reset</button>
+    </div>
+
+    <div id="map"></div>
+    <button class="btn-recenter" title="Wycentruj na mojej pozycji" onclick="wycentrujMape()">⌖</button>
+    <button class="btn-fullscreen" title="Pełny ekran" onclick="toggleFullscreen()">⛶</button>
+
+    <div class="list-container" id="transmitter-list">
+        <div style="padding: 30px; text-align: center; color: #666; font-size: 0.95rem;">
+            ⏳ Pobieram pozycję GPS...
+        </div>
+    </div>
+
+<script>
+    let map, userMarker, headingMarker;
+    let currentLine = null;
+    let userCoords = null;
+
+    const transmitters = [
+        { name: "RTCN Katowice / Kosztowy", lat: 50.1878, lon: 19.1161 },
+        { name: "RTON Wisła / Skrzyczne", lat: 49.6844, lon: 19.0303 },
+        { name: "Ostrava / Hostálkovice", lat: 49.8514, lon: 18.2111 },
+        { name: "Rybnik / Chwałowice", lat: 50.0658, lon: 18.5539 }
+    ];
+
+    window.addEventListener('load', () => {
+        initMap();
+        setupCompass();
+    });
+
+    function initMap(lat, lon) {
+        // Domyślne współrzędne startowe (np. Śląsk / Polska), dopóki GPS nie złapie pozycji
+        const startLat = lat || 50.25;
+        const startLon = lon || 19.0;
+
+        map = L.map('map', { zoomControl: false }).setView([startLat, startLon], 15);
+
+        const streetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        });
+
+        const topoMap = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+            maxZoom: 17,
+            attribution: '© OpenTopoMap (CC-BY-SA)'
+        });
+
+        const satMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Esri Satellite'
+        });
+
+        satMap.addTo(map); // Domyślnie satelita
+
+        const baseMaps = {
+            "Satelita": satMap,
+            "Topografia": topoMap,
+            "Mapa": streetMap
+        };
+        L.control.layers(baseMaps, null, { position: 'topright' }).addTo(map);
+
+        if (navigator.geolocation) {
+            navigator.geolocation.watchPosition(pos => {
+                userCoords = [pos.coords.latitude, pos.coords.longitude];
+
+                if (!userMarker) {
+                    map.setView(userCoords, 16);
+                    userMarker = L.circleMarker(userCoords, { 
+                        color: '#ffffff', 
+                        fillColor: '#1a73e8', 
+                        fillOpacity: 1, 
+                        weight: 3, 
+                        radius: 9 
+                    }).addTo(map);
+                    
+                    const headingIcon = L.divIcon({
+                        className: 'phone-heading-wrapper',
+                        html: '<div class="phone-heading" id="phone-arrow"></div>',
+                        iconSize: [3, 150],
+                        iconAnchor: [1.5, 50]
+                    });
+                    headingMarker = L.marker(userCoords, { icon: headingIcon }).addTo(map);
+                } else {
+                    userMarker.setLatLng(userCoords);
+                    headingMarker.setLatLng(userCoords);
+                }
+                renderList();
+            }, err => {
+                console.error("Błąd GPS:", err);
+                document.getElementById("transmitter-list").innerHTML = 
+                    `<div style="padding:20px; text-align:center; color:#d93025; font-weight:bold;">
+                        ⚠️ Brak sygnału GPS (${err.message}).<br><small style="color:#666;">Włącz lokalizację w ustawieniach.</small>
+                     </div>`;
+            }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 });
+        }
+    }
+
+    function setupCompass() {
+        if (window.DeviceOrientationEvent) {
+            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                document.getElementById('compass-btn').style.display = 'block';
+            } else {
+                window.addEventListener('deviceorientationabsolute', handleOrientation, true);
+                window.addEventListener('deviceorientation', handleOrientation, true);
+            }
+        }
+    }
+
+    function initCompass() {
+        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+            DeviceOrientationEvent.requestPermission().then(response => {
+                if (response === 'granted') {
+                    window.addEventListener('deviceorientation', handleOrientation, true);
+                    document.getElementById('compass-btn').style.display = 'none';
+                }
+            }).catch(console.error);
+        }
+    }
+
+    // Pobieranie zapisanego offsetu z pamięci przeglądarki (domyślnie 0)
+    let compassOffset = parseInt(localStorage.getItem('compass_offset') || '0');
+    
+    // Inicjalizacja suwaka przy starcie
+    window.addEventListener('DOMContentLoaded', () => {
+        const range = document.getElementById('offsetRange');
+        if (range) {
+            range.value = compassOffset;
+            document.getElementById('offset-val').innerText = compassOffset;
+        }
+    });
+
+    function zmienOffset(val) {
+        compassOffset = parseInt(val);
+        document.getElementById('offset-val').innerText = compassOffset;
+        localStorage.setItem('compass_offset', compassOffset); // Zapis do pamięci
+    }
+
+    function resetOffset() {
+        compassOffset = 0;
+        const range = document.getElementById('offsetRange');
+        if (range) range.value = 0;
+        document.getElementById('offset-val').innerText = '0';
+        localStorage.setItem('compass_offset', '0');
+    }
+
+    let currentHeading = 0;
+
+    function handleOrientation(e) {
+        let heading = e.webkitCompassHeading || e.alpha;
+        if (heading !== null && heading !== undefined) {
+            if (!e.webkitCompassHeading && e.alpha) {
+                heading = 360 - e.alpha; 
+            }
+
+            // --- UWZGLEDNIENIE RĘCZNEGO OFFSETU UŻYTKOWNIKA ---
+            heading = (heading + compassOffset + 360) % 360;
+
+            // --- FILTR WYGŁADZAJĄCY ---
+            let diff = heading - currentHeading;
+            if (diff > 180) diff -= 360;
+            if (diff < -180) diff += 360;
+            
+            currentHeading += diff * 0.25; 
+            currentHeading = (currentHeading + 360) % 360;
+
+            const arrow = document.getElementById('phone-arrow');
+            if (arrow) {
+                arrow.style.transform = `rotate(${currentHeading}deg)`;
+            }
+        }
+    }
+
+    function wycentrujMape() {
+        if (userCoords && map) {
+            map.setView(userCoords, 16, { animate: true });
+        }
+    }
+
+    function renderList() {
+        const list = document.getElementById("transmitter-list");
+        if (!userCoords) return;
+        
+        list.innerHTML = "";
+
+        const results = transmitters.map(tx => ({
+            ...tx,
+            dist: calculateDistance(userCoords[0], userCoords[1], tx.lat, tx.lon),
+            bear: calculateBearing(userCoords[0], userCoords[1], tx.lat, tx.lon)
+        })).sort((a, b) => a.dist - b.dist);
+
+        results.forEach(tx => {
+            const card = document.createElement('div');
+            card.className = 'transmitter-card';
+            card.onclick = function() { drawLine(tx, this); };
+            
+            card.innerHTML = `
+                <div>
+                    <div class="tx-name">${tx.name}</div>
+                    <div class="distance">Odległość: <b>${tx.dist.toFixed(1)} km</b></div>
+                </div>
+                <div class="azimuth-container">
+                    <div class="azimuth-val">${tx.bear}°</div>
+                    <div style="font-size: 0.65rem; color: #888; text-transform: uppercase; font-weight: bold;">Azymut</div>
+                </div>
+            `;
+            list.appendChild(card);
+        });
+    }
+
+    function drawLine(tx, card) {
+        if (!userCoords) return;
+
+        document.querySelectorAll('.transmitter-card').forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+    
+        if (currentLine) map.removeLayer(currentLine);
+        
+        // Obliczanie punktu końcowego linii na podstawie azymutu i odległości (start precyzyjnie z pozycji użytkownika)
+        const R = 6371; 
+        const lat1 = userCoords[0] * Math.PI / 180;
+        const lon1 = userCoords[1] * Math.PI / 180;
+        const brng = calculateBearing(userCoords[0], userCoords[1], tx.lat, tx.lon) * Math.PI / 180;
+
+        const dR = 5.0 / R; // 5 km długości linii na mapie w kierunku nadajnika
+        const lat2 = Math.asin(Math.sin(lat1) * Math.cos(dR) + Math.cos(lat1) * Math.sin(dR) * Math.cos(brng));
+        const lon2 = lon1 + Math.atan2(Math.sin(brng) * Math.sin(dR) * Math.cos(lat1), Math.cos(dR) - Math.sin(lat1) * Math.sin(lat2));
+
+        const endPoint = [lat2 * 180 / Math.PI, lon2 * 180 / Math.PI];
+
+        currentLine = L.polyline([userCoords, endPoint], {
+            color: '#d93025',
+            weight: 5,
+            dashArray: '8, 8'
+        }).addTo(map);
+    
+        if (userCoords) {
+            map.setView(userCoords, 16, { animate: true });
+        }
+    }
+
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371;
+        const dLat = (lat2-lat1)*Math.PI/180;
+        const dLon = (lon2-lon1)*Math.PI/180;
+        const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+
+    function calculateBearing(lat1, lon1, lat2, lon2) {
+        const l1 = lat1*Math.PI/180, l2 = lat2*Math.PI/180, dl = (lon2-lon1)*Math.PI/180;
+        const y = Math.sin(dl)*Math.cos(l2), x = Math.cos(l1)*Math.sin(l2)-Math.sin(l1)*Math.cos(l2)*Math.cos(dl);
+        return Math.round((Math.atan2(y, x)*180/Math.PI + 360) % 360);
+    }
+
+    function toggleFullscreen() {
+        const mapElement = document.getElementById('map');
+        if (!document.fullscreenElement) {
+            if (mapElement.requestFullscreen) mapElement.requestFullscreen();
+            else if (mapElement.webkitRequestFullscreen) mapElement.webkitRequestFullscreen();
+        } else {
+            if (document.exitFullscreen) document.exitFullscreen();
+            else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+        }
+    }
+
+    document.addEventListener("fullscreenchange", () => { setTimeout(() => { map.invalidateSize(); }, 200); });
+    document.addEventListener("webkitfullscreenchange", () => { setTimeout(() => { map.invalidateSize(); }, 200); });
+</script>
+</body>
+</html>
