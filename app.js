@@ -1,7 +1,9 @@
 const metaVersionTag = document.querySelector('meta[name="version"]');
-const APP_VERSION = metaVersionTag ? metaVersionTag.getAttribute('content') : "2.2.0";
+const APP_VERSION = metaVersionTag ? metaVersionTag.getAttribute('content') : "3.2.0";
 
+// --- JEDNA, ZBIORCZA INICJALIZACJA STARTOWA ---
 document.addEventListener("DOMContentLoaded", () => {
+    // 1. Wersja aplikacji
     const versionEl = document.getElementById('app-version');
     if (versionEl) {
         versionEl.innerText = `v${APP_VERSION}`;
@@ -12,26 +14,39 @@ document.addEventListener("DOMContentLoaded", () => {
     aktRok = new Date().getFullYear();
     aktMiesiac = new Date().getMonth();
 
-    // SPRAWDZENIE DOMYŚLNEGO MODUŁU ZAPISANEGO PRZEZ UŻYTKOWNIKA
+    // 2. Moduł startowy
     const domyslnyModul = localStorage.getItem('web_asystent_domyslny_modul') || 'narzedzia';
-    
-    // Uruchomienie aplikacji na domyślnym ekranie
     zmienZakladka(domyslnyModul);
 
+    // 3. Generowanie widoków
     generujKalendarz();
     renderujWizytyDnia();
     renderujListe();
     renderujNotatki();
     inicjalizujGesty();
-    
-    // AKTYWACJA NASŁUCHIWANIA PRZYTRZYMANIA NA ZAKŁADKACH
     inicjalizujPrzytrzymanieZakladek();
+
+    // 4. Automatyczne czyszczenie pola telefonu w formularzu wizyty
+    const inputTelefon = document.getElementById('visit-client');
+    if (inputTelefon) {
+        inputTelefon.addEventListener('focus', () => {
+            if (inputTelefon.value === "Brak numeru") {
+                inputTelefon.value = "";
+            }
+        });
+
+        inputTelefon.addEventListener('blur', () => {
+            if (inputTelefon.value.trim() === "") {
+                inputTelefon.value = "Brak numeru";
+            }
+        });
+    }
 });
 
 // --- OBSŁUGA PRZYTRZYMANIA (LONG-PRESS) DLA DOMYŚLNEGO MODUŁU ---
 function inicjalizujPrzytrzymanieZakladek() {
     const ekrany = ['narzedzia', 'kalendarz', 'dziennik', 'notatki'];
-    const czasPrzytrzymania = 600; // milisekundy (0.6 sekundy)
+    const czasPrzytrzymania = 600;
 
     ekrany.forEach(ekran => {
         const btn = document.getElementById(`tab-${ekran}`);
@@ -39,15 +54,10 @@ function inicjalizujPrzytrzymanieZakladek() {
 
         let timer = null;
 
-        const startPress = (e) => {
-            // Zapobiegamy domyślnym akcjom kontekstowym na telefonie
+        const startPress = () => {
             timer = setTimeout(() => {
                 localStorage.setItem('web_asystent_domyslny_modul', ekran);
-                
-                // Delikatna wibracja zwrotna w telefonie (jeśli wspierana)
                 if (navigator.vibrate) navigator.vibrate(70);
-
-                // Wizualne potwierdzenie dla użytkownika
                 const nazwaModulu = btn.innerText.replace(/[\u{1F000}-\u{1F6FF}]/gu, '').trim();
                 alert(`⭐ Ustawiono domyślny moduł startowy:\n„${nazwaModulu}”`);
             }, czasPrzytrzymania);
@@ -60,12 +70,9 @@ function inicjalizujPrzytrzymanieZakladek() {
             }
         };
 
-        // Zdarzenia dotykowe (Mobile)
         btn.addEventListener('touchstart', startPress, {passive: true});
         btn.addEventListener('touchend', cancelPress);
         btn.addEventListener('touchmove', cancelPress);
-
-        // Zdarzenia myszy (Desktop / Testy)
         btn.addEventListener('mousedown', startPress);
         btn.addEventListener('mouseup', cancelPress);
         btn.addEventListener('mouseleave', cancelPress);
@@ -177,7 +184,7 @@ function zapiszKopieBazy() {
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
-    zapiszDoSyncthing()
+    zapiszDoSyncthing();
 }
 
 function triggerRestore() {
@@ -353,7 +360,6 @@ function wybierzDzien(dataStr) {
 function toggleMenuAkcji(index, event) {
     event.stopPropagation();
     
-    // Zamknij wszystkie inne otwarte menu rozwijane na liście
     document.querySelectorAll('[id^="menu-akcji-"]').forEach(el => {
         if (el.id !== `menu-akcji-${index}`) {
             el.style.display = 'none';
@@ -366,13 +372,11 @@ function toggleMenuAkcji(index, event) {
     }
 }
 
-// Opcjonalnie: kliknięcie gdziekolwiek poza menu na stronie zamyka otwarte listy
 document.addEventListener('click', () => {
     document.querySelectorAll('[id^="menu-akcji-"]').forEach(el => {
         el.style.display = 'none';
     });
 });
-
 
 function renderujWizytyDnia() {
     const kontener = document.getElementById('lista-wizyt-dnia');
@@ -405,25 +409,19 @@ function renderujWizytyDnia() {
         kontener.innerHTML += `
             <div class="visit-item ${isPriv ? 'prywatny' : ''}" style="position: relative;">
                 <div class="visit-info" style="margin-bottom: 0;">
-                    <!-- 1. Wiersz: Godzina po lewej, przycisk menu po prawej -->
                     <div class="visit-header-row">
                         <strong style="font-size: 1.15rem; color: ${isPriv ? '#2980b9' : '#d35400'};">${czasInfo}</strong>
                         <button class="visit-menu-btn" onclick="toggleMenuAkcji(${globalIndex}, event)">⋮</button>
                     </div>
 
-                    <!-- 2. Wiersz: Numer telefonu pod spodem -->
                     <div class="visit-phone-row">
                         📞 <a href="tel:${w.klient}" style="color: #2980b9; text-decoration: underline;" onclick="event.stopPropagation()">${w.klient}</a>
                     </div>
 
-                    <!-- 3. Wiersz: Adres -->
                     ${adresHTML}
-
-                    <!-- 4. Wiersz: Opis z zachowaniem łamania linii -->
                     ${opisHTML}
                 </div>
 
-                <!-- ROZWIJANE MENU Z 4 AKCJAMI -->
                 <div id="menu-akcji-${globalIndex}" class="visit-dropdown-menu" style="display: none;">
                     <button style="background-color: #f39c12; color: white;" onclick="edytujWizyte(${globalIndex})">✏️ Edytuj wizytę</button>
                     <button style="background-color: #16a085; color: white;" onclick="kopiujWizyte(${globalIndex})">📋 Kopiuj wizytę</button>
@@ -435,34 +433,12 @@ function renderujWizytyDnia() {
     });
 }
 
-// --- AUTOMATYCZNE CZYSZCZENIE POLA TELEFONU ---
-document.addEventListener("DOMContentLoaded", () => {
-    const inputTelefon = document.getElementById('visit-client');
-    if (inputTelefon) {
-        // Gdy klikniesz w pole i jest tam dokładnie "Brak numeru" -> czyścimy
-        inputTelefon.addEventListener('focus', () => {
-            if (inputTelefon.value === "Brak numeru") {
-                inputTelefon.value = "";
-            }
-        });
-
-        // Jeśli wyjdziesz z pola i nic nie wpiszesz -> przywracamy "Brak numeru"
-        inputTelefon.addEventListener('blur', () => {
-            if (inputTelefon.value.trim() === "") {
-                inputTelefon.value = "Brak numeru";
-            }
-        });
-    }
-});
-
 function przeniesDoDziennikaZwizyty(index) {
     const w = wizyty[index];
     if (!w) return;
 
-    // Najpierw zmieniamy zakładkę, żeby górny pasek poprawnie się podświetlił
     zmienZakladka('dziennik');
 
-    // Przygotowanie formularza nowego wpisu w dzienniku
     document.getElementById('edit-index').value = "-1";
     document.getElementById('form-title').innerText = "Nowy wpis (z wizyty)";
     
@@ -470,74 +446,22 @@ function przeniesDoDziennikaZwizyty(index) {
     document.getElementById('adres').value = w.adres || "";
     document.getElementById('przychod').value = "0,00";
     document.getElementById('koszt').value = "0,00";
+    
+    let opisTekst = "";
+    if (w.klient) opisTekst += `Tel/Klient: ${w.klient}. `;
+    if (w.opis) opisTekst += w.opis;
+    document.getElementById('opis').innerHTML = opisTekst;
 
-    // Przechodzimy do widoku formularza
     pokazWidok('widok-formularza');
-}
-
-// --- OBSŁUGA PRZYTRZYMANIA KARTY WIZYTY ---
-document.addEventListener("DOMContentLoaded", () => {
-    // ... (Twoje dotychczasowe inicjalizacje)
-    inicjalizujGestWizyt();
-});
-
-function inicjalizujGestWizyt() {
-    const kontener = document.getElementById('lista-wizyt-dnia');
-    if (!kontener) return;
-
-    let pressTimer = null;
-
-    kontener.addEventListener('touchstart', (e) => {
-        const card = e.target.closest('.visit-item');
-        if (!card) return;
-        const index = parseInt(card.getAttribute('data-index'));
-
-        pressTimer = setTimeout(() => {
-            if (navigator.vibrate) navigator.vibrate(50);
-            pokazMenuAkcjiWizyty(index);
-        }, 600); // 0.6 sekundy przytrzymania
-    }, {passive: true});
-
-    kontener.addEventListener('touchend', () => clearTimeout(pressTimer));
-    kontener.addEventListener('touchmove', () => clearTimeout(pressTimer));
-
-    // Obsługa myszy dla testów na PC
-    kontener.addEventListener('mousedown', (e) => {
-        const card = e.target.closest('.visit-item');
-        if (!card || e.target.tagName === 'A' || e.target.tagName === 'BUTTON') return;
-        const index = parseInt(card.getAttribute('data-index'));
-
-        pressTimer = setTimeout(() => {
-            pokazMenuAkcjiWizyty(index);
-        }, 600);
-    });
-
-    kontener.addEventListener('mouseup', () => clearTimeout(pressTimer));
-    kontener.addEventListener('mouseleave', () => clearTimeout(pressTimer));
-}
-
-function pokazMenuAkcjiWizyty(index) {
-    const w = wizyty[index];
-    if (!w) return;
-
-    const wybor = prompt(`Wizyta: ${w.klient || 'Bez nazwy'} (${w.data})\nWybierz akcję:\n\n1 - Przenieś do Dziennika\n2 - Kopiuj wizytę`, "1");
-
-    if (wybor === "1") {
-        przeniesDoDziennikaZwizyty(index);
-    } else if (wybor === "2") {
-        kopiujWizyte(index);
-    }
 }
 
 function kopiujWizyte(index) {
     const w = wizyty[index];
     if (!w) return;
 
-    // Ustawiamy formularz w tryb "Nowa wizyta" (edit-index = -1)
     document.getElementById('edit-visit-index').value = "-1";
     document.getElementById('visit-form-title').innerText = "Kopiuj wizytę";
     
-    // Wypełniamy pola danymi ze skopiowanej wizyty
     document.getElementById('visit-type').value = w.typ || 'sluzbowy';
     document.getElementById('visit-all-day').checked = w.calyDzien || false;
     document.getElementById('container-godzina').style.display = w.calyDzien ? 'none' : 'block';
@@ -545,12 +469,8 @@ function kopiujWizyte(index) {
     document.getElementById('visit-client').value = w.klient || "";
     document.getElementById('visit-address').value = w.adres || "";
     document.getElementById('visit-desc').value = w.opis || "";
-    
-    // Datę ustawiamy domyślnie na aktualnie wybraną w kalendarzu (lub dzisiejszą), 
-    // żeby użytkownik od razu zapisał ją tam, gdzie chce, albo mógł ją zmienić w polu date.
     document.getElementById('visit-date').value = wybranaData || new Date().toISOString().split('T')[0];
 
-    // Otwieramy formularz wizyty
     pokazWidok('widok-formularza-wizyty');
 }
 
@@ -614,7 +534,7 @@ function zapiszWizyte() {
     generujKalendarz();
     renderujWizytyDnia();
     pokazWidok('widok-kalendarza');
-    zapiszDoSyncthing()
+    zapiszDoSyncthing();
 }
 
 function edytujWizyte(index) {
@@ -738,7 +658,6 @@ async function eksportujWszystkieWpisyDoSyncthing() {
         let licznik = 0;
         let indeksyDoUsuniecia = [];
 
-        // Pętla eksportująca
         for (let i = 0; i < wpisy.length; i++) {
             const w = wpisy[i];
             try {
@@ -756,22 +675,19 @@ async function eksportujWszystkieWpisyDoSyncthing() {
                 await writable.close();
                 
                 licznik++;
-                indeksyDoUsuniecia.push(i); // Zapisujemy indeks pomyślnie wyeksportowanego wpisu
+                indeksyDoUsuniecia.push(i);
             } catch (fileErr) {
                 console.error(`Błąd przy eksporcie wpisu ${w.data}:`, fileErr);
             }
         }
 
-        // Usuwamy z głównej tablicy wpisy, które się powiodły (od końca, żeby nie zaburzyć indeksów)
         indeksyDoUsuniecia.sort((a, b) => b - a).forEach(idx => {
             wpisy.splice(idx, 1);
         });
 
-        // Zapisujemy stan do localStorage i odświeżamy listę na ekranie
         localStorage.setItem('ksiegowosc_wpisy', JSON.stringify(wpisy));
         renderujListe();
 
-        // Krótkie opóźnienie, żeby przeglądarka zdążyła wyczyścić listę przed pokazaniem alertu
         setTimeout(() => {
             alert(`✅ Pomyślnie wyeksportowano ${licznik} plików do Syncthing i usunięto je z listy!`);
         }, 50);
@@ -838,7 +754,6 @@ function eksportujIUsun(index) {
     wpisy.splice(index, 1);
     localStorage.setItem('ksiegowosc_wpisy', JSON.stringify(wpisy));
     renderujListe();
-    
 }
 
 function edytujWpis(index) {
@@ -893,7 +808,7 @@ function zapiszNotatke() {
     localStorage.setItem('ksiegowosc_notatki', JSON.stringify(notatki));
     renderujNotatki();
     pokazWidok('widok-notatek');
-    zapiszDoSyncthing()
+    zapiszDoSyncthing();
 }
 
 function renderujNotatki() {
@@ -937,10 +852,9 @@ function usunNotatke(index) {
     }
 }
 
-// obługa przycisku do wybierania folderu sychronizacji
+// --- SYNCHRONIZACJA Z SYNCTHING (FILE SYSTEM ACCESS API) ---
 let syncthingDirHandle = null;
 
-// 1. Wybór folderu Syncthing przez użytkownika (wystarczy raz)
 async function podlaczFolderSyncthing() {
     if (!('showDirectoryPicker' in window)) {
         alert("Twoja przeglądarka nie wspiera bezpośredniego dostępu do folderów. Używaj Chrome na Androidzie.");
@@ -950,7 +864,6 @@ async function podlaczFolderSyncthing() {
     try {
         syncthingDirHandle = await window.showDirectoryPicker();
         alert("✅ Folder Syncthing został pomyślnie podłączony! Od teraz dane będą zapisywane tam automatycznie.");
-        // Wykonaj natychmiastowy zapis testowy
         await zapiszDoSyncthing();
     } catch (err) {
         if (err.name !== 'AbortError') {
@@ -960,12 +873,10 @@ async function podlaczFolderSyncthing() {
     }
 }
 
-// 2. Automatyczny zapis pliku w podłączonym folderze
 async function zapiszDoSyncthing() {
     if (!syncthingDirHandle) return;
 
     try {
-        // Sprawdź lub poproś o uprawnienia zapisu
         const options = { mode: 'readwrite' };
         if ((await syncthingDirHandle.queryPermission(options)) !== 'granted') {
             if ((await syncthingDirHandle.requestPermission(options)) !== 'granted') {
@@ -974,14 +885,13 @@ async function zapiszDoSyncthing() {
         }
 
         const pelnaBaza = {
-            wersja: "3.0.0",
+            wersja: APP_VERSION,
             ostatniaModyfikacja: new Date().toISOString(),
             wizyty: wizyty,
             wpisy: wpisy,
             notatki: notatki
         };
 
-        // Tworzy lub nadpisuje plik web_asystent_dane.json w wybranym folderze
         const fileHandle = await syncthingDirHandle.getFileHandle("web_asystent_dane.json", { create: true });
         const writable = await fileHandle.createWritable();
         await writable.write(JSON.stringify(pelnaBaza, null, 2));
@@ -993,7 +903,6 @@ async function zapiszDoSyncthing() {
     }
 }
 
-
 // Rejestracja Service Workera dla PWA
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -1002,5 +911,3 @@ if ('serviceWorker' in navigator) {
             .catch(err => console.log('Błąd SW:', err));
     });
 }
-
-
