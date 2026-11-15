@@ -47,7 +47,7 @@
                 <span class="label">Internet, kable i LTE</span>
             </div>
         </div>
-        <div class="swipe-hint">💡 Przesuń palcem w lewo ➡️ Kalendarz</div>
+       
     </div>
 
     <!-- WIDOK 1: KALENDARZ / WIZYTY -->
@@ -77,7 +77,7 @@
                 <input type="file" id="restore-file-input" style="display: none;" accept=".json" onchange="przywracajBaze(event)">
             </div>
         </div>
-        <div class="swipe-hint">💡 Przesuń w lewo ➡️ Dziennik prac | W prawo ➡️ Narzędzia</div>
+        
     </div>
 
     <!-- WIDOK 2: DZIENNIK PRAC -->
@@ -88,7 +88,7 @@
             <h3>Lista zdarzeń</h3>
             <div id="lista-zdarzen"></div>
         </div>
-        <div class="swipe-hint">💡 Przesuń w lewo ➡️ Notatki | W prawo ➡️ Kalendarz</div>
+        
     </div>
 
     <!-- WIDOK 3: NOTATKI -->
@@ -98,7 +98,7 @@
             <h3>Twoje notatki</h3>
             <div id="lista-notatek"></div>
         </div>
-        <div class="swipe-hint">💡 Przesuń palcem w prawo ➡️ Dziennik prac</div>
+        
     </div>
 
     <!-- FORMULARZ WIZYTY -->
@@ -150,10 +150,10 @@
         <input type="text" id="adres">
 
         <label>Przychód:</label>
-        <input type="number" id="przychod" value="0,00" step="0.01">
+        <input type="text" id="przychod" value="0,00" inputmode="decimal" placeholder="0,00">
 
         <label>Koszt:</label>
-        <input type="number" id="koszt" value="0,00" step="0.01">
+        <input type="text" id="koszt" value="0,00" inputmode="decimal" placeholder="0,00">
 
         <label>Formatowanie:</label>
         <div class="toolbar">
@@ -197,7 +197,7 @@
 
     <!-- Stopka -->
     <footer style="text-align: center; margin-top: 20px; margin-bottom: 10px; color: #888; font-size: 0.8rem;">
-        Web-asystent<span id="app-version"></span>
+        Web-asystent <span id="app-version"></span>
     </footer>
 
     <script src="app.js"></script>

@@ -611,13 +611,37 @@ function zastosujSchemat(bgColor, textColor) {
     range.insertNode(span);
 }
 
+function sformatujKwote(value) {
+    const raw = String(value ?? '').trim();
+    if (!raw) return '0,00';
+
+    const bezSpacji = raw.replace(/\s+/g, '');
+    const ostatniaPrzecinek = bezSpacji.lastIndexOf(',');
+    const ostatniaKropka = bezSpacji.lastIndexOf('.');
+
+    let liczbaDoParsowania = bezSpacji;
+    if (ostatniaPrzecinek !== -1 || ostatniaKropka !== -1) {
+        const separator = ostatniaPrzecinek > ostatniaKropka ? ',' : '.';
+        if (separator === ',') {
+            liczbaDoParsowania = bezSpacji.replace(/\./g, '').replace(',', '.');
+        } else {
+            liczbaDoParsowania = bezSpacji.replace(/,/g, '');
+        }
+    }
+
+    const parsed = Number(liczbaDoParsowania);
+    if (!Number.isFinite(parsed)) return '0,00';
+
+    return parsed.toFixed(2).replace('.', ',');
+}
+
 function zapiszWpis() {
     const editIndex = parseInt(document.getElementById('edit-index').value);
     const wpis = {
         data: document.getElementById('data').value,
         adres: document.getElementById('adres').value,
-        przychod: document.getElementById('przychod').value.trim() || "0,00",
-        koszt: document.getElementById('koszt').value.trim() || "0,00",
+        przychod: sformatujKwote(document.getElementById('przychod').value),
+        koszt: sformatujKwote(document.getElementById('koszt').value),
         opis: document.getElementById('opis').innerHTML
     };
 
