@@ -171,7 +171,9 @@ function zapiszKopieBazy() {
         dataUtworzenia: new Date().toISOString(),
         wizyty: wizyty,
         wpisy: wpisy,
-        notatki: notatki
+        notatki: notatki,
+        wlasneAccSat: JSON.parse(localStorage.getItem('wlasne_acc_sat')) || [],
+        wlasneAccDvbt: JSON.parse(localStorage.getItem('wlasne_acc_dvbt')) || []
     };
 
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(pelnaBaza, null, 2));
@@ -213,6 +215,14 @@ function przywracajBaze(event) {
                 localStorage.setItem('ksiegowosc_wizyty', JSON.stringify(wizyty));
                 localStorage.setItem('ksiegowosc_wpisy', JSON.stringify(wpisy));
                 localStorage.setItem('ksiegowosc_notatki', JSON.stringify(notatki));
+
+                // Przywracanie własnych akordeonów bibliotek, jeśli istnieją w pliku backupu
+                if (zawartosc.wlasneAccSat) {
+                    localStorage.setItem('wlasne_acc_sat', JSON.stringify(zawartosc.wlasneAccSat));
+                }
+                if (zawartosc.wlasneAccDvbt) {
+                    localStorage.setItem('wlasne_acc_dvbt', JSON.stringify(zawartosc.wlasneAccDvbt));
+                }
 
                 generujKalendarz();
                 renderujWizytyDnia();
@@ -913,7 +923,9 @@ async function zapiszDoSyncthing() {
             ostatniaModyfikacja: new Date().toISOString(),
             wizyty: wizyty,
             wpisy: wpisy,
-            notatki: notatki
+            notatki: notatki,
+            wlasneAccSat: JSON.parse(localStorage.getItem('wlasne_acc_sat')) || [],
+            wlasneAccDvbt: JSON.parse(localStorage.getItem('wlasne_acc_dvbt')) || []
         };
 
         const fileHandle = await syncthingDirHandle.getFileHandle("web_asystent_dane.json", { create: true });

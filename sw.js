@@ -1,4 +1,4 @@
-const CACHE_NAME = 'Web-aystent';
+const CACHE_NAME = 'Web-aystent-v3.2.2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -20,7 +20,7 @@ const ASSETS_TO_CACHE = [
   './tools-src/docs/Parametry-DVB-t.html',
   './tools-src/docs/ParametrySAT.html',
   './tools-src/docs/UnicablePB.html',
-  './tools-scr/docs/NC_PLUS_RESET.html'
+  './tools-src/docs/NC_PLUS_RESET.html'
 ];
 
 self.addEventListener('install', (event) => {
@@ -42,7 +42,7 @@ self.addEventListener('activate', (event) => {
       );
     })
   );
-  self.clientsClaim();
+  self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {

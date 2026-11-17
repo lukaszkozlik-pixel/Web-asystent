@@ -11,11 +11,10 @@
             margin: 0; 
             background: #f0f2f5; 
             color: #2c3e50; 
+            padding-bottom: 30px;
         }
         
-        /* NOWY, ELEGANCKI NAGŁÓWEK */
         header { 
-           
             padding: 0 16px; 
             display: flex; 
             align-items: center; 
@@ -24,7 +23,6 @@
             z-index: 1000; 
         }
         
-       
         h1 { 
             font-size: 1.1rem; 
             margin: 0; 
@@ -68,6 +66,14 @@
         .acc-header:active {
             background: #003d82;
         }
+
+        /* Wyróżnienie nagłówka własnych notatek */
+        .acc-header.custom-note {
+            background: #2c3e50;
+        }
+        .acc-header.custom-note:active {
+            background: #1a252f;
+        }
         
         .acc-content { 
             display: none; 
@@ -76,6 +82,38 @@
             background: #fff; 
             color: #333; 
             height: 65vh; 
+        }
+
+        /* Zawartość tekstowa własnego akordeonu (dopasowuje wysokość do tekstu) */
+        .acc-content.custom-text {
+            height: auto;
+            padding: 15px;
+        }
+
+        .custom-note-body {
+            white-space: pre-wrap;
+            font-size: 0.95rem;
+            line-height: 1.45;
+            margin-bottom: 14px;
+            user-select: text;
+            -webkit-user-select: text;
+        }
+
+        .custom-note-actions {
+            display: flex;
+            gap: 8px;
+            border-top: 1px dashed #ddd;
+            padding-top: 10px;
+        }
+
+        .custom-note-actions button {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            cursor: pointer;
         }
         
         .acc-content.show { 
@@ -88,16 +126,51 @@
             border: none; 
             display: block; 
         }
+
+        /* Przycisk i formularz dodawania */
+        .btn-add-acc {
+            width: 100%;
+            padding: 14px;
+            background: #004ba0;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 0.95rem;
+            cursor: pointer;
+            margin-top: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .custom-form-card {
+            display: none;
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+            margin-top: 10px;
+        }
+
+        .custom-form-card input, .custom-form-card textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 6px;
+            margin-bottom: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.95rem;
+        }
     </style>
 </head>
 <body>
 
 <header>
-    
     <h1>Biblioteka SAT</h1>
 </header>
 
 <div class="container">
+    <!-- STAŁE AKORDEONY -->
     <div class="accordion">
         <div class="acc-header" onclick="toggleAcc(this)">Parametry SAT <span>+</span></div>
         <div class="acc-content">
@@ -129,29 +202,142 @@
            <iframe class="content-frame" src="docs/NC_PLUS_RESET.html"></iframe>
         </div>
     </div>
+
+    <!-- KONTENER NA WŁASNE AKORDEONY -->
+    <div id="custom-accordions-list"></div>
+
+    <!-- PRZYCISK DODAWANIA -->
+    <button id="btn-show-form" class="btn-add-acc" onclick="otworzFormularzAcc()">＋ Dodaj własny akordeon</button>
+
+    <!-- FORMULARZ DODAWANIA / EDYCJI -->
+    <div id="custom-acc-form" class="custom-form-card">
+        <h3 id="form-acc-title" style="margin-top:0; font-size: 1rem;">Nowy akordeon</h3>
+        <input type="hidden" id="edit-acc-index" value="-1">
+        
+        <label style="font-weight:bold; font-size:0.85rem;">Tytuł na pasku:</label>
+        <input type="text" id="acc-title-input" placeholder="np. Kody serwisowe dekoderów...">
+        
+        <label style="font-weight:bold; font-size:0.85rem;">Treść notatki:</label>
+        <textarea id="acc-body-input" rows="5" placeholder="Wpisz treść..."></textarea>
+        
+        <div style="display:flex; gap:8px;">
+            <button onclick="zapiszCustomAcc()" style="flex:1; padding:10px; background:#2ecc71; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">Zapisz</button>
+            <button onclick="zamknijFormularzAcc()" style="flex:1; padding:10px; background:#7f8c8d; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">Anuluj</button>
+        </div>
+    </div>
 </div>
 
 <script>
+const STORAGE_KEY = 'wlasne_acc_sat';
+let customAccs = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+document.addEventListener("DOMContentLoaded", renderujCustomAccs);
+
 function toggleAcc(header) {
     const content = header.nextElementSibling;
     if (!content || !content.classList.contains('acc-content')) return;
-    const span = header.querySelector('span');
+    const span = header.querySelector('.acc-icon') || header.querySelector('span');
     
+    const isOpening = !content.classList.contains('show');
+
     const allHeaders = document.querySelectorAll('.acc-header');
     allHeaders.forEach(h => {
         const c = h.nextElementSibling;
-        const s = h.querySelector('span');
+        const s = h.querySelector('.acc-icon') || h.querySelector('span');
         if (c && c.classList.contains('acc-content')) {
             c.classList.remove('show');
-            if (s) s.innerText = '+';
+            if (s && s.innerText === '−') s.innerText = '+';
         }
     });
     
-    const isOpening = !content.classList.contains('show');
     if (isOpening) {
         content.classList.add('show');
         if (span) span.innerText = '−';
     }
+}
+
+function renderujCustomAccs() {
+    const list = document.getElementById('custom-accordions-list');
+    list.innerHTML = "";
+
+    customAccs.forEach((item, index) => {
+        list.innerHTML += `
+            <div class="accordion">
+                <div class="acc-header custom-note" onclick="toggleAcc(this)">
+                    <span>📝 ${escapeHTML(item.tytul)}</span>
+                    <span class="acc-icon">+</span>
+                </div>
+                <div class="acc-content custom-text">
+                    <div class="custom-note-body">${escapeHTML(item.tresc)}</div>
+                    <div class="custom-note-actions">
+                        <button style="background:#f39c12; color:white;" onclick="edytujCustomAcc(${index})">✏️ Edytuj</button>
+                        <button style="background:#e74c3c; color:white;" onclick="usunCustomAcc(${index})">🗑️ Usuń</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+}
+
+function otworzFormularzAcc() {
+    document.getElementById('edit-acc-index').value = "-1";
+    document.getElementById('form-acc-title').innerText = "Nowy akordeon";
+    document.getElementById('acc-title-input').value = "";
+    document.getElementById('acc-body-input').value = "";
+    document.getElementById('custom-acc-form').style.display = "block";
+    document.getElementById('btn-show-form').style.display = "none";
+    document.getElementById('acc-title-input').focus();
+}
+
+function zamknijFormularzAcc() {
+    document.getElementById('custom-acc-form').style.display = "none";
+    document.getElementById('btn-show-form').style.display = "block";
+}
+
+function zapiszCustomAcc() {
+    const idx = parseInt(document.getElementById('edit-acc-index').value);
+    const tytul = document.getElementById('acc-title-input').value.trim();
+    const tresc = document.getElementById('acc-body-input').value.trim();
+
+    if (!tytul) {
+        alert("Podaj tytuł akordeonu!");
+        return;
+    }
+
+    if (idx === -1) {
+        customAccs.push({ tytul, tresc });
+    } else {
+        customAccs[idx] = { tytul, tresc };
+    }
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(customAccs));
+    renderujCustomAccs();
+    zamknijFormularzAcc();
+}
+
+function edytujCustomAcc(index) {
+    const item = customAccs[index];
+    document.getElementById('edit-acc-index').value = index;
+    document.getElementById('form-acc-title').innerText = "Edytuj akordeon";
+    document.getElementById('acc-title-input').value = item.tytul;
+    document.getElementById('acc-body-input').value = item.tresc;
+    document.getElementById('custom-acc-form').style.display = "block";
+    document.getElementById('btn-show-form').style.display = "none";
+    document.getElementById('custom-acc-form').scrollIntoView({ behavior: 'smooth' });
+}
+
+function usunCustomAcc(index) {
+    if (confirm(`Usunąć akordeon „${customAccs[index].tytul}”?`)) {
+        customAccs.splice(index, 1);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(customAccs));
+        renderujCustomAccs();
+    }
+}
+
+function escapeHTML(str) {
+    return str.replace(/[&<>'"]/g, tag => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+    }[tag]));
 }
 </script>
 </body>
