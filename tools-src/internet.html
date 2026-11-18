@@ -11,21 +11,18 @@
             margin: 0; 
             background: #f0f2f5; 
             color: #2c3e50; 
+            padding-bottom: 30px;
         }
         
         /* NOWY, ELEGANCKI NAGŁÓWEK */
         header { 
-        
             padding: 0 16px; 
             display: flex; 
             align-items: center; 
             height: 56px;
-          
             position: relative; 
             z-index: 1000; 
         }
-        
- 
 
         h1 { 
             font-size: 1.1rem; 
@@ -70,6 +67,14 @@
         .acc-header:active {
             background: #5e35b1;
         }
+
+        /* Wyróżnienie nagłówka własnych notatek */
+        .acc-header.custom-note {
+            background: #2c3e50;
+        }
+        .acc-header.custom-note:active {
+            background: #1a252f;
+        }
         
         .acc-content {
             display: none; 
@@ -81,6 +86,32 @@
         
         .acc-content.show { 
             display: block; 
+        }
+
+        .custom-note-body {
+            white-space: pre-wrap;
+            font-size: 0.95rem;
+            line-height: 1.45;
+            margin-bottom: 14px;
+            user-select: text;
+            -webkit-user-select: text;
+        }
+
+        .custom-note-actions {
+            display: flex;
+            gap: 8px;
+            border-top: 1px dashed #ddd;
+            padding-top: 10px;
+        }
+
+        .custom-note-actions button {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            cursor: pointer;
         }
         
         .tool-btn { 
@@ -101,17 +132,18 @@
             background: #d1c4e9;
         }
         
-        input { 
+        input, textarea { 
             width: 100%; 
             padding: 12px; 
             margin: 10px 0; 
             border: 1px solid #ccc; 
             border-radius: 6px; 
             box-sizing: border-box; 
+            font-family: inherit;
             font-size: 1rem;
         }
         
-        input:focus {
+        input:focus, textarea:focus {
             border-color: #673ab7;
             outline: none;
         }
@@ -125,13 +157,48 @@
             border: 1px dashed #673ab7; 
             color: #2c3e50;
         }
+
+        /* Przycisk i formularz dodawania własnych akordeonów */
+        .btn-add-acc {
+            width: 100%;
+            padding: 14px;
+            background: #673ab7;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 0.95rem;
+            cursor: pointer;
+            margin-top: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: background 0.2s;
+        }
+
+        .btn-add-acc:active {
+            background: #5e35b1;
+        }
+
+        .custom-form-card {
+            display: none;
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+            margin-top: 10px;
+        }
+
+        .custom-form-card input, .custom-form-card textarea {
+            padding: 10px;
+            margin-top: 6px;
+            margin-bottom: 12px;
+            font-size: 0.95rem;
+        }
     </style>
 </head>
 
 <body>
 
 <header>
-
     <h1>Narzędzia Internetowe</h1>
 </header>
 
@@ -242,78 +309,259 @@
             </p>
         </div>
     </div>
-   
+
+    <!-- 1. PODSTAWY ETHERNETU -->
     <div class="accordion">
-        <div class="acc-header" onclick="toggleAcc(this)">KATEGORIE KABLI (SKRĘTKA) <span>+</span></div>
+        <div class="acc-header" onclick="toggleAcc(this)">PODSTAWY ETHERNETU <span>+</span></div>
         <div class="acc-content">
-            <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; background: white;">
-                <thead>
-                    <tr style="background: #673ab7; color: white;">
-                        <th style="padding: 8px; border: 1px solid #ddd;">Kat.</th>
-                        <th style="padding: 8px; border: 1px solid #ddd;">Prędkość</th>
-                        <th style="padding: 8px; border: 1px solid #ddd;">Częst.</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">5e</td>
-                        <td style="padding: 8px; border: 1px solid #ddd;">do 1 Gb/s</td>
-                        <td style="padding: 8px; border: 1px solid #ddd;">100 MHz</td>
-                    </tr>
-                    <tr style="background: #f9f9f9;">
-                        <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">6</td>
-                        <td style="padding: 8px; border: 1px solid #ddd;">do 10 Gb/s*</td>
-                        <td style="padding: 8px; border: 1px solid #ddd;">250 MHz</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">6a</td>
-                        <td style="padding: 8px; border: 1px solid #ddd;">10 Gb/s</td>
-                        <td style="padding: 8px; border: 1px solid #ddd;">500 MHz</td>
-                    </tr>
-                    <tr style="background: #f9f9f9;">
-                        <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">7</td>
-                        <td style="padding: 8px; border: 1px solid #ddd;">10 Gb/s+</td>
-                        <td style="padding: 8px; border: 1px solid #ddd;">600 MHz</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <div style="margin-top: 15px; font-size: 0.85rem; line-height: 1.4; color: #444;">
-                <p><b>💡 Wskazówki dla instalatora:</b></p>
-                <ul>
-                    <li><b>Kat. 5e:</b> Absolutne minimum. Wystarcza do domowego internetu do 1 Gb/s na dystansie do 100m.</li>
-                    <li><b>Kat. 6:</b> Standard dla nowych domów. Obsłuży 10 Gb/s, ale tylko na krótkich odcinkach (do ok. 35-55m).</li>
-                    <li><b>Kat. 6a:</b> Najlepszy wybór pod przyszłe standardy i światłowody 10 Gb/s na pełnym dystansie 100m.</li>
-                </ul>
-                
-                <p><b>🛡️ Ekranowanie kabli (U/UTP vs F/UTP vs S/FTP):</b></p>
-                <ul>
-                    <li><b>U/UTP:</b> Brak ekranu. Najlepsza do 95% instalacji wewnątrz budynków.</li>
-                    <li><b>F/UTP:</b> Cały kabel w folii aluminiowej. Do koryt z kablami 230V/400V.</li>
-                    <li><b>S/FTP:</b> Każda para w folii + oplot. Do przemysłu.</li>
+            <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                <p style="margin-top: 0;"><b>Podstawy:</b> Ethernet to standard przewodowych sieci lokalnych (LAN), czyli sposób komunikacji urządzeń po kablu w domu lub firmie. Sam Ethernet tworzy sieć lokalną, natomiast „internet” to dopiero połączenie tej sieci ze światem zewnętrznym przez router.</p>
+                <ul style="padding-left: 18px;">
+                    <li><b>Karta sieciowa (NIC):</b> Gniazdo w komputerze/kamerze, do którego wpinasz kabel.</li>
+                    <li><b>Switch (Przełącznik):</b> „Rozdzielacz” ruchu wewnątrz sieci lokalnej – łączy ze sobą komputery, kamery i rejestratory.</li>
+                    <li><b>Router:</b> Brama na świat – przydziela adresy IP i łączy Twoją sieć domową z internetem.</li>
+                    <li><b>Adres MAC vs IP:</b> MAC to fabryczny, niezmienny numer seryjny karty sieciowej, a IP to adres nadawany urządzeniu w konkretnej sieci (jak adres zameldowania).</li>
                 </ul>
 
-                <p style="background: #fff3e0; padding: 10px; border-radius: 5px; border-left: 4px solid #ff9800;">
-                    <b>⚠️ Złota zasada uziemienia:</b><br>
-                    Jeśli kładziesz kabel ekranowany (FTP/STP), <b>musisz</b> użyć metalowych wtyków RJ45 i uziemić je. Brak uziemienia sprawia, że folia działa jak antena zbierająca zakłócenia!
-                </p>
+                <div style="background: #f3e5f5; padding: 10px; border-radius: 6px; border-left: 4px solid #673ab7; margin-top: 12px;">
+                    <b>OSI i Ramka 802.3:</b><br>
+                    Ethernet działa w <b>Warstwie 1 (fizycznej)</b> i <b>Warstwie 2 (łącza danych)</b> modelu OSI. Dane przesyłane są w <b>ramkach</b> (domyślne MTU to 1500 bajtów, Jumbo Frames do 9000B), zawierających m.in. adres MAC źródłowy i docelowy, pole <i>EtherType</i> (np. <code>0x0800</code> dla IPv4) oraz sumę kontrolną <b>FCS/CRC</b> wykrywającą uszkodzenia transmisji. Każdy port współczesnego switcha stanowi osobną domenę kolizyjną.
+                </div>
             </div>
         </div>
     </div>
-</div>
+
+    <!-- 2. OKABLOWANIE -->
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">OKABLOWANIE I MEDIA TRANSMISYJNE <span>+</span></div>
+        <div class="acc-content">
+            <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                <p style="margin-top: 0;"><b>Podstawy:</b> W sieciach lokalnych królują dwa media: <b>skrętka miedziana</b> (tania, łatwa w zarabianiu, przesyła też zasilanie PoE, limit długości to 100 m) oraz <b>światłowód</b> (odporny na zakłócenia i pioruny, idealny między budynkami oraz na długie dystanse).</p>
+                <ul style="padding-left: 18px;">
+                    <li><b>Cat 5e:</b> Standard do 1 Gb/s (wystarcza do większości zastosowań domowych i kamer).</li>
+                    <li><b>Cat 6 / 6A:</b> Wyższa odporność na zakłócenia i obsługa prędkości 10 Gb/s (Cat 6 do ok. 35–55 m, Cat 6A na pełnych 100 m).</li>
+                    <li><b>Prosty tester kabli:</b> Diodowy tester za 30 zł sprawdza jedynie ciągłość żył i kolejność pinów (1–8). Nie wykryje słabej jakości miedzi (CCA zamiast czystej miedzi Cu) ani zakłóceń.</li>
+                </ul>
+
+                <div style="background: #f3e5f5; padding: 10px; border-radius: 6px; border-left: 4px solid #673ab7; margin-top: 12px;">
+                    <b>Certyfikacja i Ekranowanie:</b><br>
+                    Certyfikatory (np. Fluke) badają parametry falowe: <b>NEXT/FEXT</b> (przesłuchy między parami), <b>Return Loss</b> (odbicia sygnału na zagięciach/wtykach) oraz <b>Delay Skew</b>. Przy kablach ekranowanych (F/UTP, S/FTP) kluczowa jest ciągłość ekranu i jego poprawne uziemienie — nieuziemiona folia działa jak antena zbierająca zakłócenia EMI z pobliskich przewodów 230V/400V.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. PRĘDKOŚĆ I PARAMETRY POŁĄCZENIA -->
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">PRĘDKOŚĆ I PARAMETRY POŁĄCZENIA <span>+</span></div>
+        <div class="acc-content">
+            <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                <p style="margin-top: 0;"><b>Podstawy:</b> Standardowe prędkości to 100 Mb/s (Fast Ethernet) oraz 1000 Mb/s = 1 Gb/s (Gigabit Ethernet). Urządzenia po podpięciu kabla same dogadują maksymalną wspólną prędkość.</p>
+                <p style="background: #fff3e0; padding: 10px; border-radius: 6px; border-left: 4px solid #ff9800;">
+                    <b>⚠️ Najczęstsza usterka (spadek do 100 Mb/s):</b><br>
+                    Do działania 100 Mb/s wystarczą 2 pary przewodów (piny 1, 2, 3, 6). Do pełnego <b>1 Gb/s potrzebne są wszystkie 4 pary (8 żył)</b>. Jeśli jedna żyła w wtyczce nie styka, sieć nie przestanie działać, ale automatycznie zredukuje prędkość do 100 Mb/s.
+                </p>
+
+                <div style="background: #f3e5f5; padding: 10px; border-radius: 6px; border-left: 4px solid #673ab7; margin-top: 12px;">
+                    <b>Auto-Negotiation, MDI-X, Błędy PHY:</b><br>
+                    Uzgadnianie prędkości odbywa się impulsami <b>FLP</b> (IEEE 802.3ab). Nigdy nie wymuszaj na sztywno 1G Full-Duplex tylko po jednej stronie – wywoła to <i>Duplex Mismatch</i> i lawinę kolizji. Dzięki <b>Auto-MDI/MDI-X</b> współczesne układy PHY same zamieniają pary TX/RX (kable krosowane nie są już potrzebne). W logach switcha szukaj <b>CRC Errors</b> (zły kabel/zakłócenia) oraz <b>Runts/Giants</b>.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. ADRESACJA IP I PODSTAWY SIECI -->
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">ADRESACJA IP I PODSTAWY SIECI <span>+</span></div>
+        <div class="acc-content">
+            <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                <p style="margin-top: 0;"><b>Podstawy:</b> Aby urządzenie działało w sieci, potrzebuje czterech parametrów:</p>
+                <ul style="padding-left: 18px;">
+                    <li><b>Adres IP (np. 192.168.1.50):</b> Unikalny numer urządzenia w sieci.</li>
+                    <li><b>Maska podsieci (np. 255.255.255.0):</b> Określa wielkość sieci lokalnej (wskazuje, które urządzenia widzą się bezpośrednio).</li>
+                    <li><b>Brama domyślna (np. 192.168.1.1):</b> Adres routera, który wypuszcza ruch w świat.</li>
+                    <li><b>DNS (np. 1.1.1.1):</b> „Książka telefoniczna” zamieniająca nazwy stron (np. google.pl) na adresy IP.</li>
+                </ul>
+                <p><b>DHCP vs Statyczne IP:</b> DHCP przydziela adresy automatycznie (wygodne dla telefonów i laptopów). Dla kamer, serwerów i drukarek ustawia się <b>adres statyczny</b> (lub rezerwację DHCP), aby nigdy się nie zmienił.</p>
+
+                <div style="background: #f3e5f5; padding: 10px; border-radius: 6px; border-left: 4px solid #673ab7; margin-top: 12px;">
+                    <b>CIDR i ARP:</b><br>
+                    Maska <code>255.255.255.0</code> to w zapisie CIDR <code>/24</code> (2<sup>8</sup> - 2 = 254 hosty; <code>.0</code> to adres sieci, a <code>.255</code> to broadcast). Tłumaczeniem adresów IP na fizyczne MAC w warstwie 2 zajmuje się protokół <b>ARP</b>. Polecenie <code>arp -a</code> w terminalu pozwala błyskawicznie wykryć konflikty IP (dwa różne adresy MAC przypisane do jednego IP).
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. SWITCHE I TOPOLOGIE -->
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">SWITCHE I TOPOLOGIE SIECIOWE <span>+</span></div>
+        <div class="acc-content">
+            <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                <p style="margin-top: 0;"><b>Podstawy:</b> Switch łączy urządzenia kablem. <b>Switch niezarządzalny</b> działa od razu po wyjęciu z pudełka (Plug & Play). <b>Switch zarządzalny</b> ma panel konfiguracyjny pozwalający dzielić sieć i kontrolować ruch.</p>
+                <ul style="padding-left: 18px;">
+                    <li><b>Port Uplink:</b> Szybszy port służący do połączenia switcha z routerem lub kolejnym switchem.</li>
+                    <li><b>Pętla sieciowa (Loop):</b> Sytuacja, gdy ktoś przypadkiem połączy dwa gniazdka w tym samym switchu jednym kablem. Powoduje to natychmiastowe zapchanie i zawieszenie całej sieci.</li>
+                </ul>
+
+                <div style="background: #f3e5f5; padding: 10px; border-radius: 6px; border-left: 4px solid #673ab7; margin-top: 12px;">
+                    <b>VLAN 802.1Q, RSTP, LACP:</b><br>
+                    • <b>VLAN (IEEE 802.1Q):</b> Logiczny podział sieci. Porty <i>Access</i> obsługują urządzenia końcowe (bez tagu), a porty <i>Trunk</i> przesyłają wiele VLAN-ów między switchami (ramki z 4-bajtowym tagiem).<br>
+                    • <b>STP / RSTP (802.1w):</b> Protokół wykrywający pętle i zarządzający redundantnymi połączeniami między switchami.<br>
+                    • <b>LACP (802.3ad):</b> Agregacja kilku fizycznych portów w jedno logiczne łącze o większej przepustowości i odporności na awarię jednego kabla.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. POE – ZASILANIE PRZEZ ETHERNET -->
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">PoE – ZASILANIE PRZEZ ETHERNET <span>+</span></div>
+        <div class="acc-content">
+            <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                <p style="margin-top: 0;"><b>Podstawy:</b> PoE pozwala zasilać urządzenia (kamery, punkty Wi-Fi, telefony) tym samym kablem sieciowym, którym idą dane — bez ciągnięcia osobnych gniazdek 230V. Źródło prądu (switch/zasilacz) to <b>PSE</b>, a odbiornik to <b>PD</b>.</p>
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem; background: white; margin-bottom: 10px;">
+                    <thead>
+                        <tr style="background: #673ab7; color: white;">
+                            <th style="padding: 6px; border: 1px solid #ddd;">Standard</th>
+                            <th style="padding: 6px; border: 1px solid #ddd;">Moc (PSE / PD)</th>
+                            <th style="padding: 6px; border: 1px solid #ddd;">Typowe urządzenia</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="padding: 6px; border: 1px solid #ddd; font-weight: bold;">802.3af (PoE)</td>
+                            <td style="padding: 6px; border: 1px solid #ddd;">15.4W / 12.95W</td>
+                            <td style="padding: 6px; border: 1px solid #ddd;">Standardowe kamery IP, telefony</td>
+                        </tr>
+                        <tr style="background: #f9f9f9;">
+                            <td style="padding: 6px; border: 1px solid #ddd; font-weight: bold;">802.3at (PoE+)</td>
+                            <td style="padding: 6px; border: 1px solid #ddd;">30W / 25.5W</td>
+                            <td style="padding: 6px; border: 1px solid #ddd;">Kamery z mocnym IR/grzałką, AP Wi-Fi 6</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 6px; border: 1px solid #ddd; font-weight: bold;">802.3bt (PoE++)</td>
+                            <td style="padding: 6px; border: 1px solid #ddd;">60–100W / do 71W</td>
+                            <td style="padding: 6px; border: 1px solid #ddd;">Obrotowe kamery PTZ, terminale</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p><b>Budżet mocy:</b> Suma mocy wszystkich podpiętych urządzeń nie może przekroczyć mocy zasilacza switcha. <b>Uwaga na Pasywne PoE (24V):</b> w przeciwieństwie do standardu IEEE (48V), pasywne PoE podaje prąd „na sztywno” bez sprawdzania urządzenia – może spalić zwykłą kartę sieciową!</p>
+
+                <div style="background: #f3e5f5; padding: 10px; border-radius: 6px; border-left: 4px solid #673ab7; margin-top: 12px;">
+                    <b>Klasyfikacja, Alternative A/B, LLDP-MED:</b><br>
+                    Standardowe PoE działa w zakresie 44–57V DC. W trybie <i>Alternative A</i> zasilanie idzie po parach danych (1,2 i 3,6), a w <i>Alternative B</i> po wolnych parach (4,5 i 7,8) — standard 802.3bt wykorzystuje wszystkie 4 pary jednocześnie. Negocjacja mocy odbywa się sprzętowo (rezystor sygnatury 25kΩ i prąd klasyfikacji) oraz dynamicznie w warstwie 2 przez protokół <b>LLDP</b>.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. DIAGNOSTYKA SIECIOWA -->
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">DIAGNOSTYKA I ROZWIĄZYWANIE PROBLEMÓW <span>+</span></div>
+        <div class="acc-content">
+            <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                <p style="margin-top: 0;"><b>Podstawy (Kolejność sprawdzania awarii):</b></p>
+                <ol style="padding-left: 18px; margin-top: 0;">
+                    <li><b>Diody przy porcie:</b> Nie świecą? Brak zasilania, uszkodzony kabel lub wyłączony port.</li>
+                    <li><b>Kabel i wtyki:</b> Przetestuj skrętkę testerem lub podmień patchcord na fabryczny.</li>
+                    <li><b>Adresacja IP:</b> Sprawdź poleceniem <code>ipconfig</code> (Windows), czy komputer dostał poprawny adres IP i bramę, a nie adres awaryjny <code>169.254.x.x</code> (brak kontaktu z DHCP).</li>
+                    <li><b>Test połączenia:</b> Użyj <code>ping 192.168.1.1</code> (test sieci lokalnej), a potem <code>ping 8.8.8.8</code> (test wyjścia w internet).</li>
+                </ol>
+
+                <div style="background: #f3e5f5; padding: 10px; border-radius: 6px; border-left: 4px solid #673ab7; margin-top: 12px;">
+                    <b>Narzędzia analizy ruchu:</b><br>
+                    • <b>iperf3:</b> Test realnej przepustowości TCP/UDP między dwoma hostami (izoluje problemy z wydajnością dysku/przeglądarki od wydajności samej sieci).<br>
+                    • <b>mtr (My Traceroute):</b> Ciągła diagnostyka trasy łącząca <code>ping</code> i <code>traceroute</code> – precyzyjnie wskazuje węzeł, na którym gubione są pakiety.<br>
+                    • <b>Wireshark / tcpdump:</b> Przechwytywanie pakietów – niezbędne przy diagnozie problemów z DHCP, tagowaniem VLAN 802.1Q czy retransmisjami TCP.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 8. ETHERNET W MONITORINGU -->
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">ETHERNET W SYSTEMACH MONITORINGU <span>+</span></div>
+        <div class="acc-content">
+            <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                <p style="margin-top: 0;"><b>Podstawy:</b> Kamery IP wysyłają obraz bez przerwy 24/7. W przeciwieństwie do zwykłego przeglądania stron, monitoring wymaga stabilnego łącza i odpowiedniego zapasu mocy PoE w switchu (szczególnie w nocy, gdy włączają się diody podczerwieni IR i pobór prądu rośnie). Powyżej 100 m kabla miedzianego trzeba użyć światłowodu lub wzmacniacza (extendera PoE).</p>
+
+                <div style="background: #f3e5f5; padding: 10px; border-radius: 6px; border-left: 4px solid #673ab7; margin-top: 12px;">
+                    <b>Backplane, VBR, Long Range PoE:</b><br>
+                    Przy kilkunastu kamerach 4K (kodek H.265, ok. 4–8 Mbps na strumień) zwracaj uwagę na <b>Switching Capacity</b> oraz <b>Packet Forwarding Rate (Mpps)</b> switcha, zwłaszcza na porcie uplink do rejestratora NVR. Tryb <i>Extended / Long Range PoE</i> w switchach CCTV pozwala przesłać dane i zasilanie na 250 m, ale kosztem obniżenia negocjacji portu do <b>10 Mb/s Half/Full-Duplex</b>.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 9. BEZPIECZEŃSTWO I UTRZYMANIE SIECI -->
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">BEZPIECZEŃSTWO I UTRZYMANIE SIECI <span>+</span></div>
+        <div class="acc-content">
+            <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                <p style="margin-top: 0;"><b>Podstawy:</b> Zmień domyślne hasła administratora na wszystkich urządzeniach, aktualizuj oprogramowanie (firmware) i oddzielaj urządzenia mniej zaufane (kamery, sprzęt Smart Home/IoT, sieć dla gości) od komputerów z ważnymi danymi. Zawsze opisuj kable w szafie RACK – zaoszczędzi to mnóstwo czasu przy rozbudowie.</p>
+
+                <div style="background: #f3e5f5; padding: 10px; border-radius: 6px; border-left: 4px solid #673ab7; margin-top: 12px;">
+                    <b>Hardening warstwy 2:</b><br>
+                    • <b>DHCP Snooping:</b> Blokuje nieautoryzowane serwery DHCP (ochrona przed atakiem <i>Rogue DHCP</i>).<br>
+                    • <b>Port Security:</b> Wiąże konkretny adres MAC z portem fizycznym; podpięcie obcego sprzętu blokuje port (<i>err-disabled</i>).<br>
+                    • <b>BPDU Guard:</b> Natychmiast wyłącza port dostępowy, jeśli ktoś podepnie do niego nieautoryzowany switch wysyłający ramki STP.<br>
+                    • <b>802.1X (NAC):</b> Uwierzytelnianie urządzeń na poziomie portu przez serwer RADIUS przed przyznaniem dostępu do sieci.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KONTENER NA WŁASNE AKORDEONY -->
+    <div id="custom-accordions-list"></div>
+
+    <!-- PRZYCISK DODAWANIA -->
+    <button id="btn-show-form" class="btn-add-acc" onclick="otworzFormularzAcc()">＋ Dodaj własną notatkę</button>
+
+    <!-- FORMULARZ DODAWANIA / EDYCJI -->
+    <div id="custom-acc-form" class="custom-form-card">
+        <h3 id="form-acc-title" style="margin-top:0; font-size: 1rem;">Nowa notatka</h3>
+        <input type="hidden" id="edit-acc-index" value="-1">
+        
+        <label style="font-weight:bold; font-size:0.85rem;">Tytuł na pasku:</label>
+        <input type="text" id="acc-title-input" placeholder="np. Adresy IP w firmie, hasła Wi-Fi...">
+        
+        <label style="font-weight:bold; font-size:0.85rem;">Treść notatki:</label>
+        <textarea id="acc-body-input" rows="5" placeholder="Wpisz treść..."></textarea>
+        
+        <div style="display:flex; gap:8px;">
+            <button onclick="zapiszCustomAcc()" style="flex:1; padding:10px; background:#2ecc71; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">Zapisz</button>
+            <button onclick="zamknijFormularzAcc()" style="flex:1; padding:10px; background:#7f8c8d; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">Anuluj</button>
+        </div>
+    </div>
+
+</div><!-- end of div class="container" -->
 
 <script>
+const STORAGE_KEY = 'wlasne_acc_internet';
+let customAccs = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+document.addEventListener("DOMContentLoaded", renderujCustomAccs);
+
 function toggleAcc(header) {
     const content = header.nextElementSibling;
-    const span = header.querySelector('span');
-    document.querySelectorAll('.acc-content').forEach(c => {
-        if (c !== content) c.classList.remove('show');
+    if (!content || !content.classList.contains('acc-content')) return;
+    const span = header.querySelector('.acc-icon') || header.querySelector('span');
+    
+    const isOpening = !content.classList.contains('show');
+
+    document.querySelectorAll('.acc-header').forEach(h => {
+        const c = h.nextElementSibling;
+        const s = h.querySelector('.acc-icon') || h.querySelector('span');
+        if (c && c.classList.contains('acc-content')) {
+            c.classList.remove('show');
+            if (s && s.innerText === '−') s.innerText = '+';
+        }
     });
-    document.querySelectorAll('.acc-header span').forEach(s => {
-        if (s !== span) s.innerText = '+';
-    });
-    content.classList.toggle('show');
-    span.innerText = content.classList.contains('show') ? '−' : '+';
+    
+    if (isOpening) {
+        content.classList.add('show');
+        if (span) span.innerText = '−';
+    }
 }
 
 function calcSpeed() {
@@ -328,6 +576,90 @@ function calcSpeed() {
     } else {
         document.getElementById('timeRes').innerText = "-";
     }
+}
+
+function renderujCustomAccs() {
+    const list = document.getElementById('custom-accordions-list');
+    list.innerHTML = "";
+
+    customAccs.forEach((item, index) => {
+        list.innerHTML += `
+            <div class="accordion">
+                <div class="acc-header custom-note" onclick="toggleAcc(this)">
+                    <span>📝 ${escapeHTML(item.tytul)}</span>
+                    <span class="acc-icon">+</span>
+                </div>
+                <div class="acc-content">
+                    <div class="custom-note-body">${escapeHTML(item.tresc)}</div>
+                    <div class="custom-note-actions">
+                        <button style="background:#f39c12; color:white;" onclick="edytujCustomAcc(${index})">✏️ Edytuj</button>
+                        <button style="background:#e74c3c; color:white;" onclick="usunCustomAcc(${index})">🗑️ Usuń</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+}
+
+function otworzFormularzAcc() {
+    document.getElementById('edit-acc-index').value = "-1";
+    document.getElementById('form-acc-title').innerText = "Nowa notatka";
+    document.getElementById('acc-title-input').value = "";
+    document.getElementById('acc-body-input').value = "";
+    document.getElementById('custom-acc-form').style.display = "block";
+    document.getElementById('btn-show-form').style.display = "none";
+    document.getElementById('acc-title-input').focus();
+}
+
+function zamknijFormularzAcc() {
+    document.getElementById('custom-acc-form').style.display = "none";
+    document.getElementById('btn-show-form').style.display = "block";
+}
+
+function zapiszCustomAcc() {
+    const idx = parseInt(document.getElementById('edit-acc-index').value);
+    const tytul = document.getElementById('acc-title-input').value.trim();
+    const tresc = document.getElementById('acc-body-input').value.trim();
+
+    if (!tytul) {
+        alert("Podaj tytuł notatki!");
+        return;
+    }
+
+    if (idx === -1) {
+        customAccs.push({ tytul, tresc });
+    } else {
+        customAccs[idx] = { tytul, tresc };
+    }
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(customAccs));
+    renderujCustomAccs();
+    zamknijFormularzAcc();
+}
+
+function edytujCustomAcc(index) {
+    const item = customAccs[index];
+    document.getElementById('edit-acc-index').value = index;
+    document.getElementById('form-acc-title').innerText = "Edytuj notatkę";
+    document.getElementById('acc-title-input').value = item.tytul;
+    document.getElementById('acc-body-input').value = item.tresc;
+    document.getElementById('custom-acc-form').style.display = "block";
+    document.getElementById('btn-show-form').style.display = "none";
+    document.getElementById('custom-acc-form').scrollIntoView({ behavior: 'smooth' });
+}
+
+function usunCustomAcc(index) {
+    if (confirm(`Usunąć notatkę „${customAccs[index].tytul}”?`)) {
+        customAccs.splice(index, 1);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(customAccs));
+        renderujCustomAccs();
+    }
+}
+
+function escapeHTML(str) {
+    return str.replace(/[&<>'"]/g, tag => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+    }[tag]));
 }
 </script>
 

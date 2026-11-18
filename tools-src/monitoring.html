@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoring CCTV / Dahua</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            margin: 0; 
+            background: #f0f2f5; 
+            color: #2c3e50; 
+            padding-bottom: 30px;
+        }
+        
+        header { 
+            padding: 0 16px; 
+            display: flex; 
+            align-items: center; 
+            height: 56px;
+            position: relative; 
+            z-index: 1000; 
+        }
+
+        h1 { 
+            font-size: 1.1rem; 
+            margin: 0; 
+            position: absolute; 
+            left: 0; 
+            right: 0; 
+            text-align: center; 
+            pointer-events: none; 
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .container { 
+            padding: 12px; 
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        
+        .accordion {
+            background: #ffffff; 
+            border-radius: 12px; 
+            margin-bottom: 12px;
+            overflow: hidden; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .acc-header {
+            background: #2e7d32; 
+            color: white; 
+            padding: 15px;
+            font-weight: bold; 
+            cursor: pointer; 
+            display: flex;
+            justify-content: space-between; 
+            align-items: center;
+            font-size: 0.95rem;
+            transition: background 0.2s;
+        }
+
+        .acc-header:active {
+            background: #1b5e20;
+        }
+
+        /* Wyróżnienie nagłówka własnych notatek */
+        .acc-header.custom-note {
+            background: #2c3e50;
+        }
+        .acc-header.custom-note:active {
+            background: #1a252f;
+        }
+        
+        .acc-content {
+            display: none; 
+            padding: 15px; 
+            border-top: 1px solid #eee;
+            background: #ffffff;
+            color: #2c3e50;
+        }
+        
+        .acc-content.show { 
+            display: block; 
+        }
+
+        .pro-box {
+            background: #e8f5e9; 
+            padding: 10px; 
+            border-radius: 6px; 
+            border-left: 4px solid #2e7d32; 
+            margin-top: 12px;
+        }
+
+        .warn-box {
+            background: #fff3e0; 
+            padding: 10px; 
+            border-radius: 6px; 
+            border-left: 4px solid #ff9800; 
+            margin-top: 10px;
+        }
+
+        .custom-note-body {
+            white-space: pre-wrap;
+            font-size: 0.95rem;
+            line-height: 1.45;
+            margin-bottom: 14px;
+            user-select: text;
+            -webkit-user-select: text;
+        }
+
+        .custom-note-actions {
+            display: flex;
+            gap: 8px;
+            border-top: 1px dashed #ddd;
+            padding-top: 10px;
+        }
+
+        .custom-note-actions button {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+        
+        input, select, textarea { 
+            width: 100%; 
+            padding: 12px; 
+            margin: 8px 0 12px 0; 
+            border: 1px solid #ccc; 
+            border-radius: 6px; 
+            box-sizing: border-box; 
+            font-family: inherit;
+            font-size: 0.95rem;
+            background: white;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            border-color: #2e7d32;
+            outline: none;
+        }
+
+        .res-box { 
+            background: #f1f8e9; 
+            padding: 15px; 
+            border-radius: 6px; 
+            font-weight: bold; 
+            text-align: center; 
+            border: 1px dashed #2e7d32; 
+            color: #1b5e20;
+        }
+
+        /* Przycisk i formularz dodawania własnych akordeonów */
+        .btn-add-acc {
+            width: 100%;
+            padding: 14px;
+            background: #2e7d32;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 0.95rem;
+            cursor: pointer;
+            margin-top: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: background 0.2s;
+        }
+
+        .btn-add-acc:active {
+            background: #1b5e20;
+        }
+
+        .custom-form-card {
+            display: none;
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+            margin-top: 10px;
+        }
+
+        table.spec-table {
+            width: 100%; 
+            border-collapse: collapse; 
+            font-size: 0.8rem; 
+            background: white; 
+            margin: 10px 0;
+        }
+        table.spec-table th {
+            background: #2e7d32; 
+            color: white;
+            padding: 6px; 
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        table.spec-table td {
+            padding: 6px; 
+            border: 1px solid #ddd;
+        }
+        table.spec-table tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>Monitoring CCTV / Dahua</h1>
+</header>
+
+<div class="container">
+
+    <!-- NARZĘDZIE: KALKULATOR DYSKU HDD -->
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">KALKULATOR POJEMNOŚCI DYSKU (HDD) <span>+</span></div>
+        <div class="acc-content">
+            <label style="font-size: 0.85rem; font-weight: bold;">Liczba kamer:</label>
+            <input type="number" id="camCount" value="4" min="1" max="128" oninput="calcHDD()">
+
+            <label style="font-size: 0.85rem; font-weight: bold;">Rozdzielczość i kodek (średni bitrate):</label>
+            <select id="camBitrate" onchange="calcHDD()">
+                <option value="2048">2 Mpx (FullHD) – H.265 (~2 Mb/s)</option>
+                <option value="4096" selected>4 Mpx (2K) – H.265 (~4 Mb/s)</option>
+                <option value="6144">8 Mpx (4K) – H.265 (~6 Mb/s)</option>
+                <option value="8192">8 Mpx (4K) – H.264 / wysoki detal (~8 Mb/s)</option>
+            </select>
+
+            <label style="font-size: 0.85rem; font-weight: bold;">Czas archiwizacji (dni nagrywania 24/7):</label>
+            <input type="number" id="recDays" value="14" min="1" max="365" oninput="calcHDD()">
+
+            <div class="res-box" id="hddRes">Wymagany dysk: ~1.69 TB (zalecane 2 TB)</div>
+            <p style="font-size: 0.8rem; color: #555; margin-top: 8px; margin-bottom: 0;">
+                Łączne pasmo zapisu (Bitrate): <span id="totalBandwidth" style="color:#2e7d32; font-weight:bold;">16 Mb/s</span>
+            </p>
+        </div>
+    </div>
+
+    <!-- 1. PODSTAWY MONITORINGU -->
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">1. PODSTAWY MONITORINGU I SŁOWNIK <span>+</span></div>
+        <div class="acc-content">
+            <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                <p style="margin-top: 0;"><b>Podstawy:</b> Nowoczesny monitoring składa się z kamer rejestrujących obraz, switcha PoE (który zasila kamery po skrętce), rejestratora zapisującego materiał na dysku twardym oraz routera zapewniającego podgląd na telefonie.</p>
+                <ul style="padding-left: 18px;">
+                    <li><b>IP (IPC + NVR):</b> Monitoring sieciowy (cyfrowy). Kamery przesyłają gotowe pakiety danych po skrętce komputerowej. Najwyższa jakość i funkcje AI.</li>
+                    <li><b>HDCVI (Kamery + XVR):</b> System analogowy wysokiej rozdzielczości (Dahua) po kablu koncentrycznym – stosowany przy modernizacji starych instalacji bez wymiany okablowania.</li>
+                    <li><b>Kamera samodzielna (Wi-Fi / SD):</b> Działa bez rejestratora, zapisuje obraz na karcie microSD i łączy się bezpośrednio z aplikacją w chmurze.</li>
+                </ul>
+
+                <div class="pro-box">
+                    <b>Słownik techniczny i protokoły (PRO):</b><br>
+                    • <b>NVR / XVR:</b> Network Video Recorder (rejestrator IP) / Penta-brid (obsługuje jednocześnie HDCVI, AHD, TVI, CVBS oraz IP).<br>
+                    • <b>ONVIF (Profile S/T/G):</b> Otwarty standard komunikacji pozwalający podpiąć kamerę innego producenta (np. Hikvision) do rejestratora Dahua.<br>
+                    • <b>RTSP:</b> Strumień wideo w czasie rzeczywistym (np. <code>rtsp://user:haslo@IP:554/cam/realmonitor?channel=1&subtype=0</code>) do integracji ze Smart Home (Home Assistant, Frigate).<br>
+                    • <b>Main Stream vs Sub Stream:</b> Strumień główny (wysoka rozdzielczość do zapisu na HDD) oraz strumień pomocniczy (niska rozdzielczość D1/CIF do płynnego podglądu wielu kamer na telefonie).
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. DOBÓR SPRZĘTU -->
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">2. DOBÓR SPRZĘTU, OBIEKTYWY I OBRAZ <span>+</span></div>
+        <div class="acc-content">
+            <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                <p style="margin-top: 0;"><b>Obudowy kamer:</b></p>
+                <ul style="padding-left: 18px;">
+                    <li><b>Kopułkowa / Eyeball (Turret):</b> Dyskretna, odporna na podważenie, świetna pod podbitkę i do wnętrz.</li>
+                    <li><b>Tubowa (Bullet):</b> Widoczna (działa odstraszająco), zwykle z mocniejszym oświetlaczem nocnym, wygodna na elewację i słupy.</li>
+                    <li><b>PTZ (Obrotowa):</b> Sterowana zdalnie (obrót 360°, pochylenie, potężny zoom optyczny 25x–45x).</li>
+                    <li><b>Fisheye (Rybie oko):</b> Obiektyw 180°/360° do pokrycia całego pomieszczenia jedną kamerą.</li>
+                </ul>
+
+                <p><b>Ogniskowa obiektywu (kąt widzenia):</b><br>
+                • <b>2.8 mm:</b> Szeroki kąt (~100°–110°) – podgląd ogólny podwórka, parkingu.<br>
+                • <b>3.6 mm / 6 mm:</b> Węższy kąt, większe przybliżenie – bramy wjazdowe, furtki, wąskie przejścia.<br>
+                • <b>Motozoom (np. 2.7–13.5 mm):</b> Zdalna regulacja zoomu optycznego z poziomu rejestratora lub aplikacji bez wchodzenia na drabinę.</p>
+
+                <div class="pro-box">
+                    <b>Przetwornik, Oświetlenie i Kompresja (PRO):</b><br>
+                    • <b>WDR (120dB / 140dB):</b> Prawdziwy szeroki zakres dynamiki (nie mylić z cyfrowym DWDR) – łączy dwie ekspozycje, dzięki czemu widać twarz osoby stojącej w drzwiach na tle jasnego słońca.<br>
+                    • <b>IR vs Full-Color (LED) vs Smart Dual Light:</b> IR daje czarno-biały obraz w nocy; Full-Color świeci ciepłym światłem LED dając kolor 24/7; <i>Smart Dual Light</i> świeci dyskretnym IR, a białe światło LED odpala dopiero po wykryciu człowieka lub pojazdu.<br>
+                    • <b>Kodek Smart H.265+:</b> Zmniejsza zapotrzebowanie na pasmo i dysk nawet o 60–70% względem H.264 poprzez dynamiczne kodowanie tła (GOP).
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. INSTALACJA I SIEĆ -->
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">3. INSTALACJA, INICJALIZACJA I SIEĆ <span>+</span></div>
+        <div class="acc-content">
+            <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                <p style="margin-top: 0;"><b>Podstawy montażu:</b> Nie montuj kamer pod bezpośrednim kątem pod słońce ani tuż pod białą rynną/ścianą (odbite światło IR w nocy oślepi przetwornik). Złącza RJ45 na zewnątrz zawsze zamykaj w szczelnych puszkach montażowych (np. Dahua PFA130-E) lub osłaniaj dołączoną dławicą.</p>
+
+                <p><b>Pierwsze uruchomienie (Inicjalizacja):</b><br>
+                Fabrycznie nowe urządzenia Dahua posiadają domyślny adres IP <b>192.168.1.108</b>. Przed użyciem wymagają inicjalizacji – nadania własnego hasła administratora, wzoru odblokowania oraz adresu e-mail (kluczowy do resetu zapomnianego hasła!).</p>
+
+                <div class="pro-box">
+                    <b>Topologia podłączenia i Synchronizacja Czasu (PRO):</b><br>
+                    • <b>NVR z wbudowanym switchem PoE:</b> Tworzy własną, odizolowaną podsieć dla kamer (np. <code>10.1.1.x</code>) – kamery dodają się automatycznie (Plug & Play), ale nie są bezpośrednio widoczne z głównej sieci LAN (chyba że włączysz funkcję <i>Virtual Host / Bridge</i>).<br>
+                    • <b>Zewnętrzny switch PoE:</b> Kamery i NVR są w tej samej sieci lokalnej (np. <code>192.168.1.x</code>). Wymaga ręcznego nadania kamerom statycznych adresów IP.<br>
+                    • <b>Czas i NTP:</b> Ustaw strefę <b>UTC+1</b> (z czasem letnim DST) i włącz serwer NTP (np. <code>pool.ntp.org</code>) z synchronizacją dla wszystkich kamer – rozjazd zegara między kamerą a NVR powoduje błędy wyszukiwania nagrań.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. KONFIGURACJA KAMER -->
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">4. KONFIGURACJA KAMER (OBRAZ, SD, PTZ) <span>+</span></div>
+        <div class="acc-content">
+            <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                <p style="margin-top: 0;"><b>Podstawy:</b> Po dodaniu kamery warto dostosować parametry obrazu do warunków oświetleniowych w miejscu montażu (np. wyłączyć automatyczne przełączanie dzień/noc, jeśli w pobliżu świeci mocna latarnia uliczna, lub skorygować jasność podczerwieni Smart IR, by nie prześwietlała twarzy z bliska).</p>
+                <ul style="padding-left: 18px;">
+                    <li><b>Karta microSD:</b> Stosuj wyłącznie karty klasy <i>High Endurance</i> (odporne na ciągłe nadpisywanie). Ustaw automatyczne nadpisywanie najstarszych nagrań po zapełnieniu.</li>
+                    <li><b>PTZ (Presety i Patrol):</b> <i>Preset</i> to zapisana pozycja kamery (np. 1 = Brama, 2 = Podjazd). <i>Tour / Patrol</i> to automatyczna trasa przejazdu między presetami.</li>
+                </ul>
+
+                <div class="pro-box">
+                    <b>Parametry ekspozycji i ANR (PRO):</b><br>
+                    • <b>Migawka (Shutter Speed):</b> Domyślne Auto w nocy wydłuża czas naświetlania, co rozmazuje poruszające się obiekty (tzw. <i>ghosting</i>). Do czytania tablic rejestracyjnych lub rozpoznawania twarzy w ruchu ustaw migawkę ręcznie na min. <b>1/100s – 1/250s</b> (kosztem ciemniejszego tła).<br>
+                    • <b>ANR (Automatic Network Replenishment):</b> Funkcja ratująca nagrania przy awarii sieci – kamera zapisuje materiał na swojej karcie SD podczas braku łączności z NVR, a po przywróceniu połączenia automatycznie dogrywa brakujący fragment do rejestratora.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. NVR/DVR I NAGRYWANIE -->
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">5. REJESTRATOR (NVR/XVR), DYSKI I ARCHIWUM <span>+</span></div>
+        <div class="acc-content">
+            <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                <p style="margin-top: 0;"><b>Dyski twarde do monitoringu:</b> Zwykłe dyski komputerowe nie są przystosowane do ciągłego zapisu 24/7 i szybko ulegają awarii. Stosuj dyski dedykowane (np. <i>WD Purple</i>, <i>Seagate SkyHawk</i>).</p>
+                <p><b>Tryby nagrywania (kolory na osi czasu w Dahua):</b><br>
+                • <span style="color:#2e7d32; font-weight:bold;">Zielony (Regular / Ciągłe):</span> Nagrywa 24/7 bez przerwy.<br>
+                • <span style="color:#f57f17; font-weight:bold;">Żółty (MD / Ruch):</span> Nagrywa tylko po wykryciu ruchu.<br>
+                • <span style="color:#d32f2f; font-weight:bold;">Czerwony (Alarm / IVS):</span> Nagrywa po naruszeniu reguł analityki AI.</p>
+
+                <div class="pro-box">
+                    <b>Zarządzanie HDD, SMART i Eksport (PRO):</b><br>
+                    • <b>S.M.A.R.T. i Bad Sectory:</b> W menu <i>Pamięć -> Menedżer HDD -> S.M.A.R.T.</i> sprawdzaj temperaturę dysku (powinna być &lt;45°C) oraz atrybuty <i>Reallocated Sector Count</i> i <i>Current Pending Sector</i>.<br>
+                    • <b>Pre-record (Bufor przedalarmowy):</b> Przy nagrywaniu z ruchu ustaw 3–5 sekund bufora, aby nagranie zaczynało się tuż przed wejściem postaci w kadr.<br>
+                    • <b>Eksport materiału:</b> Zgrywając nagranie na pendrive dla policji, wybieraj format <b>MP4</b> (odtworzy się na każdym komputerze) lub natywny <b>DAV</b> wraz z odtwarzaczem <i>SmartPlayer</i> (zawiera sumę kontrolną dowodzącą autentyczności nagrania).
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. APLIKACJE I OPROGRAMOWANIE -->
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">6. APLIKACJE (DMSS, SMARTPSS, CONFIGTOOL) <span>+</span></div>
+        <div class="acc-content">
+            <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                <p style="margin-top: 0;"><b>Ekosystem oprogramowania Dahua:</b></p>
+                <ul style="padding-left: 18px;">
+                    <li><b>DMSS (Android / iOS):</b> Główna aplikacja na telefon. Dodawanie sprzętu przez skan kodu QR (chmura P2P) lub lokalnie po adresie IP. Obsługuje podgląd na żywo, odtwarzanie nagrań i powiadomienia push.</li>
+                    <li><b>SmartPSS Lite (Windows / macOS):</b> Program na komputer do wygodnego podglądu na dużym monitorze, obsługi wielu lokalizacji i pobierania archiwum.</li>
+                    <li><b>ConfigTool (PC):</b> Niezbędnik instalatora – wyszukuje wszystkie urządzenia Dahua w sieci lokalnej (nawet jeśli mają złą podsieć IP), pozwala je zainicjować, zmienić im IP oraz zaktualizować firmware.</li>
+                </ul>
+
+                <div class="pro-box">
+                    <b>P2P vs IP/Domena i Kwestia Konta DMSS (PRO):</b><br>
+                    • <b>Połączenie P2P:</b> Nie wymaga stałego publicznego IP ani przekierowania portów na routerze. Wymaga jedynie, aby rejestrator miał poprawnie ustawioną <b>Bramę domyślną</b> oraz <b>DNS</b> (status w menu <i>Sieć -> P2P</i> musi widnieć jako <i>Online</i>).<br>
+                    • <b>Konto chmurowe w DMSS:</b> Dodanie urządzenia będąc zalogowanym na konto DMSS przypisuje numer seryjny (SN) rejestratora do tego konta. Jeśli instalator doda rejestrator na swoje konto zamiast klienta, klient nie doda go u siebie bez wcześniejszego udostępnienia lub odpięcia z chmury!
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. POWIADOMIENIA I ANALITYKA -->
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">7. POWIADOMIENIA I ANALITYKA AI (SMD / IVS) <span>+</span></div>
+        <div class="acc-content">
+            <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                <p style="margin-top: 0;"><b>Podstawy:</b> Zwykła detekcja ruchu reaguje na każdą zmianę pikseli – poruszające się gałęzie drzew, deszcz, śnieg, pająki przed obiektywem czy refleksy świateł aut, co generuje setki fałszywych powiadomień.</p>
+
+                <div class="pro-box">
+                    <b>SMD Plus vs IVS – Eliminacja fałszywych alarmów (PRO):</b><br>
+                    • <b>SMD Plus (Smart Motion Detection):</b> Algorytm AI analizujący detekcję ruchu i filtrujący ją wyłącznie pod kątem sylwetki <b>Człowieka</b> oraz <b>Pojazdu</b>. Ignoruje psy, koty, deszcz i ruszające się liście.<br>
+                    • <b>IVS (Ochrona perymetryczna):</b> Zaawansowane reguły rysowane na obrazie:<br>
+                      1. <i>Przekroczenie linii (Tripwire):</i> Alarmuje tylko przy przejściu przez wyznaczoną linię w określonym kierunku (np. przeskoczenie przez płot do środka).<br>
+                      2. <i>Wtargnięcie w strefę (Intrusion):</i> Alarmuje, gdy człowiek/pojazd wejdzie lub przebywa w wyznaczonym wielokącie.<br>
+                    • <b>Wskazówka:</b> Nigdy nie włączaj jednocześnie zwykłej detekcji ruchu i IVS do powiadomień push – inaczej nadal będziesz dostawać śmieciowe alerty ze zwykłego ruchu.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 8. DIAGNOSTYKA PROBLEMÓW -->
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">8. DIAGNOSTYKA I SERWIS (CHECKLISTA) <span>+</span></div>
+        <div class="acc-content">
+            <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                <p style="margin-top: 0;"><b>Najczęstsze usterki i szybkie rozwiązania:</b></p>
+                <ul style="padding-left: 18px;">
+                    <li><b>Kamera offline / brak obrazu:</b> Sprawdź kontrolki PoE na switchu. Zwróć uwagę na wilgoć we wtyku RJ45 (zielony nalot śniedzi na pinach PoE to klasyk przy nieszczelnych puszkach).</li>
+                    <li><b>Brak obrazu w nocy (czarny ekran / mgła):</b> Wypalona dioda IR, uszkodzony filtr mechaniczny ICR (zacięty w pozycji dziennej) lub odbicie podczerwieni od brudnej szyby/pajęczyny (<i>IR glare</i>).</li>
+                    <li><b>P2P Offline (brak podglądu poza domem):</b> Błędna brama domyślna lub brak DNS w ustawieniach sieciowych NVR (wpisz DNS <code>1.1.1.1</code> lub <code>8.8.8.8</code>).</li>
+                    <li><b>Brak powiadomień push w DMSS:</b> Wyłączona subskrypcja alarmów w samej aplikacji DMSS (ikona dzwonka przy rejestratorze -> <i>Powiadomienia</i>) lub ubicie aplikacji w tle przez oszczędzanie baterii w telefonie.</li>
+                </ul>
+
+                <div class="warn-box">
+                    <b>⚠️ Zanim zrobisz twardy reset (przycisk Reset na płycie):</b><br>
+                    Sprawdź ConfigToolem, czy kamera nie zmieniła tylko adresu IP lub nie straciła połączenia przez konflikt IP w sieci. Przycisk reset przytrzymuje się zwykle <b>10–15 sekund na włączonym zasilaniu</b> (aż zgasną/migną diody IR), co przywraca fabryczne <code>192.168.1.108</code> i kasuje hasło.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 9. BEZPIECZEŃSTWO I PRYWATNOŚĆ -->
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">9. BEZPIECZEŃSTWO CYBERNETYCZNE I PRAWO <span>+</span></div>
+        <div class="acc-content">
+            <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                <p style="margin-top: 0;"><b>Podstawy bezpieczeństwa:</b></p>
+                <ul style="padding-left: 18px;">
+                    <li>Używaj unikalnych, złożonych haseł (min. 8–12 znaków, litery + cyfry + znaki specjalne).</li>
+                    <li>Nie udostępniaj głównego konta administratora domownikom czy pracownikom – utwórz im osobne konta z uprawnieniami wyłącznie do podglądu na żywo (bez możliwości kasowania dysku i zmiany ustawień).</li>
+                    <li><b>Prawo i RODO:</b> Na posesji prywatnej kamery mogą obejmować wyłącznie Twój teren (nie mogą nagrywać ulicy, chodnika ani posesji sąsiada). W firmie i miejscach publicznych wymagane są tabliczki informacyjne o monitoringu wizyjnym.</li>
+                </ul>
+
+                <div class="pro-box">
+                    <b>Hardening systemu CCTV (PRO):</b><br>
+                    • <b>Zakaz przekierowania portów (Port Forwarding):</b> Nigdy nie wystawiaj portów <code>80</code> ani <code>37777</code> rejestratora bezpośrednio na publiczny adres IP bez VPN – boty skanujące internet błyskawicznie wykorzystują stare podatności firmware.<br>
+                    • <b>Izolacja VLAN:</b> Odizoluj sieć kamer od sieci komputerowej oraz zablokuj kamerom wyjście do internetu na firewallu routera (dostęp do sieci WAN powinien mieć wyłącznie rejestrator NVR do obsługi P2P i NTP).
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 10. KONSERWACJA I PROCEDURY -->
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">10. KONSERWACJA I PROCEDURY SERWISOWE <span>+</span></div>
+        <div class="acc-content">
+            <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                <p style="margin-top: 0;"><b>Okresowy przegląd instalacji (raz na 6–12 miesięcy):</b></p>
+                <ol style="padding-left: 18px; margin-top: 0;">
+                    <li><b>Czyszczenie optyki:</b> Przetrzyj szybkę obiektywu miękką mikrofibrą i usuń pajęczyny wokół obudowy (pająki uwielbiają ciepło diod IR w nocy).</li>
+                    <li><b>Weryfikacja zapisu:</b> Odtwórz losowe nagranie sprzed kilku dni (zarówno z dnia, jak i z nocy) oraz przetestuj eksport na pendrive – nie ufaj samej ikonie zielonego kółka na ekranie.</li>
+                    <li><b>Kontrola zasilania:</b> Przetestuj podtrzymanie zasilacza awaryjnego UPS (odłącz wtyczkę 230V na minutę i sprawdź, czy NVR i switch PoE nie zrestartowały się pod obciążeniem).</li>
+                    <li><b>Dokumentacja powykonawcza:</b> Zapisz w notatce poniżej adresy IP urządzeń, numer portu w switchu dla każdej kamery, hasła oraz e-mail przypisany do resetu.</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- 11. TABELA DORI I DOBÓR OBIEKTYWÓW -->
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">11. ZASIĘGI DORI I DOBÓR OBIEKTYWÓW <span>+</span></div>
+        <div class="acc-content">
+            <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                <p style="margin-top: 0;"><b>Norma EN 62676-4 (DORI):</b> Określa, z jakiej maksymalnej odległości kamera pozwoli rozróżnić szczegóły (gęstość pikseli na metr – PPM):</p>
+                <ul style="padding-left: 18px;">
+                    <li><b>D – Detection (25 px/m):</b> Wykrycie, że w kadrze porusza się człowiek/obiekt.</li>
+                    <li><b>O – Observation (62 px/m):</b> Rozpoznanie szczegółów ubioru, kierunku ruchu.</li>
+                    <li><b>R – Recognition (125 px/m):</b> Rozpoznanie znajomej osoby z dużym prawdopodobieństwem.</li>
+                    <li><b>I – Identification (250 px/m):</b> Pewna identyfikacja nieznanej osoby lub odczyt tablicy rejestracyjnej.</li>
+                </ul>
+
+                <table class="spec-table">
+                    <thead>
+                        <tr>
+                            <th>Obiektyw / Matryca</th>
+                            <th>Kąt (H)</th>
+                            <th>Detekcja</th>
+                            <th>Rozpoznanie</th>
+                            <th>Identyfikacja</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><b>2.8 mm</b> (4 Mpx)</td>
+                            <td>~102°</td>
+                            <td>56 m</td>
+                            <td>11 m</td>
+                            <td>5.6 m</td>
+                        </tr>
+                        <tr>
+                            <td><b>3.6 mm</b> (4 Mpx)</td>
+                            <td>~84°</td>
+                            <td>80 m</td>
+                            <td>16 m</td>
+                            <td>8.0 m</td>
+                        </tr>
+                        <tr>
+                            <td><b>6.0 mm</b> (4 Mpx)</td>
+                            <td>~52°</td>
+                            <td>120 m</td>
+                            <td>24 m</td>
+                            <td>12.0 m</td>
+                        </tr>
+                        <tr>
+                            <td><b>12.0 mm</b> (4 Mpx)</td>
+                            <td>~26°</td>
+                            <td>240 m</td>
+                            <td>48 m</td>
+                            <td>24.0 m</td>
+                        </tr>
+                        <tr>
+                            <td><b>2.8 mm</b> (8 Mpx / 4K)</td>
+                            <td>~106°</td>
+                            <td>85 m</td>
+                            <td>17 m</td>
+                            <td>8.5 m</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="pro-box">
+                    <b>Rozmiar przetwornika ma znaczenie (PRO):</b><br>
+                    Kamera 4 Mpx na dużym przetworniku <b>1/1.8"</b> (np. serie <i>WizMind / WizSense 3xxx/5xxx</i>) da w nocy wielokrotnie jaśniejszy i ostrzejszy obraz niż kamera 8 Mpx na małym przetworniku <b>1/2.8"</b>. Większy fizyczny piksel łapie więcej światła i wymaga słabszego podbicia ISO (mniej szumu).
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 12. ŚCIĄGAWKA SIECIOWA DAHUA (PORTY, RTSP, ONVIF) -->
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">12. PORTY SIECIOWE, RTSP I ONVIF (ŚCIĄGAWKA) <span>+</span></div>
+        <div class="acc-content">
+            <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                <p style="margin-top: 0;"><b>Domyślne dane dostępowe (przed inicjalizacją):</b><br>
+                • Adres IP: <code>192.168.1.108</code> (maska <code>255.255.255.0</code>)<br>
+                • Login główny: <code>admin</code> (hasło ustalane przy pierwszym starcie)<br>
+                • Porty ONVIF: <code>80</code> (HTTP) lub <code>8000</code> / <code>8899</code> (zależnie od serii)</p>
+
+                <table class="spec-table">
+                    <thead>
+                        <tr>
+                            <th>Port</th>
+                            <th>Protokół</th>
+                            <th>Przeznaczenie</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><b>37777</b></td>
+                            <td>TCP</td>
+                            <td>Główny port komunikacji prywatnej Dahua (SmartPSS, NVR)</td>
+                        </tr>
+                        <tr>
+                            <td><b>37778</b></td>
+                            <td>UDP</td>
+                            <td>Transmisja strumieni i wykrywanie urządzeń w sieci (ConfigTool)</td>
+                        </tr>
+                        <tr>
+                            <td><b>80 / 443</b></td>
+                            <td>TCP</td>
+                            <td>Interfejs WWW (HTTP / HTTPS) oraz komunikacja ONVIF</td>
+                        </tr>
+                        <tr>
+                            <td><b>554</b></td>
+                            <td>TCP/UDP</td>
+                            <td>Strumieniowanie wideo RTSP</td>
+                        </tr>
+                        <tr>
+                            <td><b>37810</b></td>
+                            <td>UDP</td>
+                            <td>Wykrywanie i inicjalizacja urządzeń w warstwie 2 (broadcast)</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="pro-box">
+                    <b>Gotowe adresy URL (RTSP i zrzut ekranu JPG):</b><br>
+                    • <b>Strumień główny (Main Stream):</b><br>
+                    <code>rtsp://admin:HASLO@192.168.1.108:554/cam/realmonitor?channel=1&subtype=0</code><br>
+                    • <b>Strumień pomocniczy (Sub Stream):</b><br>
+                    <code>rtsp://admin:HASLO@192.168.1.108:554/cam/realmonitor?channel=1&subtype=1</code><br>
+                    • <b>Pojedyncza klatka JPEG (Snapshot):</b><br>
+                    <code>http://192.168.1.108/cgi-bin/snapshot.cgi?channel=1</code><br>
+                    <i>(W starszych przeglądarkach lub przy integracjach włącz w kamerze uwierzytelnianie HTTP Digest).</i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 13. ZAAWANSOWANE USTAWIENIA OBRAZU (WDR, HLC, BLC, LPR) -->
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">13. ZAAWANSOWANA REGULACJA OBRAZU (BLC, HLC, LPR) <span>+</span></div>
+        <div class="acc-content">
+            <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                <p style="margin-top: 0;"><b>Kiedy używać poszczególnych kompensacji światła:</b></p>
+                <ul style="padding-left: 18px;">
+                    <li><b>WDR (Wide Dynamic Range):</b> Gdy w kadrze jest jednocześnie bardzo ciemno i bardzo jasno (np. kamera wewnątrz patrzy na oszklone drzwi wejściowe).</li>
+                    <li><b>BLC (Backlight Compensation):</b> Rozjaśnia ciemny obiekt na pierwszym planie kosztem prześwietlenia jasnego tła za nim.</li>
+                    <li><b>HLC (Highlight Compensation):</b> Wygasza bardzo silne, punktowe źródła światła w nocy (np. reflektory samochodowe, latarnie), aby nie oślepiały całej matrycy.</li>
+                    <li><b>3DNR (Redukcja szumów):</b> Usuwa „ziarno” w nocy. Zbyt wysoka wartość (powyżej 60–70) powoduje rozmycie i efekt „akwareli” na poruszających się obiektach.</li>
+                </ul>
+
+                <div class="pro-box">
+                    <b>Konfiguracja pod tablice rejestracyjne (ANPR / LPR – PRO):</b><br>
+                    Zwykła kamera na ustawieniach automatycznych w nocy zarejestruje tylko dwie białe plamy reflektorów i prześwietloną odblaskową tablicę. Aby odczytać numery:<br>
+                    1. Wyłącz <b>WDR</b>, włącz <b>HLC</b> (poziom ok. 50–70).<br>
+                    2. Ustaw stały, krótki czas migawki (<b>Shutter: 1/500s – 1/1000s</b>).<br>
+                    3. Ogranicz wzmocnienie (<b>Gain: max 30–40</b>). Obraz wokół auta zrobi się całkowicie czarny, ale sama tablica podświetlona przez IR będzie czytelna jak w dzień.<br>
+                    4. Kąt montażu kamery względem osi jazdy nie powinien przekraczać <b>25°–30°</b>.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 14. OKABLOWANIE CCTV: ePoE, HDCVI I ZASILANIE -->
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">14. OKABLOWANIE CCTV: ePoE, BALUNY I ZASILANIE <span>+</span></div>
+        <div class="acc-content">
+            <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                <p style="margin-top: 0;"><b>Przesył powyżej 100 metrów (Systemy IP):</b><br>
+                Standardowy Ethernet kończy się na 100 m. W Dahua masz trzy wyjścia na dłuższe odcinki:</p>
+                <ul style="padding-left: 18px;">
+                    <li><b>ePoE / Long Distance PoE:</b> Wybrane switche i rejestratory Dahua pozwalają zasilić kamerę i przesłać obraz po zwykłej skrętce Cat 5e/6 na odległość <b>do 300 m (100 Mb/s)</b> lub <b>do 800 m (10 Mb/s)</b>.</li>
+                    <li><b>Extender PoE (wzmacniacz):</b> Przelotowy moduł zasilany z samego PoE, montowany w połowie trasy (np. na 90. metrze), wydłużający zasięg o kolejne 100 m.</li>
+                    <li><b>Światłowód + Media Konwertery:</b> Najpewniejsze rozwiązanie powyżej 100 m oraz między budynkami (pełna izolacja galwaniczna – brak ryzyka uszkodzenia sprzętu przez przepięcia przy burzy).</li>
+                </ul>
+
+                <div class="pro-box">
+                    <b>Systemy HDCVI po skrętce (Transformatory wideo / Baluny – PRO):</b><br>
+                    Kamery analogowe HD (HDCVI/AHD/TVI) można podłączyć skrętką UTP zamiast koncentryka przy użyciu pary transformatorów (balunów) dopasowujących impedancję (75&Omega; na 100&Omega;).<br>
+                    • <b>Zasada parowania:</b> Do sygnału wideo użyj jednej skręconej pary (np. pomarańczowa + biało-pomarańczowa). Wolne pary możesz wykorzystać do przesłania zasilania <b>12V DC</b>.<br>
+                    • <b>Spadki napięcia 12V:</b> Przy 12V DC na długim kablu (powyżej 30–40 m) spadek napięcia jest ogromny, szczególnie gdy w nocy włączy się podczerwień IR (kamera może się wtedy restartować w pętli). Na długich odcinkach 12V łącz po dwie żyły na plus i dwie na minus lub stosuj zasilacze z regulacją napięcia (podkręcone na 13.5–14V) albo konwertery PoE -> 12V przy samej kamerze.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 15. KODY BŁĘDÓW I ODZYSKIWANIE DOSTĘPU -->
+    <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">15. BŁĘDY NVR I RESETOWANIE HASŁA DAHUA <span>+</span></div>
+        <div class="acc-content">
+            <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                <p style="margin-top: 0;"><b>Najczęstsze komunikaty błędów na liście kamer w NVR:</b></p>
+                <ul style="padding-left: 18px;">
+                    <li><b>Nieprawidłowa nazwa użytkownika lub hasło:</b> Hasło kamery różni się od hasła rejestratora (częste, gdy kamera była inicjowana osobno przed podpięciem do NVR). Kliknij ikonę ołówka przy kamerze i wpisz jej właściwe hasło.</li>
+                    <li><b>Użytkownik zablokowany (Account Locked):</b> Zbyt wiele nieudanych prób logowania (zwykle 5). Blokada mija automatycznie po <b>30 minutach</b> lub natychmiast po odłączeniu i ponownym włączeniu zasilania urządzenia.</li>
+                    <li><b>Nie można połączyć z hostem sieciowym:</b> Kamera i port NVR są w innych podsieciach IP (np. kamera ma <code>192.168.1.108</code>, a NVR szuka w <code>10.1.1.x</code>) lub jest przerwa na kablu.</li>
+                    <li><b>Zasoby są ograniczone / Brak dekodowania:</b> Przekroczona wydajność procesora NVR (np. próba wyświetlenia na lokalnym monitorze HDMI jednocześnie 16 kamer w strumieniu głównym 4K). Przełącz podgląd siatki na <i>Strumień pomocniczy (Sub Stream)</i>.</li>
+                </ul>
+
+                <div class="warn-box">
+                    <b>🔑 Procedura resetu zapomnianego hasła (bez przycisku Reset):</b><br>
+                    1. Na ekranie logowania NVR/kamery kliknij <b>„Zapomniałeś hasła?”</b>.<br>
+                    2. Zeskanuj wyświetlony <b>kod QR</b> w aplikacji mobilnej <b>DMSS</b> (<i>Ja -> Narzędzia -> Resetowanie hasła urządzenia</i>).<br>
+                    3. Kod zabezpieczający (Security Code) przyjdzie na adres e-mail podany podczas pierwszej inicjalizacji urządzenia.<br>
+                    4. Jeśli e-mail nie był podany, wygeneruj w ConfigTool plik XML z urządzenia i prześlij go do oficjalnego wsparcia technicznego dystrybutora Dahua w celu wygenerowania pliku resetującego (ważnego tylko 24h i do czasu restartu urządzenia).
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+        <!-- KONTENER NA WŁASNE AKORDEONY -->
+    <div id="custom-accordions-list"></div>
+
+    <!-- PRZYCISK DODAWANIA -->
+    <button id="btn-show-form" class="btn-add-acc" onclick="otworzFormularzAcc()">＋ Dodaj własną notatkę / obiekt</button>
+
+    <!-- FORMULARZ DODAWANIA / EDYCJI -->
+    <div id="custom-acc-form" class="custom-form-card">
+        <h3 id="form-acc-title" style="margin-top:0; font-size: 1rem;">Nowa notatka</h3>
+        <input type="hidden" id="edit-acc-index" value="-1">
+        
+        <label style="font-weight:bold; font-size:0.85rem;">Tytuł na pasku:</label>
+        <input type="text" id="acc-title-input" placeholder="np. Obiekt Firma X – IP, hasła, porty...">
+        
+        <label style="font-weight:bold; font-size:0.85rem;">Treść notatki:</label>
+        <textarea id="acc-body-input" rows="5" placeholder="Wpisz dane konfiguracji, adresy kamer..."></textarea>
+        
+        <div style="display:flex; gap:8px;">
+            <button onclick="zapiszCustomAcc()" style="flex:1; padding:10px; background:#2e7d32; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">Zapisz</button>
+            <button onclick="zamknijFormularzAcc()" style="flex:1; padding:10px; background:#7f8c8d; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">Anuluj</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+const STORAGE_KEY = 'wlasne_acc_monitoring';
+let customAccs = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+document.addEventListener("DOMContentLoaded", () => {
+    renderujCustomAccs();
+    calcHDD();
+});
+
+function toggleAcc(header) {
+    const content = header.nextElementSibling;
+    if (!content || !content.classList.contains('acc-content')) return;
+    const span = header.querySelector('.acc-icon') || header.querySelector('span');
+    
+    const isOpening = !content.classList.contains('show');
+
+    document.querySelectorAll('.acc-header').forEach(h => {
+        const c = h.nextElementSibling;
+        const s = h.querySelector('.acc-icon') || h.querySelector('span');
+        if (c && c.classList.contains('acc-content')) {
+            c.classList.remove('show');
+            if (s && s.innerText === '−') s.innerText = '+';
+        }
+    });
+    
+    if (isOpening) {
+        content.classList.add('show');
+        if (span) span.innerText = '−';
+    }
+}
+
+function calcHDD() {
+    const cams = parseInt(document.getElementById('camCount').value) || 0;
+    const kbps = parseInt(document.getElementById('camBitrate').value) || 0;
+    const days = parseInt(document.getElementById('recDays').value) || 0;
+
+    if (cams <= 0 || days <= 0) {
+        document.getElementById('hddRes').innerText = "Wymagany dysk: 0 TB";
+        document.getElementById('totalBandwidth').innerText = "0 Mb/s";
+        return;
+    }
+
+    const totalMbps = (cams * kbps) / 1024;
+    // Przeliczenie Mb/s na GB na dobę: (Mbps / 8) * 86400s / 1024
+    const gbPerDay = (totalMbps / 8) * 86400 / 1024;
+    const totalTB = (gbPerDay * days) / 1024;
+
+    // Dobór standardowej pojemności dysku (z uwzględnieniem ~93% realnej pojemności po formatowaniu)
+    const sizes = [1, 2, 3, 4, 6, 8, 10, 12, 14, 16, 18, 20];
+    const recommended = sizes.find(s => s * 0.91 >= totalTB) || Math.ceil(totalTB * 1.1);
+
+    document.getElementById('hddRes').innerText = `Wymagany dysk: ~${totalTB.toFixed(2)} TB (zalecane ${recommended} TB)`;
+    document.getElementById('totalBandwidth').innerText = `${totalMbps.toFixed(1)} Mb/s`;
+}
+
+function renderujCustomAccs() {
+    const list = document.getElementById('custom-accordions-list');
+    list.innerHTML = "";
+
+    customAccs.forEach((item, index) => {
+        list.innerHTML += `
+            <div class="accordion">
+                <div class="acc-header custom-note" onclick="toggleAcc(this)">
+                    <span>📝 ${escapeHTML(item.tytul)}</span>
+                    <span class="acc-icon">+</span>
+                </div>
+                <div class="acc-content">
+                    <div class="custom-note-body">${escapeHTML(item.tresc)}</div>
+                    <div class="custom-note-actions">
+                        <button style="background:#f39c12; color:white;" onclick="edytujCustomAcc(${index})">✏️ Edytuj</button>
+                        <button style="background:#e74c3c; color:white;" onclick="usunCustomAcc(${index})">🗑️ Usuń</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+}
+
+function otworzFormularzAcc() {
+    document.getElementById('edit-acc-index').value = "-1";
+    document.getElementById('form-acc-title').innerText = "Nowa notatka";
+    document.getElementById('acc-title-input').value = "";
+    document.getElementById('acc-body-input').value = "";
+    document.getElementById('custom-acc-form').style.display = "block";
+    document.getElementById('btn-show-form').style.display = "none";
+    document.getElementById('acc-title-input').focus();
+}
+
+function zamknijFormularzAcc() {
+    document.getElementById('custom-acc-form').style.display = "none";
+    document.getElementById('btn-show-form').style.display = "block";
+}
+
+function zapiszCustomAcc() {
+    const idx = parseInt(document.getElementById('edit-acc-index').value);
+    const tytul = document.getElementById('acc-title-input').value.trim();
+    const tresc = document.getElementById('acc-body-input').value.trim();
+
+    if (!tytul) {
+        alert("Podaj tytuł notatki!");
+        return;
+    }
+
+    if (idx === -1) {
+        customAccs.push({ tytul, tresc });
+    } else {
+        customAccs[idx] = { tytul, tresc };
+    }
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(customAccs));
+    renderujCustomAccs();
+    zamknijFormularzAcc();
+}
+
+function edytujCustomAcc(index) {
+    const item = customAccs[index];
+    document.getElementById('edit-acc-index').value = index;
+    document.getElementById('form-acc-title').innerText = "Edytuj notatkę";
+    document.getElementById('acc-title-input').value = item.tytul;
+    document.getElementById('acc-body-input').value = item.tresc;
+    document.getElementById('custom-acc-form').style.display = "block";
+    document.getElementById('btn-show-form').style.display = "none";
+    document.getElementById('custom-acc-form').scrollIntoView({ behavior: 'smooth' });
+}
+
+function usunCustomAcc(index) {
+    if (confirm(`Usunąć notatkę „${customAccs[index].tytul}”?`)) {
+        customAccs.splice(index, 1);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(customAccs));
+        renderujCustomAccs();
+    }
+}
+
+function escapeHTML(str) {
+    return str.replace(/[&<>'"]/g, tag => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+    }[tag]));
+}
+</script>
+
+</body>
+</html>

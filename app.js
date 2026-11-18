@@ -173,7 +173,9 @@ function zapiszKopieBazy() {
         wpisy: wpisy,
         notatki: notatki,
         wlasneAccSat: JSON.parse(localStorage.getItem('wlasne_acc_sat')) || [],
-        wlasneAccDvbt: JSON.parse(localStorage.getItem('wlasne_acc_dvbt')) || []
+        wlasneAccDvbt: JSON.parse(localStorage.getItem('wlasne_acc_dvbt')) || [],
+        wlasneAccInternet: JSON.parse(localStorage.getItem('wlasne_acc_internet')) || [],
+        wlasneAccMonitoring: JSON.parse(localStorage.getItem('wlasne_acc_monitoring')) || []
     };
 
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(pelnaBaza, null, 2));
@@ -222,6 +224,12 @@ function przywracajBaze(event) {
                 }
                 if (zawartosc.wlasneAccDvbt) {
                     localStorage.setItem('wlasne_acc_dvbt', JSON.stringify(zawartosc.wlasneAccDvbt));
+                }
+                if (zawartosc.wlasneAccInternet) {
+                    localStorage.setItem('wlasne_acc_internet', JSON.stringify(zawartosc.wlasneAccInternet));
+                }
+                if (zawartosc.wlasneAccMonitoring) {
+                    localStorage.setItem('wlasne_acc_monitoring', JSON.stringify(zawartosc.wlasneAccMonitoring));
                 }
 
                 generujKalendarz();
@@ -925,7 +933,9 @@ async function zapiszDoSyncthing() {
             wpisy: wpisy,
             notatki: notatki,
             wlasneAccSat: JSON.parse(localStorage.getItem('wlasne_acc_sat')) || [],
-            wlasneAccDvbt: JSON.parse(localStorage.getItem('wlasne_acc_dvbt')) || []
+            wlasneAccDvbt: JSON.parse(localStorage.getItem('wlasne_acc_dvbt')) || [],
+            wlasneAccInternet: JSON.parse(localStorage.getItem('wlasne_acc_internet')) || [],
+            wlasneAccMonitoring: JSON.parse(localStorage.getItem('wlasne_acc_monitoring')) || []
         };
 
         const fileHandle = await syncthingDirHandle.getFileHandle("web_asystent_dane.json", { create: true });

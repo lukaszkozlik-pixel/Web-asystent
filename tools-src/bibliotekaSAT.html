@@ -207,11 +207,11 @@
     <div id="custom-accordions-list"></div>
 
     <!-- PRZYCISK DODAWANIA -->
-    <button id="btn-show-form" class="btn-add-acc" onclick="otworzFormularzAcc()">＋ Dodaj własny akordeon</button>
+    <button id="btn-show-form" class="btn-add-acc" onclick="otworzFormularzAcc()">＋ Dodaj własną notatkę</button>
 
     <!-- FORMULARZ DODAWANIA / EDYCJI -->
     <div id="custom-acc-form" class="custom-form-card">
-        <h3 id="form-acc-title" style="margin-top:0; font-size: 1rem;">Nowy akordeon</h3>
+        <h3 id="form-acc-title" style="margin-top:0; font-size: 1rem;">Nowa notatka</h3>
         <input type="hidden" id="edit-acc-index" value="-1">
         
         <label style="font-weight:bold; font-size:0.85rem;">Tytuł na pasku:</label>
@@ -281,7 +281,7 @@ function renderujCustomAccs() {
 
 function otworzFormularzAcc() {
     document.getElementById('edit-acc-index').value = "-1";
-    document.getElementById('form-acc-title').innerText = "Nowy akordeon";
+    document.getElementById('form-acc-title').innerText = "Nowa notatka";
     document.getElementById('acc-title-input').value = "";
     document.getElementById('acc-body-input').value = "";
     document.getElementById('custom-acc-form').style.display = "block";
@@ -300,7 +300,7 @@ function zapiszCustomAcc() {
     const tresc = document.getElementById('acc-body-input').value.trim();
 
     if (!tytul) {
-        alert("Podaj tytuł akordeonu!");
+        alert("Podaj tytuł notatki!");
         return;
     }
 
@@ -318,7 +318,7 @@ function zapiszCustomAcc() {
 function edytujCustomAcc(index) {
     const item = customAccs[index];
     document.getElementById('edit-acc-index').value = index;
-    document.getElementById('form-acc-title').innerText = "Edytuj akordeon";
+    document.getElementById('form-acc-title').innerText = "Edytuj notatkę";
     document.getElementById('acc-title-input').value = item.tytul;
     document.getElementById('acc-body-input').value = item.tresc;
     document.getElementById('custom-acc-form').style.display = "block";
@@ -327,7 +327,7 @@ function edytujCustomAcc(index) {
 }
 
 function usunCustomAcc(index) {
-    if (confirm(`Usunąć akordeon „${customAccs[index].tytul}”?`)) {
+    if (confirm(`Usunąć notatkę? „${customAccs[index].tytul}”?`)) {
         customAccs.splice(index, 1);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(customAccs));
         renderujCustomAccs();
