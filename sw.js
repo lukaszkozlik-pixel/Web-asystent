@@ -1,4 +1,4 @@
-const CACHE_NAME = 'Web-aystent-v3.2.3';
+const CACHE_NAME = 'Web-aystent-v3.2.4';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -12,6 +12,8 @@ const ASSETS_TO_CACHE = [
   './tools-src/Jednostki.html',
   './tools-src/internet.html',
   './tools-src/monitoring.html',
+  './tools-src/kalkulator-cctv.html',
+  './tools-src/kalkulator-cctv.js',
   
   './tools-src/docs/czestotliwosciDVBT.html',
   './tools-src/docs/kolorySat.html',
