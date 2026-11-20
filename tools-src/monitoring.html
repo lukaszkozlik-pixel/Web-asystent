@@ -6,58 +6,245 @@
     <title>Monitoring CCTV / Dahua</title>
     <link rel="stylesheet" href="../style.css">
     <style>
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-            margin: 0; 
-            background: #f0f2f5; 
-            color: #2c3e50; 
-            padding-bottom: 30px;
-        }
-        
-        header { 
-            padding: 0 16px; 
-            display: flex; 
-            align-items: center; 
-            height: 56px;
-            position: relative; 
-            z-index: 1000; 
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            background: #f0f2f5;
+            color: #2c3e50;
+            padding-bottom: 36px;
         }
 
-        h1 { 
-            font-size: 1.1rem; 
-            margin: 0; 
-            position: absolute; 
-            left: 0; 
-            right: 0; 
-            text-align: center; 
-            pointer-events: none; 
+        header {
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            height: 56px;
+            position: relative;
+            z-index: 1000;
+            background: #ffffff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        h1 {
+            font-size: 1.08rem;
+            margin: 0;
+            position: absolute;
+            left: 0;
+            right: 0;
+            text-align: center;
+            pointer-events: none;
             font-weight: 600;
             letter-spacing: 0.3px;
         }
 
-        .container { 
-            padding: 12px; 
-            max-width: 480px;
+        .container {
+            padding: 12px;
+            max-width: 540px;
             margin: 0 auto;
         }
-        
-        .accordion {
-            background: #ffffff; 
-            border-radius: 12px; 
-            margin-bottom: 12px;
-            overflow: hidden; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            border: 1px solid rgba(0,0,0,0.05);
-        }
-        
-        .acc-header {
-            background: #2e7d32; 
-            color: white; 
-            padding: 15px;
-            font-weight: bold; 
-            cursor: pointer; 
+
+        .main-tabs {
             display: flex;
-            justify-content: space-between; 
+            gap: 6px;
+            margin-bottom: 12px;
+            background: #e8f5e9;
+            padding: 4px;
+            border-radius: 10px;
+        }
+
+        .main-tab-btn {
+            flex: 1;
+            padding: 10px 6px;
+            border: none;
+            border-radius: 7px;
+            background: transparent;
+            color: #1b5e20;
+            font-weight: 700;
+            font-size: 0.84rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .main-tab-btn.active {
+            background: #2e7d32;
+            color: #ffffff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+        }
+
+        .view-panel {
+            display: none;
+        }
+
+        .view-panel.active {
+            display: block;
+        }
+
+        /* --- KALKULATOR CCTV --- */
+        .calc-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.06);
+        }
+
+        .calc-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 16px;
+            background: #eef2f5;
+            padding: 4px;
+            border-radius: 8px;
+        }
+
+        .calc-tab-btn {
+            flex: 1;
+            padding: 10px 4px;
+            border: none;
+            border-radius: 6px;
+            background: transparent;
+            color: #555;
+            font-weight: 600;
+            font-size: 0.84rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .calc-tab-btn.active {
+            background: #2e7d32;
+            color: #ffffff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+        }
+
+        .calc-panel {
+            display: none;
+        }
+
+        .calc-panel.active {
+            display: block;
+        }
+
+        label.calc-lbl {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: bold;
+            color: #34495e;
+            margin-top: 4px;
+        }
+
+        .calc-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .calc-row > div {
+            flex: 1;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            margin: 6px 0 12px 0;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.92rem;
+            background: #ffffff;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: #2e7d32;
+            outline: none;
+        }
+
+        .res-box {
+            background: #f1f8e9;
+            padding: 14px;
+            border-radius: 8px;
+            border: 1px dashed #2e7d32;
+            color: #1b5e20;
+            margin-top: 6px;
+        }
+
+        .res-main {
+            font-weight: bold;
+            font-size: 1.02rem;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .res-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            border-top: 1px solid rgba(46, 125, 50, 0.2);
+            padding-top: 10px;
+            font-size: 0.78rem;
+            color: #2c3e50;
+        }
+
+        .res-grid div {
+            background: rgba(255, 255, 255, 0.88);
+            padding: 7px 9px;
+            border-radius: 6px;
+        }
+
+        .res-grid span {
+            display: block;
+            font-weight: bold;
+            color: #2e7d32;
+            font-size: 0.86rem;
+            margin-top: 2px;
+        }
+
+        .calc-alert {
+            margin-top: 10px;
+            padding: 9px 11px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .calc-alert.warn {
+            background: #fff3e0;
+            color: #e65100;
+            border-left: 3px solid #ff9800;
+        }
+
+        .calc-alert.danger {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 3px solid #e53935;
+        }
+
+        .calc-alert.ok {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-left: 3px solid #2e7d32;
+        }
+
+        /* --- AKORDEONY I BAZA WIEDZY --- */
+        .accordion {
+            background: #ffffff;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.06);
+        }
+
+        .acc-header {
+            background: #2e7d32;
+            color: #ffffff;
+            padding: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
             align-items: center;
             font-size: 0.95rem;
             transition: background 0.2s;
@@ -67,39 +254,39 @@
             background: #1b5e20;
         }
 
-        /* Wyróżnienie nagłówka własnych notatek */
         .acc-header.custom-note {
             background: #2c3e50;
         }
+
         .acc-header.custom-note:active {
             background: #1a252f;
         }
-        
+
         .acc-content {
-            display: none; 
-            padding: 15px; 
-            border-top: 1px solid #eee;
+            display: none;
+            padding: 15px;
+            border-top: 1px solid #eeeeee;
             background: #ffffff;
             color: #2c3e50;
         }
-        
-        .acc-content.show { 
-            display: block; 
+
+        .acc-content.show {
+            display: block;
         }
 
         .pro-box {
-            background: #e8f5e9; 
-            padding: 10px; 
-            border-radius: 6px; 
-            border-left: 4px solid #2e7d32; 
+            background: #e8f5e9;
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 4px solid #2e7d32;
             margin-top: 12px;
         }
 
         .warn-box {
-            background: #fff3e0; 
-            padding: 10px; 
-            border-radius: 6px; 
-            border-left: 4px solid #ff9800; 
+            background: #fff3e0;
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 4px solid #ff9800;
             margin-top: 10px;
         }
 
@@ -128,40 +315,12 @@
             font-size: 0.85rem;
             cursor: pointer;
         }
-        
-        input, select, textarea { 
-            width: 100%; 
-            padding: 12px; 
-            margin: 8px 0 12px 0; 
-            border: 1px solid #ccc; 
-            border-radius: 6px; 
-            box-sizing: border-box; 
-            font-family: inherit;
-            font-size: 0.95rem;
-            background: white;
-        }
-        
-        input:focus, select:focus, textarea:focus {
-            border-color: #2e7d32;
-            outline: none;
-        }
 
-        .res-box { 
-            background: #f1f8e9; 
-            padding: 15px; 
-            border-radius: 6px; 
-            font-weight: bold; 
-            text-align: center; 
-            border: 1px dashed #2e7d32; 
-            color: #1b5e20;
-        }
-
-        /* Przycisk i formularz dodawania własnych akordeonów */
         .btn-add-acc {
             width: 100%;
             padding: 14px;
             background: #2e7d32;
-            color: white;
+            color: #ffffff;
             border: none;
             border-radius: 12px;
             font-weight: bold;
@@ -178,37 +337,47 @@
 
         .custom-form-card {
             display: none;
-            background: white;
+            background: #ffffff;
             padding: 15px;
             border-radius: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.12);
             margin-top: 10px;
+            border: 1px solid rgba(0,0,0,0.06);
         }
 
         table.spec-table {
-            width: 100%; 
-            border-collapse: collapse; 
-            font-size: 0.8rem; 
-            background: white; 
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            background: #ffffff;
             margin: 10px 0;
         }
+
         table.spec-table th {
-            background: #2e7d32; 
-            color: white;
-            padding: 6px; 
+            background: #2e7d32;
+            color: #ffffff;
+            padding: 6px;
             border: 1px solid #ddd;
             text-align: left;
         }
+
         table.spec-table td {
-            padding: 6px; 
+            padding: 6px;
             border: 1px solid #ddd;
         }
+
         table.spec-table tr:nth-child(even) {
             background: #f9f9f9;
         }
+
+        code {
+            background: rgba(46, 125, 50, 0.09);
+            padding: 1px 4px;
+            border-radius: 4px;
+            font-size: 0.82rem;
+        }
     </style>
 </head>
-
 <body>
 
 <header>
@@ -216,801 +385,882 @@
 </header>
 
 <div class="container">
-
- 
-
- <!-- 1. PODSTAWY MONITORINGU -->
-<div class="accordion">
-    <div class="acc-header" onclick="toggleAcc(this)">1. PODSTAWY MONITORINGU I SŁOWNIK <span>+</span></div>
-    <div class="acc-content">
-        <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
-            <p style="margin-top: 0;"><b>Podstawy:</b> Nowoczesny monitoring składa się z kamer rejestrujących obraz, okablowania, zasilania (PoE lub 12V DC), rejestratora zapisującego materiał na dysku twardym oraz routera zapewniającego dostęp w sieci lokalnej i na telefonie.</p>
-
-            <p style="margin-bottom: 6px;"><b>Typowe architektury systemów:</b></p>
-            <ul style="padding-left: 18px; margin-top: 0;">
-                <li><b>IP (IPC + NVR):</b> Monitoring sieciowy (cyfrowy). Kamery przesyłają gotowe pakiety danych po skrętce komputerowej. Najwyższa jakość, łatwa rozbudowa i zaawansowane funkcje AI (np. detekcja człowieka/pojazdu).</li>
-                <li><b>HDCVI / TVI / AHD (Kamery + XVR):</b> Systemy wysokiej rozdzielczości po kablu koncentrycznym – świetne przy modernizacji starszych instalacji bez kucia ścian pod nową skrętkę.</li>
-                <li><b>Kamera samodzielna (Wi-Fi / SD / 4G):</b> Działa bez rejestratora, zapisuje nagranie na karcie microSD (najlepiej klasy <i>High Endurance</i>) i łączy się bezpośrednio z aplikacją.</li>
-            </ul>
-
-            <p style="margin-bottom: 6px;"><b>Praktyka montażowa (okablowanie i dyski):</b></p>
-            <ul style="padding-left: 18px; margin-top: 0;">
-                <li><b>Skrętka UTP (Cat5e / Cat6):</b> Do kamer IP stosuje się pełną miedź (<b>Cu</b>), unikając tanich przewodów <b>CCA</b> (aluminium pokryte miedzią) – przy PoE i dłuższych odcinkach rosną straty i grzanie.</li>
-                <li><b>Puszki montażowe i hermetyczne:</b> Wtyki RJ45 i przewody kamery należy zabezpieczyć przed wilgocią i warunkami atmosferycznymi w dedykowanej puszce lub uchwycie.</li>
-                <li><b>Dyski HDD do CCTV:</b> Stosuje się dyski przystosowane do pracy ciągłej 24/7 (np. WD Purple, Seagate SkyHawk), a nie zwykłe dyski biurowe.</li>
-            </ul>
-
-            <div class="pro-box">
-                <b>Słownik techniczny i protokoły (PRO):</b><br>
-                - <b>NVR / XVR:</b> Network Video Recorder (rejestrator IP) / rejestrator hybrydowy (obsługuje różne standardy analogowe HD oraz kamery IP).<br>
-                - <b>ONVIF (Profile S/T/G):</b> Otwarty standard komunikacji ułatwiający integrację urządzeń różnych producentów (np. podgląd, strumień, zdarzenia).<br>
-                - <b>RTSP:</b> Strumień wideo w czasie rzeczywistym (np. <code>rtsp://user:haslo@IP:554/cam/realmonitor?channel=1&amp;subtype=0</code>) używany m.in. w Home Assistant lub Frigate.<br>
-                - <b>Main Stream vs Sub Stream:</b> Strumień główny (wysoka rozdzielczość i bitrate do zapisu na HDD) oraz strumień pomocniczy (mniejsza rozdzielczość do płynnego podglądu wielu kamer na telefonie lub słabszym łączu).<br>
-                - <b>CBR vs VBR:</b> Stały bitrate (Constant Bitrate – przewidywalne zużycie dysku i pasma) vs zmienny bitrate (Variable Bitrate – oszczędza miejsce na statycznej scenie, podbija przy dużym ruchu).<br>
-                - <b>FPS (klatki/s):</b> W CCTV zwykle wystarcza <b>15–25 FPS</b>. Wyższe wartości (50/60 FPS) rzadko poprawiają czytelność twarzy czy tablic, a wyraźnie zwiększają zapotrzebowanie na dysk.<br>
-                - <b>WDR (Wide Dynamic Range):</b> Funkcja wyrównująca ekspozycję, gdy w kadrze jest jednocześnie bardzo jasno i ciemno (np. wejście do budynku w słońcu lub światła auta w nocy).<br>
-                - <b>IR / Full-Color / Dual Light:</b> Noc w podczerwieni (obraz czarno-biały, niewidoczny dla oka), pełny kolor z doświetleniem światłem białym lub tryb mieszany (IR na co dzień, światło białe po wykryciu zdarzenia).<br>
-                - <b>Statyczny IP vs DHCP:</b> Dla kamer i rejestratora w sieci lokalnej najlepiej ustawić stały adres IP (lub rezerwację DHCP na routerze), aby urządzenia nie zmieniały adresu po restarcie.
-            </div>
-        </div>
+    <div class="main-tabs">
+        <button class="main-tab-btn active" onclick="switchMainMonitoringTab('calc', this)">🧮 Kalkulator</button>
+        <button class="main-tab-btn" onclick="switchMainMonitoringTab('kb', this)">📚 Wiedza i notatki</button>
     </div>
-</div>
 
-    <!-- 2. DOBÓR SPRZĘTU -->
-    <div class="accordion">
-        <div class="acc-header" onclick="toggleAcc(this)">2. DOBÓR SPRZĘTU, OBIEKTYWY I OBRAZ <span>+</span></div>
-        <div class="acc-content">
-            <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
-                <p style="margin-top: 0;"><b>Obudowy kamer:</b></p>
-                <ul style="padding-left: 18px;">
-                    <li><b>Kopułkowa / Eyeball (Turret):</b> Dyskretna, odporna na podważenie, świetna pod podbitkę i do wnętrz.</li>
-                    <li><b>Tubowa (Bullet):</b> Widoczna (działa odstraszająco), zwykle z mocniejszym oświetlaczem nocnym, wygodna na elewację i słupy.</li>
-                    <li><b>PTZ (Obrotowa):</b> Sterowana zdalnie (obrót 360°, pochylenie, potężny zoom optyczny 25x–45x).</li>
-                    <li><b>Fisheye (Rybie oko):</b> Obiektyw 180°/360° do pokrycia całego pomieszczenia jedną kamerą.</li>
-                </ul>
+    <!-- ZAKŁADKA 1: KALKULATOR CCTV -->
+    <div id="tab-calc" class="view-panel active">
+        <div class="calc-card">
+            <div class="calc-tabs">
+                <button class="calc-tab-btn active" onclick="switchCalcTab('hdd', this)">💾 Dysk HDD</button>
+                <button class="calc-tab-btn" onclick="switchCalcTab('poe', this)">⚡ Zasilanie</button>
+                <button class="calc-tab-btn" onclick="switchCalcTab('dori', this)">🔭 Obiektyw</button>
+            </div>
 
-                <p><b>Ogniskowa obiektywu (kąt widzenia):</b><br>
-                • <b>2.8 mm:</b> Szeroki kąt (~100°–110°) – podgląd ogólny podwórka, parkingu.<br>
-                • <b>3.6 mm / 6 mm:</b> Węższy kąt, większe przybliżenie – bramy wjazdowe, furtki, wąskie przejścia.<br>
-                • <b>Motozoom (np. 2.7–13.5 mm):</b> Zdalna regulacja zoomu optycznego z poziomu rejestratora lub aplikacji bez wchodzenia na drabinę.</p>
+            <!-- KALKULATOR HDD -->
+            <div id="tab-hdd" class="calc-panel active">
+                <div class="calc-row">
+                    <div>
+                        <label class="calc-lbl">Liczba kamer:</label>
+                        <input type="number" id="camCount" value="4" min="1" max="256" oninput="calcHDD()">
+                    </div>
+                    <div>
+                        <label class="calc-lbl">Dni nagrywania:</label>
+                        <input type="number" id="recDays" value="14" min="1" max="365" oninput="calcHDD()">
+                    </div>
+                </div>
 
-                <div class="pro-box">
-                    <b>Przetwornik, Oświetlenie i Kompresja (PRO):</b><br>
-                    • <b>WDR (120dB / 140dB):</b> Prawdziwy szeroki zakres dynamiki (nie mylić z cyfrowym DWDR) – łączy dwie ekspozycje, dzięki czemu widać twarz osoby stojącej w drzwiach na tle jasnego słońca.<br>
-                    • <b>IR vs Full-Color (LED) vs Smart Dual Light:</b> IR daje czarno-biały obraz w nocy; Full-Color świeci ciepłym światłem LED dając kolor 24/7; <i>Smart Dual Light</i> świeci dyskretnym IR, a białe światło LED odpala dopiero po wykryciu człowieka lub pojazdu.<br>
-                    • <b>Kodek Smart H.265+:</b> Zmniejsza zapotrzebowanie na pasmo i dysk nawet o 60–70% względem H.264 poprzez dynamiczne kodowanie tła (GOP).
+                <div class="calc-row">
+                    <div>
+                        <label class="calc-lbl">Rozdzielczość (Mpx):</label>
+                        <select id="camMpx" onchange="calcHDD()">
+                            <option value="2">2 Mpx (FullHD)</option>
+                            <option value="4" selected>4 Mpx (2K)</option>
+                            <option value="5">5 Mpx</option>
+                            <option value="6">6 Mpx</option>
+                            <option value="8">8 Mpx (4K)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="calc-lbl">Kodek kompresji:</label>
+                        <select id="camCodec" onchange="toggleCustomBitrate(); calcHDD()">
+                            <option value="smart265">Smart H.265+</option>
+                            <option value="h265" selected>H.265 (HEVC)</option>
+                            <option value="h264">H.264 / wysoki detal</option>
+                            <option value="custom">Własny bitrate...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="customBitrateWrap" style="display:none;">
+                    <label class="calc-lbl">Własny bitrate na 1 kamerę (kb/s):</label>
+                    <input type="number" id="customBitrateVal" value="4096" min="128" max="32768" oninput="calcHDD()">
+                </div>
+
+                <div class="calc-row">
+                    <div>
+                        <label class="calc-lbl">Klatki/s (FPS):</label>
+                        <select id="camFps" onchange="calcHDD()">
+                            <option value="30">30 FPS (NTSC / płynny)</option>
+                            <option value="25" selected>25 FPS (PAL / pełny ruch)</option>
+                            <option value="20">20 FPS</option>
+                            <option value="15">15 FPS (optymalny CCTV)</option>
+                            <option value="12">12 FPS</option>
+                            <option value="10">10 FPS</option>
+                            <option value="6">6 FPS (oszczędny)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="calc-row">
+                    <div>
+                        <label class="calc-lbl">Tryb nagrywania:</label>
+                        <select id="recDuty" onchange="calcHDD()">
+                            <option value="1.0" selected>Ciągłe 24/7 (100%)</option>
+                            <option value="0.5">Ruch / AI (ok. 12h/dobę – 50%)</option>
+                            <option value="0.3">Ruch / AI (ok. 7h/dobę – 30%)</option>
+                            <option value="0.15">Mały ruch (ok. 3.5h/dobę – 15%)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="calc-lbl">Zatoki HDD w NVR:</label>
+                        <select id="hddBays" onchange="calcHDD()">
+                            <option value="1" selected>1 dysk (1× HDD)</option>
+                            <option value="2">2 dyski (2× HDD)</option>
+                            <option value="4">4 dyski (4× HDD)</option>
+                            <option value="8">8 dysków (8× HDD)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="res-box">
+                    <div class="res-main" id="hddRes">Wymagane: ~5.27 TB → Zalecane: 1× 6 TB</div>
+                    <div class="res-grid">
+                        <div>Bitrate / Łącznie<span id="totalBandwidth">4096 kb/s (16.0 Mb/s)</span></div>
+                        <div>Zużycie na dobę<span id="dailyStorage">384.0 GB/dzień</span></div>
+                        <div>Realny czas na zalecanym<span id="realDays">~14.5 dni</span></div>
+                        <div>Pojemność użyteczna<span id="usableSpace">5.46 TB (z 6 TB)</span></div>
+                    </div>
+                </div>
+                <div id="hddAlert" class="calc-alert"></div>
+            </div>
+
+            <!-- KALKULATOR ZASILANIA -->
+            <div id="tab-poe" class="calc-panel">
+                <label class="calc-lbl">Sposób zasilania kamer:</label>
+                <select id="powerMode" onchange="switchPowerMode()">
+                    <option value="poe" selected>PoE (skrętka sieciowa UTP – switch / NVR)</option>
+                    <option value="dc">12V DC (kabel 2×0.75 mm² / inne przekroje lub UTP)</option>
+                </select>
+
+                <div id="powerModePoe">
+                    <div class="calc-row">
+                        <div>
+                            <label class="calc-lbl">Liczba kamer:</label>
+                            <input type="number" id="poeCamCount" value="4" min="1" max="64" oninput="calcPoE()">
+                        </div>
+                        <div>
+                            <label class="calc-lbl">Pobór 1 kamery (z IR/LED):</label>
+                            <select id="poeCamType" onchange="toggleCustomWatt(); calcPoE()">
+                                <option value="6.5" selected>Standard IP / IR (~6.5 W)</option>
+                                <option value="8.5">Full-Color LED / Dual Light (~8.5 W)</option>
+                                <option value="12.5">Motozoom / TiOC (~12.5 W)</option>
+                                <option value="18.0">Kamera z grzałką / PTZ (~18 W)</option>
+                                <option value="25.0">Duża obrotowa PTZ (~25 W)</option>
+                                <option value="custom">Własny pobór (W)...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="customWattWrap" style="display:none;">
+                        <label class="calc-lbl">Własny pobór 1 kamery (W):</label>
+                        <input type="number" id="customWattVal" value="10" min="1" max="90" step="0.5" oninput="calcPoE()">
+                    </div>
+
+                    <label class="calc-lbl">Długość skrętki do kamery (m):</label>
+                    <input type="number" id="poeCableLen" value="45" min="1" max="800" oninput="calcPoE()">
+
+                    <div class="res-box">
+                        <div class="res-main" id="poeRes">Wymagany standard: 802.3af (PoE)</div>
+                        <div class="res-grid">
+                            <div>Czysty pobór kamer<span id="poeRawWatt">26.0 W</span></div>
+                            <div>Budżet PoE (+20% zapasu)<span id="poeSafeWatt">~31.2 W</span></div>
+                            <div>Zalecany Switch PoE<span id="poeSwitchRec">8-port 802.3af (min. 60W)</span></div>
+                            <div>Limit na 1 kamerę<span id="poeStdLimit">do 12.95 W (802.3af)</span></div>
+                        </div>
+                    </div>
+                    <div id="poeAlert" class="calc-alert"></div>
+                </div>
+
+                <div id="powerModeDc" style="display:none;">
+                    <div class="calc-row">
+                        <div>
+                            <label class="calc-lbl">Przewód zasilający:</label>
+                            <select id="dcWireType" onchange="calcDC()">
+                                <option value="0.75" selected>Kabel 2× 0.75 mm²</option>
+                                <option value="0.5">Kabel 2× 0.50 mm²</option>
+                                <option value="1.0">Kabel 2× 1.00 mm²</option>
+                                <option value="1.5">Kabel 2× 1.50 mm²</option>
+                                <option value="utp1">Skrętka UTP – 1 para (2 żyły)</option>
+                                <option value="utp2">Skrętka UTP – 2 pary (4 żyły)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="calc-lbl">Długość odcinka (m):</label>
+                            <input type="number" id="dcCableLen" value="35" min="1" max="300" oninput="calcDC()">
+                        </div>
+                    </div>
+
+                    <div class="calc-row">
+                        <div>
+                            <label class="calc-lbl">Pobór 1 kamery (W):</label>
+                            <input type="number" id="dcCamWatt" value="8.5" min="1" max="60" step="0.5" oninput="calcDC()">
+                        </div>
+                        <div>
+                            <label class="calc-lbl">Liczba kamer na zasilaczu:</label>
+                            <input type="number" id="dcCamCount" value="4" min="1" max="32" oninput="calcDC()">
+                        </div>
+                    </div>
+
+                    <div class="res-box">
+                        <div class="res-main" id="dcRes">Napięcie na kamerze: 11.79 V (Bardzo dobre)</div>
+                        <div class="res-grid">
+                            <div>Spadek na przewodzie<span id="dcDropVolt">0.21 V (prąd 0.71 A)</span></div>
+                            <div>Zasilacz 12V (+25% zapasu)<span id="dcPsuRec">12V / min. 3.6 A (45 W)</span></div>
+                        </div>
+                    </div>
+                    <div id="dcAlert" class="calc-alert"></div>
                 </div>
             </div>
-        </div>
-    </div>
 
-   <!-- 2. DOBÓR SPRZĘTU -->
-<div class="accordion">
-    <div class="acc-header" onclick="toggleAcc(this)">2. DOBÓR SPRZĘTU, OBIEKTYWY I OBRAZ <span>+</span></div>
-    <div class="acc-content">
-        <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
-            <p style="margin-top: 0;"><b>Dobór sprzętu pod zadanie:</b> Dobra kamera to nie tylko megapiksele — liczy się dopasowanie obudowy do miejsca montażu, ogniskowej do odległości celu oraz wielkości matrycy i jasności obiektywu do warunków oświetleniowych (szczególnie w nocy).</p>
-
-            <p style="margin-bottom: 6px;"><b>Obudowy kamer (plusy i minusy):</b></p>
-            <ul style="padding-left: 18px; margin-top: 0;">
-                <li><b>Kopułkowa / Eyeball (Turret):</b> Brak szyby przed obiektywem (szkło jest na zewnątrz) eliminuje odblaski podczerwieni IR i ułatwia czyszczenie. Dyskretna, odporna na łatwe przestawienie, świetna pod podbitkę, na elewację i do wnętrz.</li>
-                <li><b>Kopułkowa klasyczna (Dome):</b> Obiektyw schowany pod kopułą (często wandaloodporną IK10). W modelach z IR trzeba uważać na „świecenie” podczerwieni po kopule przy zabrudzeniu lub złym ułożeniu uszczelki.</li>
-                <li><b>Tubowa (Bullet):</b> Wyraźnie widoczna (działa odstraszająco), wygodna do montażu na ścianach, słupach i wysięgnikach; często ma mocniejszy oświetlacz nocny i łatwiej ją ustawić na większe odległości.</li>
-                <li><b>PTZ (Obrotowa):</b> Sterowana zdalnie (obrót, pochylenie, zoom optyczny — np. 10x–45x). Świetna do dozoru dużych placów, ale w stałych punktach (np. furtka) kamera stałoogniskowa jest zwykle pewniejsza, bo zawsze patrzy tam, gdzie trzeba.</li>
-                <li><b>Fisheye (Rybie oko):</b> Obiektyw ultraszerokokątny (180°/360°) do objęcia całego pomieszczenia jednym urządzeniem — kosztem mniejszej szczegółowości na dalszych krawędziach.</li>
-            </ul>
-
-            <p style="margin-bottom: 6px;"><b>Ogniskowa obiektywu i kąt widzenia (w mm):</b></p>
-            <ul style="padding-left: 18px; margin-top: 0;">
-                <li><b>2.8 mm:</b> Szeroki kąt widzenia (często ok. 95°–110° w poziomie w zależności od matrycy) – dobry podgląd ogólny podwórka, tarasu czy małego parkingu. Im szerzej, tym obiekty na dalszym planie są mniejsze w pikselach.</li>
-                <li><b>3.6 mm / 4 mm:</b> Węższy kadr, większe przybliżenie niż 2.8 mm – sprawdzi się tam, gdzie zależy na większym detalu na średnim dystansie.</li>
-                <li><b>6 mm / 8 mm / 12 mm+:</b> Wąski kąt i wyraźne zbliżenie – bramy wjazdowe, furtki, podjazdy, wąskie przejścia lub konkretne punkty (np. tablice z bliskiego/średniego dystansu przy odpowiedniej konfiguracji).</li>
-                <li><b>Motozoom (np. 2.7–13.5 mm):</b> Regulacja ogniskowej i ostrości zdalnie z poziomu rejestratora lub aplikacji — ogromne ułatwienie przy montażu, bo bez drabiny ustawiasz dokładnie taki kadr, jaki potrzebujesz.</li>
-            </ul>
-
-            <p style="margin-bottom: 6px;"><b>Rozdzielczość (Mpx) a realny efekt:</b></p>
-            <ul style="padding-left: 18px; margin-top: 0;">
-                <li><b>2 Mpx / 4 Mpx:</b> Najbardziej uniwersalne do typowego monitoringu posesji i firm — rozsądny bitrate, dobre zachowanie w słabszym świetle (szczególnie 4 Mpx na sensownej matrycy).</li>
-                <li><b>5 Mpx / 6 Mpx / 8 Mpx (4K):</b> Więcej detali na szerokim kadrze, ale wymagają wyższego bitrate'u, większego dysku i mocniejszego rejestratora; w nocy przy małej matrycy mogą szumieć bardziej niż dobrze dobrane 4 Mpx.</li>
-            </ul>
-
-            <div class="pro-box">
-                <b>Przetwornik, Oświetlenie, Obraz i Kompresja (PRO):</b><br>
-                - <b>Rozmiar przetwornika (np. 1/2.8", 1/1.8", 1/1.2"):</b> Im większa matryca (mniejsza druga liczba w ułamku), tym większe pojedyncze piksele i więcej zebranego światła. Duża matryca w nocy robi ogromną różnicę.<br>
-                - <b>Jasność obiektywu (np. F1.0, F1.4, F1.6):</b> Niższa wartość „F” oznacza jaśniejszy obiektyw przepuszczający więcej światła na matrycę (szczególnie ważne w nocy i w trybach kolorowych).<br>
-                - <b>WDR (120dB / 140dB):</b> Prawdziwy szeroki zakres dynamiki (nie mylić z prostym cyfrowym DWDR) – łączy klatki o różnej ekspozycji, dzięki czemu widać twarz osoby w drzwiach na tle jasnego słońca lub reflektory auta w nocy.<br>
-                - <b>IR vs Full-Color (LED) vs Smart Dual Light:</b><br>
-                  &nbsp;&nbsp;• <i>IR (podczerwień):</i> obraz czarno-biały w nocy, dyskretny dla otoczenia, ale owady, mgła i deszcz potrafią odbijać światło IR.<br>
-                  &nbsp;&nbsp;• <i>Full-Color (światło białe):</i> obraz kolorowy w nocy, pomaga w ocenie koloru ubrania czy auta, wymaga jednak odpowiedniego oświetlenia sceny / doświetlenia LED.<br>
-                  &nbsp;&nbsp;• <i>Smart Dual Light:</i> na co dzień pracuje w dyskretnym IR, a po wykryciu np. człowieka lub pojazdu doświetla scenę światłem białym.<br>
-                - <b>Kodeki H.264 / H.265 / Smart H.265+:</b> H.265 (HEVC) oszczędza miejsce względem H.264, a <i>Smart H.265+</i> dodatkowo redukuje zapotrzebowanie na dysk i pasmo na statycznych fragmentach sceny (np. nieruchome tło), podbijając jakość przy ruchu.<br>
-                - <b>Detekcja ruchu (MD) vs AI / SMD / IVS:</b> Zwykła detekcja ruchu reaguje na każdą zmianę pikseli (liście, deszcz, cienie). Analiza oparta na AI/SMD/IVS pozwala filtrować głównie <b>człowieka</b> i <b>pojazd</b>, co ogranicza fałszywe alarmy.
-            </div>
-        </div>
-    </div>
-</div>
-
-   <!-- 4. KONFIGURACJA KAMER -->
-<div class="accordion">
-    <div class="acc-header" onclick="toggleAcc(this)">4. KONFIGURACJA KAMER (OBRAZ, SD, PTZ) <span>+</span></div>
-    <div class="acc-content">
-        <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
-            <p style="margin-top: 0;"><b>Podstawy:</b> Fabryczne ustawienia kamery to dopiero punkt wyjścia. Po montażu warto dostosować ekspozycję, podświetlenie i zapis pod konkretne miejsce (np. wyłączyć automatyczne przełączanie dzień/noc przy migoczącej lub mocnej latarni, skorygować jasność podczerwieni, aby nie prześwietlała twarzy z bliska, oraz ustawić strefy prywatności).</p>
-
-            <p style="margin-bottom: 6px;"><b>Obraz, ekspozycja i strefy:</b></p>
-            <ul style="padding-left: 18px; margin-top: 0;">
-                <li><b>Dzień / Noc (Day &amp; Night):</b> W trybie <i>Auto</i> kamera przełącza się na IR po spadku jasności. Jeśli w kadrze świeci latarnia lub przejeżdżają auta, obraz potrafi niepotrzebnie „klikać” (przełączać się tam i z powrotem) — wtedy warto wymusić tryb nocny/dzienny na sztywno lub skorygować czułość/opóźnienie przełączania.</li>
-                <li><b>Podświetlenie IR / LED (Smart IR):</b> Zbyt mocna podczerwień na bliskim dystansie „wypala” twarz lub ścianę tuż przed obiektywem. Włączenie <i>Smart IR</i> i ograniczenie mocy diod pomaga wyrównać jasność.</li>
-                <li><b>Redukcja szumów (2D / 3D DNR):</b> W nocy kamera podbija wzmocnienie (Gain), co powoduje szum („ziarno”). <i>3D DNR</i> skutecznie wygładza szum na statycznym tle, ale zbyt wysoka wartość może lekko rozmazać szybki ruch.</li>
-                <li><b>Maski prywatności (Privacy Mask):</b> Pozwalają zasłonić np. okno sąsiada, chodnik lub drogę publiczną poza strefą dozoru, tak aby nie trafiały na nagranie ani podgląd.</li>
-                <li><b>Obrót i lustro (Flip / Mirror):</b> Przydaje się przy montażu do góry nogami lub gdy podgląd ma odpowiadać naturalnemu kierunkowi ruchu w kadrze.</li>
-            </ul>
-
-            <p style="margin-bottom: 6px;"><b>Karta microSD i zapis na kamerze:</b></p>
-            <ul style="padding-left: 18px; margin-top: 0;">
-                <li><b>Wyłącznie karty High Endurance:</b> Zwykłe karty pamięci do aparatów czy telefonów szybko zużywają się przy ciągłym zapisie wideo. Wybieraj karty dedykowane do ciągłego zapisu/monitoringu.</li>
-                <li><b>Formatowanie i nadpisywanie:</b> Nową kartę najlepiej sformatować bezpośrednio w menu kamery lub rejestratora i włączyć <b>nadpisywanie</b> najstarszych plików po zapełnieniu.</li>
-                <li><b>Harmonogram zapisu:</b> Zastanów się, czy na karcie SD ma iść zapis ciągły, czy tylko po zdarzeniach/ruchu — zapis zdarzeniowy wyraźnie wydłuża retencję i żywotność karty.</li>
-            </ul>
-
-            <p style="margin-bottom: 6px;"><b>Kamery PTZ (obrotowe):</b></p>
-            <ul style="padding-left: 18px; margin-top: 0;">
-                <li><b>Presety:</b> Zapisane punkty widzenia (np. <i>Preset 1 – Brama</i>, <i>Preset 2 – Furtka</i>, <i>Preset 3 – Podjazd</i>) z określonym kadrem i przybliżeniem optycznym.</li>
-                <li><b>Tour / Patrol i Scan:</b> Automatyczne przechodzenie między presetami (<i>Tour/Patrol</i>) lub płynne skanowanie wyznaczonego odcinka (<i>Scan</i>).</li>
-                <li><b>Powrót do pozycji domowej (Home / Idle / Park):</b> Bardzo przydatna funkcja — jeśli operator ręcznie obróci kamerę lub najedzie zoomem, po określonym czasie bezczynności kamera sama wraca na główny kadr (np. bramę).</li>
-            </ul>
-
-            <div class="pro-box">
-                <b>Parametry PRO: migawka, ANR, BLC/HLC i ROI:</b><br>
-                - <b>Migawka (Shutter Speed) i ruch (ghosting):</b> Domyślna migawka <i>Auto</i> w nocy wydłuża czas naświetlania, przez co idący człowiek lub jadące auto rozmazują się w smugę (<i>motion blur / ghosting</i>). Do uchwycenia twarzy w ruchu lub tablic rejestracyjnych ustaw migawkę ręcznie (np. <b>1/100s – 1/250s</b> i krócej przy tablicach), pamiętając, że krótszy czas = mniej światła, więc trzeba zadbać o doświetlenie lub czułą matrycę.<br>
-                - <b>ANR (Automatic Network Replenishment):</b> Gdy zerwie się połączenie sieciowe między kamerą a rejestratorem NVR, kamera z kartą microSD zapisuje materiał lokalnie, a po odzyskaniu łączności automatycznie dogrywa brakujące nagrania do NVR. Warunkiem działania jest poprawnie skonfigurowana karta SD, obsługa ANR przez oba urządzenia oraz ciągłość/poprawność zapisu.<br>
-                - <b>BLC (Back Light Compensation) i HLC (Highlight Light Compensation):</b> <i>BLC</i> pomaga doświetlić ciemny obiekt na jasnym tle, a <i>HLC</i> tłumi silne punktowe źródła światła (np. reflektory samochodów w nocy), co bywa pomocne przy podjazdach i wyjazdach.<br>
-                - <b>ROI (Region of Interest):</b> Pozwala wyznaczyć obszar priorytetowy w kadrze (np. furtkę lub kasę), który zachowa wyższą jakość/szczegółowość, podczas gdy reszta kadru może być kompresowana oszczędniej.
-            </div>
-        </div>
-    </div>
-</div>
-<!-- 5. NVR/DVR I NAGRYWANIE -->
-<div class="accordion">
-    <div class="acc-header" onclick="toggleAcc(this)">5. REJESTRATOR (NVR/XVR), DYSKI I ARCHIWUM <span>+</span></div>
-    <div class="acc-content">
-        <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
-            <p style="margin-top: 0;"><b>Rejestrator i dyski do monitoringu:</b> Rejestrator (NVR dla kamer IP lub XVR dla systemów hybrydowych/HDCVI) odbiera strumienie wideo, zarządza nagrywaniem, analizą i odtwarzaniem archiwum. Zwykłe dyski komputerowe nie są przystosowane do ciągłego zapisu 24/7 — stosuj dyski dedykowane do monitoringu (np. <i>WD Purple</i>, <i>Seagate SkyHawk</i>).</p>
-
-            <p style="margin-bottom: 6px;"><b>Ważne przy doborze i pracy dysków:</b></p>
-            <ul style="padding-left: 18px; margin-top: 0;">
-                <li><b>Nadpisywanie (Overwrite):</b> Włączone na stałe sprawia, że po zapełnieniu dysku rejestrator automatycznie kasuje najstarsze nagrania i zapisuje nowe (zamiast zatrzymywać zapis).</li>
-                <li><b>Limity rejestratora:</b> Zawsze sprawdź w specyfikacji NVR/XVR maksymalną pojemność dysku na jedną zatokę (np. 6 TB, 8 TB, 10 TB lub więcej) oraz maksymalne pasmo zapisu (w Mb/s) przy dodaniu kamer o wysokim bitrate.</li>
-                <li><b>Czas retencji:</b> Realna liczba dni archiwum zależy od liczby kamer, bitrate'u (rozdzielczości, kodeka, FPS), harmonogramu zapisu oraz pojemności użytkowej dysku po formacie.</li>
-            </ul>
-
-            <p style="margin-bottom: 6px;"><b>Tryby nagrywania (kolory na osi czasu w Dahua):</b></p>
-            <ul style="padding-left: 18px; margin-top: 0;">
-                <li><span style="color:#2e7d32; font-weight:bold;">Zielony (Regular / Ciągłe):</span> Zapis 24/7 bez przerw — najbezpieczniejszy, gdy nie chcesz przegapić żadnego zdarzenia nawet przy błędnej detekcji.</li>
-                <li><span style="color:#f57f17; font-weight:bold;">Żółty (MD / Ruch):</span> Zapis uruchamiany detekcją ruchu — oszczędza miejsce na dysku, ale wymaga dobrze dobranej czułości i masek ruchu.</li>
-                <li><span style="color:#d32f2f; font-weight:bold;">Czerwony (Alarm / IVS / AI):</span> Zapis powiązany z regułami analityki (np. przekroczenie linii, wtargnięcie w strefę, człowiek/pojazd) lub wejściem alarmowym — ułatwia szybkie odnalezienie istotnych zdarzeń.</li>
-            </ul>
-
-            <p style="margin-bottom: 6px;"><b>Praca z archiwum i odtwarzaniem:</b></p>
-            <ul style="padding-left: 18px; margin-top: 0;">
-                <li><b>Wyszukiwanie zdarzeń:</b> Zamiast przewijać godziny nagrania ręcznie, filtruj materiał po typie zdarzenia (ruch, człowiek, pojazd, reguła IVS) i konkretnym przedziale czasowym.</li>
-                <li><b>Podgląd synchroniczny:</b> Przy zdarzeniach obejmujących teren przy kilku kamerach przydaje się jednoczesne odtwarzanie kilku kanałów zsynchronizowanych po czasie.</li>
-            </ul>
-
-            <div class="pro-box">
-                <b>Zarządzanie HDD, S.M.A.R.T., Bufor i Eksport (PRO):</b><br>
-                - <b>S.M.A.R.T. i kondycja dysku:</b> Regularnie (np. raz na 1–3 miesiące) zaglądaj do <i>Pamięć -&gt; Menedżer HDD -&gt; S.M.A.R.T.</i> Kontroluj temperaturę dysku (najlepiej <b>&lt;45°C</b> — zbyt wysoka temperatura wyraźnie skraca żywotność dysku) oraz atrybuty takie jak <i>Reallocated Sector Count</i> i <i>Current Pending Sector</i> (rosnące wartości sygnalizują zużycie/bad sektory i potrzebę wymiany dysku).<br>
-                - <b>Pre-record i Post-record:</b> Przy nagrywaniu wyzwalanym zdarzeniem ustaw <b>Pre-record</b> (np. 3–5 s bufora przed zdarzeniem, aby uchwycić wejście osoby lub auta w kadr) oraz krótki <b>Post-record</b> po ustaniu zdarzenia, żeby nie ucinać końcówki.<br>
-                - <b>Wiele zatok i RAID / grupy:</b> W rejestratorach wielodyskowych warto świadomie wybrać, czy dyski pracują jako osobne wolumeny (maksymalna łączna pojemność i czas archiwum), czy w macierzy RAID (np. pod kątem ciągłości pracy przy awarii dysku — kosztem mniejszej pojemności użytkowej).<br>
-                - <b>Eksport materiału dowodowego:</b> Zgrywając nagranie na pendrive lub dysk USB, wybieraj format <b>MP4</b> (łatwy do otwarcia na standardowych odtwarzaczach) lub natywny format producenta (np. <b>DAV</b>) wraz z dedykowanym odtwarzaczem (np. <i>SmartPlayer</i>), który pozwala zachować pełne dane strumienia i zweryfikować integralność/autentyczność pliku.
-            </div>
-        </div>
-    </div>
-</div>
-
-    <!-- 6. APLIKACJE I OPROGRAMOWANIE -->
-<div class="accordion">
-    <div class="acc-header" onclick="toggleAcc(this)">6. APLIKACJE (DMSS, SMARTPSS, CONFIGTOOL) <span>+</span></div>
-    <div class="acc-content">
-        <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
-            <p style="margin-top: 0;"><b>Ekosystem oprogramowania Dahua:</b> Do sprawnego uruchomienia, obsługi i serwisowania systemu używa się kilku uzupełniających się narzędzi — każde odpowiada za inny etap pracy.</p>
-
-            <p style="margin-bottom: 6px;"><b>Główne programy i aplikacje:</b></p>
-            <ul style="padding-left: 18px; margin-top: 0;">
-                <li><b>DMSS (Android / iOS):</b> Główna aplikacja mobilna. Pozwala dodać urządzenie przez skan kodu QR (chmura P2P) lub lokalnie po adresie IP, zapewnia podgląd na żywo, odtwarzanie nagrań z archiwum oraz powiadomienia push.</li>
-                <li><b>SmartPSS Lite (Windows / macOS):</b> Program na komputer do wygodnego podglądu na dużym ekranie, zarządzania wieloma lokalizacjami/rejestratorami, przeglądania harmonogramów i pobierania nagrań na dysk PC.</li>
-                <li><b>ConfigTool (PC):</b> Niezbędnik instalatora w sieci lokalnej — wykrywa urządzenia Dahua (nawet jeśli mają fabryczny adres w innej podsieci), pozwala je zainicjować (ustawić hasło), zmienić adres IP/maskę/bramę oraz wgrać aktualizację firmware'u.</li>
-                <li><b>Przeglądarka / interfejs WWW urządzenia:</b> W sieci lokalnej (LAN) do głębszej konfiguracji parametrów obrazu, harmonogramów, reguł AI czy sieci często najwygodniej wejść bezpośrednio na adres IP kamery lub rejestratora.</li>
-            </ul>
-
-            <p style="margin-bottom: 6px;"><b>Praktyka konfiguracji i najczęstsze problemy:</b></p>
-            <ul style="padding-left: 18px; margin-top: 0;">
-                <li><b>Zgodność podsieci IP:</b> Jeśli kamera ma domyślnie np. <code>192.168.1.108</code>, a Twój router działa w podsieci <code>192.168.0.x</code>, zwykłe wpisanie adresu w przeglądarce może nie zadziałać — użyj <i>ConfigTool</i>, aby dopasować adres IP urządzenia do Twojej sieci.</li>
-                <li><b>Powiadomienia push w DMSS:</b> Aby powiadomienia przychodziły niezawodnie, trzeba włączyć je w aplikacji, powiązać z odpowiednim zdarzeniem/harmonogramem oraz zezwolić systemowi Android/iOS na powiadomienia i pracę w tle (bez agresywnego usypiania aplikacji).</li>
-                <li><b>Udostępnianie urządzenia:</b> Zamiast logować kilka osób na to samo konto główne, bezpieczniej i wygodniej jest korzystać z funkcji udostępniania urządzenia (z odpowiednimi uprawnieniami) lub osobnych kont.</li>
-                <li><b>Aktualizacja firmware'u:</b> Aktualizuj oprogramowanie sprzętowe tylko ze sprawdzonych źródeł pod konkretny model/wersję sprzętową i nie przerywaj zasilania w trakcie procesu.</li>
-            </ul>
-
-            <div class="pro-box">
-                <b>P2P vs IP/Domena, Konto DMSS i Bezpieczeństwo (PRO):</b><br>
-                - <b>Połączenie P2P:</b> Nie wymaga stałego publicznego adresu IP ani ręcznego przekierowania portów na routerze. Aby działało, urządzenie musi mieć dostęp do internetu, poprawnie wpisaną <b>Bramę domyślną</b> oraz <b>DNS</b> (np. <code>8.8.8.8</code> / <code>1.1.1.1</code> lub adres routera), a status w menu <i>Sieć -&gt; P2P</i> powinien pokazywać <b>Online</b>.<br>
-                - <b>Połączenie lokalne po IP / VPN / domenie:</b> W sieci domowej lub firmowej warto łączyć się bezpośrednio po lokalnym adresie IP (nie obciążając wtedy łącza zewnętrznego ani chmury), a do zdalnego dostępu bez chmury stosuje się m.in. VPN lub własne przekierowania/DDNS (z zachowaniem zasad bezpieczeństwa sieciowego).<br>
-                - <b>Konto chmurowe DMSS i numer seryjny (SN):</b> Dodanie urządzenia podczas zalogowania na konto DMSS wiąże numer seryjny (SN) rejestratora/kamery z tym kontem. Jeśli instalator doda sprzęt na swoje konto zamiast klienta, klient nie doda go u siebie bez wcześniejszego udostępnienia lub usunięcia/odpięcia z konta instalatora.<br>
-                - <b>Bezpieczeństwo dostępu:</b> Zawsze zmieniaj hasła domyślne na unikalne i silne, nie udostępniaj pochopnie hasła administratora oraz kontroluj listę urządzeń i sesji powiązanych z kontem.
-            </div>
-        </div>
-    </div>
-</div>
-
-   <!-- 7. POWIADOMIENIA I ANALITYKA -->
-<div class="accordion">
-    <div class="acc-header" onclick="toggleAcc(this)">7. POWIADOMIENIA I ANALITYKA AI (SMD / IVS) <span>+</span></div>
-    <div class="acc-content">
-        <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
-            <p style="margin-top: 0;"><b>Podstawy:</b> Zwykła detekcja ruchu (MD) reaguje na każdą zmianę pikseli w kadrze — kołyszące się gałęzie, deszcz, śnieg, owady/pająki przy obiektywie, zmieniające się cienie czy światła aut. W efekcie telefon potrafi dostawać setki fałszywych powiadomień, przez co łatwo przeoczyć prawdziwe zdarzenie.</p>
-
-            <p style="margin-bottom: 6px;"><b>Praktyczne zasady powiadomień i zdarzeń:</b></p>
-            <ul style="padding-left: 18px; margin-top: 0;">
-                <li><b>Powiadomienia push tylko dla istotnych zdarzeń:</b> Zamiast alertów ze zwykłego ruchu (MD), powiąż powiadomienia na telefon z regułami analityki (człowiek/pojazd, IVS) albo wybranymi strefami i porami dnia.</li>
-                <li><b>Harmonogram powiadomień:</b> Możesz ustawić inne zasady na dzień (np. gdy domownicy/pracownicy kręcą się po posesji) i inne na noc lub wyjazd.</li>
-                <li><b>Maskowanie i czułość:</b> W zwykłym MD wycinaj obszary ruchome (np. drzewa, ulica), a w analityce dopieraj czułość i wielkość obiektu tak, aby kamera nie gubiła sylwetki z dalsza ani nie reagowała na drobne zakłócenia.</li>
-            </ul>
-
-            <div class="pro-box">
-                <b>SMD, IVS, zasoby AI i eliminacja fałszywych alarmów (PRO):</b><br>
-                - <b>SMD (Smart Motion Detection):</b> Analizuje wykryty ruch i filtruje go pod kątem sylwetki <b>Człowieka</b> oraz <b>Pojazdu</b>. Znacznie ogranicza fałszywe alarmy od liści, deszczu czy drobnych zwierząt, choć w trudnych warunkach (np. bardzo złe oświetlenie, częściowe zasłonięcie, nietypowy kształt) zawsze warto przetestować działanie w realnej scenie.<br>
-                - <b>IVS (ochrona perymetryczna / reguły analityczne):</b> Pozwala rysować konkretne reguły na obrazie:<br>
-                  &nbsp;&nbsp;1. <i>Przekroczenie linii (Tripwire):</i> Wyzwala zdarzenie przy przejściu obiektu przez linię w zadanym kierunku (np. wejście w głąb posesji, a nie wyjście lub przejazd po chodniku obok).<br>
-                  &nbsp;&nbsp;2. <i>Wtargnięcie w strefę (Intrusion):</i> Wyzwala zdarzenie, gdy wykryty obiekt wejdzie lub utrzyma się w wyznaczonym obszarze (często z progiem czasu/liczby obiektów).<br>
-                  &nbsp;&nbsp;3. <i>Inne reguły (zależnie od modelu):</i> np. wałęsanie się (<i>Loitering</i>), pozostawienie/zniknięcie obiektu czy liczenie osób/pojazdów.<br>
-                - <b>Limit zasobów AI:</b> Funkcje AI wymagają mocy obliczeniowej kamery lub rejestratora — liczba kanałów, na których jednocześnie może działać SMD lub IVS, zależy od konkretnego modelu NVR/kamery i bywa wzajemnie ograniczana (np. wybór między trybem AI kamery a AI rejestratora).<br>
-                - <b>Złota zasada alertów:</b> Nie włączaj jednocześnie zwykłej detekcji ruchu i reguł IVS/AI do powiadomień push — jeśli zwykły MD nadal wysyła alerty, powiadomienia na telefonie nadal będą pełne szumu.
-            </div>
-        </div>
-    </div>
-</div>
-
-    <!-- 8. DIAGNOSTYKA PROBLEMÓW -->
-<div class="accordion">
-    <div class="acc-header" onclick="toggleAcc(this)">8. DIAGNOSTYKA I SERWIS (CHECKLISTA) <span>+</span></div>
-    <div class="acc-content">
-        <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
-            <p style="margin-top: 0;"><b>Podstawy diagnostyki:</b> W serwisie najlepiej działa metoda „dziel i rządź” — oddzielnie sprawdzaj zasilanie, kabel/port, sieć, konfigurację obrazu oraz nośnik zapisu, zamiast zgadywać na ślepo. Najpierw warto wykluczyć najprostsze przyczyny zewnętrzne i konfiguracyjne.</p>
-
-            <p style="margin-bottom: 6px;"><b>Zasilanie, okablowanie i sieć lokalna:</b></p>
-            <ul style="padding-left: 18px; margin-top: 0;">
-                <li><b>Kamera offline / brak obrazu:</b> Sprawdź kontrolki PoE/link na switchu lub NVR. Zwróć uwagę na wilgoć we wtyku RJ45 (zielony nalot śniedzi na pinach PoE to klasyk przy nieszczelnych puszkach), źle zaciśnięte żyły, uszkodzony kabel lub przekroczenie budżetu mocy PoE.</li>
-                <li><b>Restartowanie się kamery w nocy:</b> W nocy włącza się podświetlenie IR lub doświetlenie LED, co podbija pobór mocy. Przy zbyt dużym spadku napięcia na kablu (szczególnie na długim lub cienkim przewodzie `12V DC`) albo zbyt słabym zasilaniu/porcie kamera potrafi się resetować po zmroku.</li>
-                <li><b>Konflikt IP / brak wejścia do urządzenia:</b> Jeśli dwa urządzenia mają ten sam adres IP lub kamera ma adres z innej podsieci niż Twój komputer/router, połączenie będzie niestabilne lub niemożliwe. Użyj narzędzia <i>ConfigTool</i> w sieci lokalnej, aby podejrzeć rzeczywisty adres IP i podsieć.</li>
-                <li><b>P2P Offline (brak podglądu zdalnego):</b> Sprawdź, czy rejestrator/kamera ma dostęp do internetu, poprawnie wpisaną <b>Bramę domyślną</b> oraz <b>DNS</b> (np. <code>1.1.1.1</code> lub <code>8.8.8.8</code>), a status P2P widnieje jako <i>Online</i>. Zweryfikuj też, czy router lub sieć nie blokuje połączeń wychodzących.</li>
-            </ul>
-
-            <p style="margin-bottom: 6px;"><b>Obraz, noc, optyka i zakłócenia:</b></p>
-            <ul style="padding-left: 18px; margin-top: 0;">
-                <li><b>Brak obrazu w nocy / „mleko” lub oślepienie (IR glare):</b> Przyczyną bywa pajęczyna tuż przed obiektywem, zabrudzona soczewka/szyba, deszcz, mgła, odbicie podczerwieni od bliskiej ściany/rynny, a także niesprawny oświetlacz IR lub zacięty filtr mechaniczny ICR.</li>
-                <li><b>Nienaturalne kolory w dzień (np. różowy/fioletowy odcień):</b> Często oznacza, że filtr podczerwieni ICR nie odsunął się prawidłowo z toru optycznego po przejściu z trybu nocnego na dzienny.</li>
-                <li><b>Rozmazany ruch (motion blur / ghosting):</b> Zbyt długi czas migawki (szczególnie w nocy w trybie <i>Auto</i>) sprawia, że idąca osoba lub jadące auto zostawiają smugę. Sprawdź ustawienia migawki i oświetlenia.</li>
-                <li><b>Migotanie / pasy na obrazie:</b> Sprawdź ustawienie częstotliwości zasilania sieciowego / oświetlenia (np. <b>50 Hz</b> w Polsce vs 60 Hz) oraz upewnij się, że w pobliżu nie ma silnych zakłóceń elektromagnetycznych lub problemów z masą/zasilaniem.</li>
-            </ul>
-
-            <p style="margin-bottom: 6px;"><b>Nagrania, dyski HDD, karty SD i powiadomienia:</b></p>
-            <ul style="padding-left: 18px; margin-top: 0;">
-                <li><b>Brak nagrań mimo podglądu na żywo:</b> Sprawdź harmonogram nagrywania (czy dni/godziny nie są puste), status i kondycję dysku HDD lub karty microSD, włączenie nadpisywania oraz dostępność wolnego miejsca/pasmo zapisu.</li>
-                <li><b>Brak powiadomień push w DMSS:</b> Sprawdź, czy powiadomienia są włączone w samej aplikacji DMSS (np. przy urządzeniu w ustawieniach powiadomień/subskrypcji), czy reguła zdarzenia działa i generuje alerty oraz czy system telefonu nie usypia aplikacji w tle (uprawnienia powiadomień i oszczędzanie baterii).</li>
-            </ul>
-
-            <div class="warn-box">
-                <b>⚠️ Zanim zrobisz twardy reset (przycisk Reset na płycie):</b><br>
-                Najpierw sprawdź <i>ConfigToolem</i>, czy kamera nie zmieniła adresu IP, nie ma konfliktu IP albo czy nie jest tylko odpięta od sieci/zasilania. Twardy reset kasuje konfigurację sieciową, ustawienia oraz hasło i przywraca ustawienia fabryczne (w wielu modelach np. <code>192.168.1.108</code> po przytrzymaniu przycisku reset zwykle przez <b>10–15 sekund na włączonym zasilaniu</b>, aż zareagują diody/IR). Zrób go świadomie, mając pewność, że wiesz, jak ponownie zainicjować i skonfigurować urządzenie — a przy utracie hasła bez fizycznego dostępu lub przy urządzeniach zablokowanych kontem sprawdź oficjalne procedury producenta.
-            </div>
-
-            <div class="pro-box">
-                <b>Metodyka serwisowa i testy izolacyjne (PRO):</b><br>
-                - <b>Test zamiany miejscami (izolacja usterki):</b> Gdy kamera nie działa, przepnij ją krótkim, pewnym patchcordem bezpośrednio do switcha/NVR przy rejestratorze i zasilaniu. Jeśli wtedy rusza — winny jest długi kabel, złącze RJ45, puszka, spadek napięcia lub konkretny port.<br>
-                - <b>Kontrola temperatur i zasilania pod obciążeniem:</b> Wiele usterek ujawnia się dopiero w szczycie obciążenia (np. upał, pełna moc IR/LED w nocy, zapis wielu strumieni). Weryfikuj spadki napięcia przy włączonym IR oraz temperaturę dysku w <i>S.M.A.R.T.</i> (najlepiej poniżej ok. <b>45°C</b>).<br>
-                - <b>Logi systemowe i S.M.A.R.T.:</b> Zaglądaj do logów rejestratora/kamery (rozłączenia, błędy dysku, logowania, utrata sygnału wideo) oraz atrybutów <i>S.M.A.R.T.</i> dysku — pozwalają odróżnić jednorazowy zanik łącza od postępującej awarii sprzętu.<br>
-                - <b>Porządek po serwisie:</b> Po każdej zmianie IP, hasła, harmonogramu, dysku lub firmware'u przetestuj nie tylko podgląd na żywo, ale też <b>odtwarzanie zapisu z archiwum</b>, <b>P2P</b> i <b>powiadomienia push</b>.
-            </div>
-        </div>
-    </div>
-</div>
-
-   <!-- 9. BEZPIECZEŃSTWO I PRYWATNOŚĆ -->
-<div class="accordion">
-    <div class="acc-header" onclick="toggleAcc(this)">9. BEZPIECZEŃSTWO CYBERNETYCZNE I PRAWO <span>+</span></div>
-    <div class="acc-content">
-        <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
-            <p style="margin-top: 0;"><b>Podstawy bezpieczeństwa:</b> Kamery i rejestratory to urządzenia sieciowe pracujące 24/7. Dobre zabezpieczenie chroni zarówno przed nieautoryzowanym podglądem czy przejęciem sprzętu, jak i przed problemami prawnymi związanymi z nagrywaniem cudzej przestrzeni lub danych osobowych.</p>
-
-            <p style="margin-bottom: 6px;"><b>Konta, hasła i higiena urządzenia:</b></p>
-            <ul style="padding-left: 18px; margin-top: 0;">
-                <li><b>Silne, unikalne hasła:</b> Używaj długich, unikalnych haseł (np. min. 8–12+ znaków, kombinacja wielkich i małych liter, cyfr oraz znaków specjalnych) i nigdy nie powielaj ich w innych usługach.</li>
-                <li><b>Zasada najmniejszych uprawnień:</b> Nie dawaj wszystkim konta administratora. Twórz osobne konta dla domowników, operatorów czy pracowników — z uprawnieniami wyłącznie do podglądu na żywo (i ewentualnie odtwarzania, jeśli to potrzebne), bez prawa do kasowania dysku, zmiany ustawień sieciowych czy zarządzania użytkownikami.</li>
-                <li><b>Aktualizacje i kontrola logów:</b> Śledź komunikaty o aktualizacjach firmware'u dla swojego modelu i okresowo sprawdzaj logi (nieudane logowania, zmiany konfiguracji, rozłączenia).</li>
-            </ul>
-
-            <p style="margin-bottom: 6px;"><b>Prawo, RODO i prywatność (ujęcie praktyczne):</b></p>
-            <ul style="padding-left: 18px; margin-top: 0;">
-                <li><b>Zakres kadru na posesji prywatnej:</b> Kamery powinny obejmować przede wszystkim Twój teren, a nie przestrzeń publiczną (ulicę, chodnik) ani posesję czy okna sąsiadów. Tam, gdzie nie da się uniknąć krawędzi cudzego terenu, stosuj odpowiednie kadrowanie i <i>Privacy Mask</i>.</li>
-                <li><b>Informowanie o monitoringu:</b> W firmach, lokalach usługowych i miejscach, gdzie rejestruje się wizerunek osób (w tym pracowników czy klientów), stosuje się odpowiednie oznaczenia informacyjne oraz zasady przetwarzania danych (RODO) i retencji nagrań.</li>
-                <li><b>Ostrożność przy udostępnianiu nagrań:</b> Nagrania z monitoringów udostępniaj wyłącznie uprawnionym podmiotom lub zgodnie z właściwymi procedurami — unikaj publikowania cudzego wizerunku w sieci. <i>(Uwaga: poniższe wskazówki mają charakter praktyczno-techniczny, a nie porady prawnej.)</i></li>
-            </ul>
-
-            <div class="pro-box">
-                <b>Hardening systemu CCTV i architektura sieci (PRO):</b><br>
-                - <b>Zakaz pochopnego przekierowania portów (Port Forwarding):</b> Nie wystawiaj portów zarządzania, strumieniowania ani portów usługowych rejestratora czy kamer bezpośrednio do internetu bez warstwy zabezpieczającej (np. VPN). Automatyczne skanery w sieci stale szukają podatnych urządzeń i słabych haseł.<br>
-                - <b>Segmentacja / VLAN:</b> Wydziel kamery i rejestrator do osobnej sieci/VLAN-u, odizolowanego od komputerów, laptopów czy urządzeń biurowych/domowych, z kontrolą reguł firewalla między strefami.<br>
-                - <b>Ograniczenie dostępu kamer do internetu (WAN):</b> Kamery IP zazwyczaj nie potrzebują bezpośredniego dostępu do internetu — zablokowanie im ruchu wychodzącego do WAN na poziomie routera/firewalla zmniejsza powierzchnię ataku, podczas gdy niezbędną łączność może realizować rejestrator (np. pod kątem P2P, powiadomień czy synchronizacji czasu NTP).<br>
-                - <b>Wyłączanie zbędnych usług i synchronizacja czasu (NTP):</b> Wyłączaj nieużywane usługi/porty (np. niepotrzebne protokoły sieciowe czy automatyczne przekierowania typu UPnP na routerze, jeśli nie są świadomie kontrolowane) i zadbaj o poprawny czas systemowy (NTP) — spójny czas jest kluczowy w logach zdarzeń oraz przy analizie nagrań.<br>
-                - <b>Bezpieczne udostępnianie zdalne:</b> Jeśli potrzebujesz dostępu spoza sieci lokalnej, preferuj rozwiązania takie jak VPN lub mechanizmy producenta oparte na uwierzytelnianiu i szyfrowaniu, zamiast otwierania „na surowo” portów urządzenia w sieci publicznej.
-            </div>
-        </div>
-    </div>
-</div>
-
-   <!-- 10. KONSERWACJA I PROCEDURY -->
-<div class="accordion">
-    <div class="acc-header" onclick="toggleAcc(this)">10. KONSERWACJA I PROCEDURY SERWISOWE <span>+</span></div>
-    <div class="acc-content">
-        <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
-            <p style="margin-top: 0;"><b>Podstawy:</b> Monitoring pracuje 24/7, często na zewnątrz, w kurzu, wilgoci, upale i mrozie. Regularny przegląd oraz jasne procedury serwisowe pozwalają wykryć drobne usterki zanim doprowadzą do utraty nagrań lub awarii krytycznego węzła.</p>
-
-            <p style="margin-bottom: 6px;"><b>Okresowy przegląd instalacji (zwykle co 6–12 miesięcy, w trudnych warunkach częściej):</b></p>
-            <ol style="padding-left: 18px; margin-top: 0;">
-                <li><b>Czyszczenie optyki, obudów i otoczenia:</b> Przetrzyj szybkę obiektywu miękką mikrofibrą (bez agresywnej chemii, która mogłaby uszkodzić powłoki) i usuń pajęczyny wokół obudowy oraz w pobliżu diod IR/LED — pająki i owady często lgną do ciepła i światła w nocy, powodując fałszywe alarmy lub odbicia (<i>IR glare</i>). Sprawdź też, czy gałęzie/krzewy nie weszły w kadr i czy puszki oraz dławnice są szczelne.</li>
-                <li><b>Weryfikacja zapisu, odtwarzania i eksportu:</b> Odtwórz losowe nagranie sprzed kilku dni (zarówno z dnia, jak i z nocy) oraz przetestuj eksport fragmentu (np. na pendrive lub dysk USB) — nie ufaj samej ikonie nagrywania na ekranie, bo podgląd na żywo może działać mimo błędu zapisu.</li>
-                <li><b>Kontrola zasilania, UPS i chłodzenia:</b> Przetestuj podtrzymanie zasilacza awaryjnego UPS (np. odłączając zasilanie sieciowe na krótki test pod obciążeniem i sprawdzając, czy NVR, router i switch PoE nie restartują się ani nie tracą łączności). Sprawdź stan akumulatorów w UPS, temperaturę i wentylację szafy/miejsca montażu rejestratora i switcha oraz stan złączy (brak śniedzi czy luzów).</li>
-                <li><b>Sprawdzenie analityki, czasu i podglądu zdalnego:</b> Zweryfikuj, czy zegar w systemie jest poprawny (np. synchronizacja NTP), czy reguły SMD/IVS i powiadomienia push działają zgodnie z oczekiwaniami oraz czy podgląd lokalny i zdalny (P2P / aplikacja / komputer) działa płynnie.</li>
-                <li><b>Dokumentacja powykonawcza:</b> Zapisz i aktualizuj w notatce/dokumentacji adresy IP urządzeń, maskę/bramę/DNS, przypisanie kamer do portów switcha/kanałów NVR, dane dostępowe/konta, e-mail lub metody odzyskiwania hasła, wersje firmware'u oraz daty przeglądów i wymiany podzespołów.</li>
-            </ol>
-
-            <p style="margin-bottom: 6px;"><b>Procedury serwisowe i uruchomieniowe:</b></p>
-            <ul style="padding-left: 18px; margin-top: 0;">
-                <li><b>Po pierwszym uruchomieniu / montażu:</b> Przetestuj każdą kamerę w dzień i w nocy, sprawdź kadry i ostrość, zweryfikuj zapis na dysku/SD, skonfiguruj nadpisywanie, przetestuj alerty i przekaż użytkownikowi czytelną dokumentację oraz osobne konto podglądu.</li>
-                <li><b>Przed większymi zmianami (np. aktualizacja firmware'u, zmiana sieci, wymiana dysku):</b> Wykonaj kopię zapasową konfiguracji (jeśli rejestrator/kamera na to pozwala), zanotuj bieżące ustawienia i upewnij się, że masz fizyczny dostęp do sprzętu oraz pełne dane logowania.</li>
-                <li><b>Po zaniku zasilania lub awarii:</b> Skontroluj logi zdarzeń, status dysków (w tym <i>S.M.A.R.T.</i>), ciągłość nagrań z okresu awarii oraz działanie <i>ANR</i> (jeśli kamery mają karty SD).</li>
-            </ul>
-
-            <div class="pro-box">
-                <b>Harmonogram utrzymania, S.M.A.R.T., UPS i kopie konfiguracji (PRO):</b><br>
-                - <b>Rytm kontroli:</b> Raz na kilka tygodni lub w razie potrzeby rzuć okiem na logi, stan dysków i powiadomienia; co <b>6–12 miesięcy</b> wykonaj pełny przegląd fizyczny i test zapisu/eksportu/UPS (w miejscach zapylonych, nadmorskich lub z dużym ruchem owadów warto robić to częściej).<br>
-                - <b>Kondycja dysków i akumulatorów:</b> Dyski do monitoringu i akumulatory w UPS to elementy eksploatacyjne. W <i>S.M.A.R.T.</i> obserwuj temperaturę (najlepiej <b>&lt;45°C</b>) oraz liczniki błędów/sektorów, a w UPS pamiętaj, że akumulatory po kilku latach (często ok. 2–4 lat w zależności od modelu i temperatury) tracą pojemność i mogą nie utrzymać obciążenia mimo pozornie poprawnego wskaźnika.<br>
-                - <b>Czas systemowy (NTP):</b> Pilnuj spójnego czasu na kamerach, rejestratorze i sieci — rozjechany zegar utrudnia korelację zdarzeń z innych systemów (np. alarmu czy kontroli dostępu) i osłabia wartość materiału dowodowego.<br>
-                - <b>Kopia konfiguracji i procedury awaryjne:</b> Trzymaj aktualny eksport konfiguracji rejestratora w bezpiecznym miejscu oraz jasną instrukcję na wypadek awarii (kto jest kontaktem serwisowym, gdzie stoi sprzęt, jak bezpiecznie wyłączyć/zrestartować system i jak zgłosić incydent).
-            </div>
-        </div>
-    </div>
-</div>
-
-
-   <!-- 11. TABELA DORI I DOBÓR OBIEKTYWÓW -->
-<div class="accordion">
-    <div class="acc-header" onclick="toggleAcc(this)">11. ZASIĘGI DORI I DOBÓR OBIEKTYWÓW <span>+</span></div>
-    <div class="acc-content">
-        <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
-            <p style="margin-top: 0;"><b>Norma EN 62676-4 (DORI):</b> Określa, z jakiej maksymalnej odległości kamera pozwoli rozróżnić szczegóły na podstawie gęstości pikseli na metr (<b>PPM</b> – <i>Pixels Per Meter</i>) w poziomie. Im węższy kąt obiektywu (dłuższa ogniskowa w mm) lub wyższa rozdzielczość, tym dalej sięga dana klasa DORI — ale węższy jest ogólny kadr.</p>
-
-            <ul style="padding-left: 18px; margin-top: 0;">
-                <li><b>D – Detection (25 px/m):</b> Wykrycie, że w kadrze porusza się człowiek lub obiekt (dobre do ogólnego alarmu/obecności, za mało na szczegóły).</li>
-                <li><b>O – Observation (62 px/m):</b> Rozpoznanie szczegółów ubioru, sylwetki i kierunku ruchu.</li>
-                <li><b>R – Recognition (125 px/m):</b> Rozpoznanie znajomej osoby z dużym prawdopodobieństwem.</li>
-                <li><b>I – Identification (250 px/m):</b> Pewna identyfikacja nieznanej osoby lub szczegółów kluczowych (np. twarz w kadrze, tablica w odpowiednich warunkach).</li>
-            </ul>
-
-            <p style="margin-bottom: 6px;"><b>Orientacyjne zasięgi DORI i kąty widzenia (wartości poglądowe — zależą od matrycy i modelu):</b></p>
-            <table class="spec-table">
-                <thead>
-                    <tr>
-                        <th>Obiektyw / Matryca</th>
-                        <th>Kąt (H)</th>
-                        <th>Detekcja</th>
-                        <th>Rozpoznanie</th>
-                        <th>Identyfikacja</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><b>2.8 mm</b> (4 Mpx)</td>
-                        <td>~102°</td>
-                        <td>56 m</td>
-                        <td>11 m</td>
-                        <td>5.6 m</td>
-                    </tr>
-                    <tr>
-                        <td><b>3.6 mm</b> (4 Mpx)</td>
-                        <td>~84°</td>
-                        <td>80 m</td>
-                        <td>16 m</td>
-                        <td>8.0 m</td>
-                    </tr>
-                    <tr>
-                        <td><b>6.0 mm</b> (4 Mpx)</td>
-                        <td>~52°</td>
-                        <td>120 m</td>
-                        <td>24 m</td>
-                        <td>12.0 m</td>
-                    </tr>
-                    <tr>
-                        <td><b>12.0 mm</b> (4 Mpx)</td>
-                        <td>~26°</td>
-                        <td>240 m</td>
-                        <td>48 m</td>
-                        <td>24.0 m</td>
-                    </tr>
-                    <tr>
-                        <td><b>Motozoom 2.7–13.5 mm</b> (4 Mpx)</td>
-                        <td>~105°–29°</td>
-                        <td>~54–270 m</td>
-                        <td>~11–54 m</td>
-                        <td>~5.4–27 m</td>
-                    </tr>
-                    <tr>
-                        <td><b>2.8 mm</b> (8 Mpx / 4K)</td>
-                        <td>~106°</td>
-                        <td>85 m</td>
-                        <td>17 m</td>
-                        <td>8.5 m</td>
-                    </tr>
-                    <tr>
-                        <td><b>6.0 mm</b> (8 Mpx / 4K)</td>
-                        <td>~55°</td>
-                        <td>170 m</td>
-                        <td>34 m</td>
-                        <td>17.0 m</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <p style="margin-bottom: 6px;"><b>Praktyczne zasady doboru obiektywu i kadru:</b></p>
-            <ul style="padding-left: 18px; margin-top: 0;">
-                <li><b>Szeroki kadr vs detal:</b> Obiektyw <code>2.8 mm</code> świetnie obejmuje podwórko czy wejście, ale osoba oddalona o kilkanaście metrów będzie mała w pikselach. Do bramy, furtki lub wąskiego przejścia często lepiej sprawdza się dłuższa ogniskowa albo motozoom.</li>
-                <li><b>Wysokość montażu:</b> Zbyt wysoki montaż (np. 5–6 m i więcej nad furtką/wejściem) daje widok z góry („czubek głowy”) i utrudnia rozpoznanie twarzy — przy wejściach/furtkach zazwyczaj lepiej sprawdza się niższa, rozsądna wysokość (np. ok. 2.5–3.5 m, zależnie od osłony przed manipulacją).</li>
-                <li><b>Martwa strefa i oślepianie:</b> Pamiętaj, że tuż pod kamerą powstaje martwa strefa, a kierowanie obiektywu prosto w nisko wiszące słońce, jasne okna czy reflektory aut pogarsza czytelność obrazu.</li>
-            </ul>
-
-            <div class="pro-box">
-                <b>Matryca, jasność obiektywu i realia w terenie (PRO):</b><br>
-                - <b>Rozmiar przetwornika ma znaczenie:</b> Kamera 4 Mpx na dużym przetworniku (np. <b>1/1.8"</b> lub <b>1/1.2"</b>) da w nocy znacznie czystszy i jaśniejszy obraz niż kamera 8 Mpx na małym przetworniku (np. <b>1/2.8"</b>). Większy fizyczny piksel zbiera więcej światła i pozwala uniknąć agresywnego podbijania wzmocnienia (szumu).<br>
-                - <b>Jasność obiektywu (F1.0 – F1.6):</b> Niższa liczba przysłony (np. <code>F1.0</code> lub <code>F1.2</code>) oznacza więcej światła docierającego do matrycy, co pomaga w słabym oświetleniu i przy trybach kolorowych w nocy.<br>
-                - <b>Motozoom jako „bezpiecznik” montażowy:</b> Przy zmiennych warunkach lub gdy nie masz 100% pewności co do docelowej odległości przed wierceniem, obiektyw motozoom pozwala precyzyjnie dopasować kadr i ostrość już na gotowej instalacji.<br>
-                - <b>Tablice rejestracyjne i ruch:</b> Sam zasięg DORI w tabeli to teoria optyczna dla idealnych warunków — przy odczycie tablic czy twarzy w ruchu kluczowe są także kąt patrzenia kamery, czas migawki, brak prześwietlenia od reflektorów/IR oraz odpowiednia gęstość pikseli w docelowym punkcie (warto zweryfikować to w kalkulatorze DORI).
-            </div>
-        </div>
-    </div>
-</div>
-
-    <!-- 12. ŚCIĄGAWKA SIECIOWA DAHUA (PORTY, RTSP, ONVIF) -->
-<div class="accordion">
-    <div class="acc-header" onclick="toggleAcc(this)">12. PORTY SIECIOWE, RTSP I ONVIF (ŚCIĄGAWKA) <span>+</span></div>
-    <div class="acc-content">
-        <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
-            <p style="margin-top: 0;"><b>Domyślne dane dostępowe (przed inicjalizacją):</b><br>
-            - Fabryczny adres IP: <code>192.168.1.108</code> (maska <code>255.255.255.0</code>)<br>
-            - Konto główne: <code>admin</code> (hasło ustawiasz przy pierwszej inicjalizacji urządzenia)<br>
-            - Pamiętaj: jeśli Twój router/komputer działa w innej podsieci (np. <code>192.168.0.x</code> lub <code>10.0.0.x</code>), najwygodniej zmienić adres IP w <i>ConfigTool</i> jeszcze przed wejściem przez przeglądarkę.</p>
-
-            <p style="margin-bottom: 6px;"><b>Najważniejsze porty i protokoły:</b></p>
-            <table class="spec-table">
-                <thead>
-                    <tr>
-                        <th>Port</th>
-                        <th>Protokół</th>
-                        <th>Przeznaczenie</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><b>37777</b></td>
-                        <td>TCP</td>
-                        <td>Główny port komunikacji prywatnej producenta (np. podgląd/zarządzanie, NVR, narzędzia PC)</td>
-                    </tr>
-                    <tr>
-                        <td><b>37778</b></td>
-                        <td>UDP</td>
-                        <td>Transmisja strumieni i komunikacja/wykrywanie w sieci lokalnej</td>
-                    </tr>
-                    <tr>
-                        <td><b>80 / 443</b></td>
-                        <td>TCP</td>
-                        <td>Interfejs WWW (HTTP / HTTPS) oraz obsługa zapytań HTTP / ONVIF</td>
-                    </tr>
-                    <tr>
-                        <td><b>554</b></td>
-                        <td>TCP/UDP</td>
-                        <td>Strumieniowanie wideo i audio w czasie rzeczywistym (RTSP)</td>
-                    </tr>
-                    <tr>
-                        <td><b>37810</b></td>
-                        <td>UDP</td>
-                        <td>Odkrywanie i inicjalizacja urządzeń w sieci lokalnej (np. <i>ConfigTool</i>)</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <p style="margin-bottom: 6px;"><b>ONVIF i integracje (np. NVR, Home Assistant, Frigate, VLC):</b></p>
-            <ul style="padding-left: 18px; margin-top: 0;">
-                <li><b>ONVIF:</b> Standard ułatwiający dodanie kamery do rejestratora lub systemu zewnętrznego (np. innej marki lub oprogramowania VMS). W razie problemów z połączeniem sprawdź, czy ONVIF jest włączony w ustawieniach kamery oraz czy używasz poprawnego loginu/hasła (w części urządzeń konfiguruje się osobnego użytkownika ONVIF).</li>
-                <li><b>Sub Stream do podglądu / analizy:</b> Strumień pomocniczy (<code>subtype=1</code>) ma mniejsze wymagania na sieć i CPU niż strumień główny (<code>subtype=0</code>), co bywa przydatne przy podglądzie wielu kamer albo zewnętrznej analizie obrazu.</li>
-                <li><b>Test połączenia:</b> Zanim podepniesz kamerę do docelowego systemu, warto sprawdzić jej strumień RTSP np. w odtwarzaczu VLC w sieci lokalnej, aby upewnić się, że działa sieć, port <code>554</code> i dane uwierzytelniania.</li>
-            </ul>
-
-            <div class="pro-box">
-                <b>Gotowe adresy URL (RTSP i zrzut JPG) oraz wskazówki PRO:</b><br>
-                - <b>Strumień główny (Main Stream):</b><br>
-                <code>rtsp://admin:HASLO@192.168.1.108:554/cam/realmonitor?channel=1&amp;subtype=0</code><br>
-                - <b>Strumień pomocniczy (Sub Stream):</b><br>
-                <code>rtsp://admin:HASLO@192.168.1.108:554/cam/realmonitor?channel=1&amp;subtype=1</code><br>
-                - <b>Pojedyncza klatka JPEG (Snapshot):</b><br>
-                <code>http://192.168.1.108/cgi-bin/snapshot.cgi?channel=1</code><br>
-                - <b>Uwierzytelnianie i znaki specjalne w haśle:</b> Przy starszych klientach lub integracjach HTTP/CGI bywa wymagane włączenie <i>HTTP Digest</i> (lub odpowiedniego trybu autoryzacji w urządzeniu). Jeśli hasło zawiera znaki specjalne takie jak <code>@</code>, <code>:</code>, <code>/</code> czy <code>#</code>, w linku RTSP mogą one zaburzać parsowanie adresu — w integracjach bezpieczniej jest używać dedykowanych pól na użytkownika i hasło albo zakodować znaki (URL encoding) lub użyć hasła bez problematycznych znaków.
-                - <b>Bezpieczeństwo sieciowe:</b> Portów usługowych i strumieni (w tym RTSP/HTTP/portów zarządzania) nie należy wystawiać bezpośrednio do internetu bez warstwy zabezpieczającej (np. VPN) — najlepiej używać ich w zaufanej sieci lokalnej lub wydzielonym VLAN-ie.
-            </div>
-        </div>
-    </div>
-</div>
-   <!-- 13. ZAAWANSOWANE USTAWIENIA OBRAZU (WDR, HLC, BLC, LPR) -->
-<div class="accordion">
-    <div class="acc-header" onclick="toggleAcc(this)">13. ZAAWANSOWANA REGULACJA OBRAZU (BLC, HLC, LPR) <span>+</span></div>
-    <div class="acc-content">
-        <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
-            <p style="margin-top: 0;"><b>Podstawy:</b> Zaawansowane ustawienia obrazu służą do opanowania trudnych kontrastów i światła w kadrze. Warto zmieniać je celowo pod konkretny problem na scenie — włączenie wszystkiego naraz bez potrzeby często pogarsza ostrość, płynność lub kontrast.</p>
-
-            <p style="margin-bottom: 6px;"><b>Kiedy używać poszczególnych kompensacji i filtrów:</b></p>
-            <ul style="padding-left: 18px; margin-top: 0;">
-                <li><b>WDR (Wide Dynamic Range):</b> Gdy w kadrze jest jednocześnie bardzo jasno i bardzo ciemno (np. kamera we wnętrzu patrzy na przeszklone drzwi wejściowe lub okno w słoneczny dzień). Prawdziwy WDR łączy klatki o różnej ekspozycji, żeby nie tracić detali ani w jasnych, ani w ciemnych partiach.</li>
-                <li><b>BLC (Backlight Compensation):</b> Rozjaśnia ciemny obiekt na pierwszym planie kosztem prześwietlenia jasnego tła za nim (np. sylwetka przed jasnym tłem, gdy nie używasz WDR lub scena jest statyczna).</li>
-                <li><b>HLC (Highlight Compensation):</b> Tłumi bardzo silne, punktowe źródła światła w nocy (np. reflektory samochodów, mocne lampy/latarnie), aby nie „zalewały” całej matrycy jasną łuną.</li>
-                <li><b>2D / 3D DNR (Redukcja szumów):</b> Ogranicza „ziarno” w słabym świetle i w nocy. Zbyt wysoka wartość (np. powyżej ok. 60–70, zależnie od modelu) powoduje rozmycie i efekt „akwareli” na poruszających się obiektach.</li>
-            </ul>
-
-            <p style="margin-bottom: 6px;"><b>Praktyka strojenia na scenie:</b></p>
-            <ul style="padding-left: 18px; margin-top: 0;">
-                <li><b>Nie mieszaj bez potrzeby WDR, BLC i HLC:</b> Zwykle wybiera się jeden mechanizm dopasowany do problemu na danej scenie i testuje go w dzień oraz w nocy.</li>
-                <li><b>Sprawdzaj efekt w ruchu:</b> Parametry oceniaj nie tylko na nieruchomym kadrze, ale też podczas przejścia człowieka lub przejazdu auta.</li>
-            </ul>
-
-            <div class="pro-box">
-                <b>Konfiguracja pod tablice rejestracyjne (ANPR / LPR – PRO):</b><br>
-                Zwykła kamera na ustawieniach automatycznych w nocy często zarejestruje tylko dwie jasne plamy reflektorów i prześwietloną odblaskową tablicę. Aby poprawić czytelność numerów:<br>
-                1. Wyłącz <b>WDR</b> (i BLC), a włącz <b>HLC</b> (np. na poziomie ok. 50–70, dopasowanym do reflektorów).<br>
-                2. Ustaw stały, krótki czas migawki (<b>Shutter</b>: np. <b>1/500s – 1/1000s</b> lub krótszy przy szybszym ruchu), aby zamrozić jadący pojazd.<br>
-                3. Ogranicz wzmocnienie (<b>Gain</b>: np. max <b>30–40</b>, zależnie od modelu i oświetlenia). Tło wokół auta stanie się ciemniejsze lub niemal czarne, ale sama tablica (wsparta odpowiednim IR/oświetleniem i brakiem prześwietlenia) będzie znacznie czytelniejsza.<br>
-                4. Pilnuj geometrii: kąt montażu kamery względem osi jazdy powinien być możliwie mały (zwykle nie więcej niż ok. <b>25°–30°</b> w poziomie i pionie), a sama tablica musi mieć odpowiednią szerokość w pikselach i stabilny kadr.<br>
-                5. Wskazówka: do ciągłego, niezawodnego odczytu tablic (szczególnie w trudnych warunkach lub przy większych prędkościach) lepiej stosować dedykowane kamery lub rozwiązania ANPR/LPR niż przypadkową kamerę przeglądową.
-            </div>
-        </div>
-    </div>
-</div>
-
-    <!-- 14. OKABLOWANIE CCTV: ePoE, HDCVI I ZASILANIE -->
-<div class="accordion">
-    <div class="acc-header" onclick="toggleAcc(this)">14. OKABLOWANIE CCTV: ePoE, BALUNY I ZASILANIE <span>+</span></div>
-    <div class="acc-content">
-        <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
-            <p style="margin-top: 0;"><b>Przesył powyżej 100 metrów (Systemy IP):</b><br>
-            Standardowy Ethernet kończy się na 100 m. W systemach Dahua masz kilka sprawdzonych rozwiązań na dłuższe odcinki:</p>
-            <ul style="padding-left: 18px; margin-top: 0;">
-                <li><b>ePoE / Long Distance PoE:</b> Wybrane switche i rejestratory Dahua pozwalają zasilić kamerę i przesłać obraz po zwykłej skrętce Cat 5e/6 na odległość <b>do 300 m (100 Mb/s)</b> lub <b>do 800 m (10 Mb/s)</b> — pamiętaj jednak o konieczności obsługi ePoE po stronie nadajnika i odbiornika oraz dopasowaniu parametrów strumienia do niższego pasma na bardzo długich dystansach.</li>
-                <li><b>Extender PoE (wzmacniacz):</b> Przelotowy moduł zasilany z samego PoE, montowany po drodze (np. ok. 80–90 m), wydłużający zasięg o kolejny odcinek. Zwracaj uwagę na zapas mocy PoE i unikanie zbyt wielu przeskoków na jednej gałęzi.</li>
-                <li><b>Światłowód + Media Konwertery:</b> Najpewniejsze rozwiązanie na duże odległości oraz między osobnymi budynkami — zapewnia pełną izolację galwaniczną i brak bezpośredniego przenoszenia przepięć po miedzi między obiektami.</li>
-            </ul>
-
-            <p style="margin-bottom: 6px;"><b>Dobór przewodów i zabezpieczenie złączy:</b></p>
-            <ul style="padding-left: 18px; margin-top: 0;">
-                <li><b>Skrętka miedziana (Cu):</b> Do kamer IP stosuj przewody z pełnej miedzi (<i>Cat5e</i> lub <i>Cat6</i>), unikając kabli <b>CCA</b> (aluminium pokryte miedzią), które mają wyższą rezystancję, gorzej znoszą PoE i są bardziej kruche.</li>
-                <li><b>Przewód zasilający 12V (np. 2× 0,75 mm²):</b> Gdy prowadzisz osobne zasilanie 12V DC, dobieraj przekrój do długości trasy i poboru kamery (w tym w nocy przy włączonym IR/LED), aby uniknąć zbyt dużego spadku napięcia.</li>
-                <li><b>Szczelność w puszkach:</b> Wtyki RJ45, baluny i złącza zasilania umieszczaj w puszkach montażowych/hermetycznych, z zachowaniem pętli ociekowej — wilgoć i śniedź na stykach to jedna z najczęstszych przyczyn awarii w terenie.</li>
-            </ul>
-
-            <div class="pro-box">
-                <b>Systemy HDCVI po skrętce (Transformatory wideo / Baluny) i 12V DC (PRO):</b><br>
-                Kamery analogowe HD (HDCVI / AHD / TVI) można podłączyć skrętką UTP zamiast kabla koncentrycznego przy użyciu pary transformatorów dopasowujących impedancję (<b>75&Omega;</b> na <b>100&Omega;</b>).<br>
-                - <b>Zasada parowania:</b> Do sygnału wideo użyj jednej skręconej pary (np. pomarańczowa + biało-pomarańczowa). Pozostałe skręcone pary możesz wykorzystać np. do zasilania <b>12V DC</b> lub innych sygnałów niskonapięciowych.<br>
-                - <b>Spadki napięcia przy 12V DC:</b> Przy niskim napięciu 12V na dłuższym przewodzie (często już od ok. 30–40 m, zależnie od przekroju i prądu) spadek napięcia potrafi być odczuwalny — szczególnie w nocy, gdy włącza się podświetlenie IR lub LED i rośnie pobór mocy (kamera może wtedy tracić zasilanie lub restartować się w pętli).<br>
-                - <b>Rozwiązania przy 12V DC:</b> Na dłuższych odcinkach łącz po dwie żyły na plus i dwie na minus (zmniejszając rezystancję pętli), stosuj grubszy przewód zasilający, zasilacz z regulacją napięcia (np. podkręcony na ok. 13.5–14V, jeśli dopuszcza to sprzęt i długość trasy) albo przesył PoE z konwerterem PoE -&gt; 12V przy kamerze.
-            </div>
-        </div>
-    </div>
-</div>
-
-    <!-- 15. KODY BŁĘDÓW I ODZYSKIWANIE DOSTĘPU -->
-<div class="accordion">
-    <div class="acc-header" onclick="toggleAcc(this)">15. BŁĘDY NVR I RESETOWANIE HASŁA DAHUA <span>+</span></div>
-    <div class="acc-content">
-        <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
-            <p style="margin-top: 0;"><b>Najczęstsze komunikaty błędów na liście kamer w NVR:</b></p>
-            <ul style="padding-left: 18px; margin-top: 0;">
-                <li><b>Nieprawidłowa nazwa użytkownika lub hasło:</b> Hasło kamery różni się od hasła rejestratora (częste, gdy kamera była inicjowana osobno przed podpięciem do NVR albo zmieniono hasło bezpośrednio w kamerze). Kliknij ikonę edycji (ołówka) przy kamerze na liście w NVR i wpisz jej aktualne hasło.</li>
-                <li><b>Użytkownik zablokowany (Account Locked):</b> Zbyt wiele nieudanych prób logowania (zwykle kilka prób z rzędu). Blokada mija zazwyczaj po określonym czasie (np. kilkunastu–30 minutach, zależnie od ustawień/modelu) lub po ponownym uruchomieniu urządzenia — uwaga: jeśli w tle inne urządzenie (np. NVR, SmartPSS, skrypt) nadal wysyła złe hasło, blokada będzie wracać!</li>
-                <li><b>Nie można połączyć z hostem sieciowym / Brak połączenia sieciowego:</b> Kamera i port/sieć NVR są w innych podsieciach IP (np. kamera ma <code>192.168.1.108</code>, a sieć/NVR działa w innej podsieci), występuje konflikt IP, przerwa na kablu, zły port lub wyłączony/niezgodny protokół.</li>
-                <li><b>Zasoby są ograniczone / Brak dekodowania:</b> Rejestrator nie wyrabia z jednoczesnym dekodowaniem wielu strumieni wysokiej rozdzielczości na wyjściu lokalnym (np. podgląd siatki wielu kamer w strumieniu głównym 4K na monitorze HDMI). Przełącz podgląd na <i>Strumień pomocniczy (Sub Stream)</i> lub zmniejsz liczbę jednoczesnych okien w siatce.</li>
-                <li><b>Przekroczone pasmo / limity kanałów:</b> Zbyt wysoki łączny bitrate kamer (np. wysokie rozdzielczości, dużo FPS, brak Smart H.265+) może zbliżać się do limitu pasma wejściowego/zapisu NVR, co objawia się zrywaniem obrazu lub problemami z dodaniem kolejnej kamery.</li>
-            </ul>
-
-            <div class="warn-box">
-                <b>🔑 Procedura resetu zapomnianego hasła (bez przycisku Reset):</b><br>
-                1. Na ekranie logowania NVR lub kamery kliknij opcję odzyskiwania/resetu hasła (np. <b>„Zapomniałeś hasła?”</b>).<br>
-                2. Zeskanuj wyświetlony <b>kod QR</b> w aplikacji mobilnej <b>DMSS</b> (np. w sekcji narzędzi / resetowania hasła urządzenia) i postępuj zgodnie z instrukcją w aplikacji.<br>
-                3. Kod zabezpieczający / weryfikacja kierowana jest na kanał odzyskiwania skonfigurowany podczas inicjalizacji (np. adres e-mail — pamiętaj o limicie czasu ważności kodu).<br>
-                4. Jeśli e-mail/metoda odzyskiwania nie była skonfigurowana lub nie działa, wygeneruj w <i>ConfigTool</i> plik XML z urządzenia i przekaż go do autoryzowanego wsparcia technicznego/dystrybutora w celu wygenerowania pliku resetującego — taki plik ma ograniczony czas ważności (często ok. 24h) i przestaje działać po restarcie urządzenia, dlatego należy go użyć na tym samym stanie zasilania i w terminie jego ważności.
-            </div>
-
-            <div class="pro-box">
-                <b>Diagnostyka błędów logowania, limitów NVR i higieny haseł (PRO):</b><br>
-                - <b>Szukaj „cichego sprawcy” blokady konta:</b> Gdy konto na kamerze lub NVR ciągle się blokuje, zanim zaczniesz resetować hasło, sprawdź wszystkie miejsca, które mogą logować się automatycznie (rejestrator, SmartPSS, DMSS, integracje RTSP/ONVIF) — jedno zapomniane urządzenie ze starym hasłem potrafi w kółko blokować konto.<br>
-                - <b>Ujednolicanie i dokumentowanie haseł:</b> Przy większej liczbie kamer pilnuj spójnej polityki inicjalizacji i na bieżąco aktualizuj zapisane dane w notatce/dokumentacji po każdej zmianie hasła — oszczędza to sporo czasu przy serwisie.<br>
-                - <b>Rozdzielenie dekodowania lokalnego od nagrywania:</b> To, że rejestrator nie dekoduje wszystkich kamer w 4K na żywo na monitorze HDMI, nie musi oznaczać, że nie nagrywa ich poprawnie na dysk — zawsze zweryfikuj zarówno podgląd na żywo, jak i zapis w archiwum.<br>
-                - <b>Konto chmurowe a reset hasła:</b> Reset hasła lokalnego przywraca dostęp do logowania do urządzenia, ale jeśli rejestrator był wcześniej powiązany z konkretnym kontem w chmurze, przy zmianie właściciela lub przenoszeniu sprzętu pamiętaj też o właściwym odpięciu/udostępnieniu urządzenia zgodnie z procedurą aplikacji.
-            </div>
-        </div>
-    </div>
-</div>
-
-
-        <!-- KONTENER NA WŁASNE AKORDEONY -->
-    <div id="custom-accordions-list"></div>
-
-    <!-- PRZYCISK DODAWANIA -->
-    <button id="btn-show-form" class="btn-add-acc" onclick="otworzFormularzAcc()">＋ Dodaj własną notatkę / obiekt</button>
-
-    <!-- FORMULARZ DODAWANIA / EDYCJI -->
-    <div id="custom-acc-form" class="custom-form-card">
-        <h3 id="form-acc-title" style="margin-top:0; font-size: 1rem;">Nowa notatka</h3>
-        <input type="hidden" id="edit-acc-index" value="-1">
-        
-        <label style="font-weight:bold; font-size:0.85rem;">Tytuł na pasku:</label>
-        <input type="text" id="acc-title-input" placeholder="np. Obiekt Firma X – IP, hasła, porty...">
-        
-        <label style="font-weight:bold; font-size:0.85rem;">Treść notatki:</label>
-        <textarea id="acc-body-input" rows="5" placeholder="Wpisz dane konfiguracji, adresy kamer..."></textarea>
-        
-        <div style="display:flex; gap:8px;">
-            <button onclick="zapiszCustomAcc()" style="flex:1; padding:10px; background:#2e7d32; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">Zapisz</button>
-            <button onclick="zamknijFormularzAcc()" style="flex:1; padding:10px; background:#7f8c8d; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">Anuluj</button>
-        </div>
-    </div>
-
-</div>
-
-<script>
-const STORAGE_KEY = 'wlasne_acc_monitoring';
-let customAccs = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-
-document.addEventListener("DOMContentLoaded", () => {
-    renderujCustomAccs();
-    calcHDD();
-});
-
-function toggleAcc(header) {
-    const content = header.nextElementSibling;
-    if (!content || !content.classList.contains('acc-content')) return;
-    const span = header.querySelector('.acc-icon') || header.querySelector('span');
-    
-    const isOpening = !content.classList.contains('show');
-
-    document.querySelectorAll('.acc-header').forEach(h => {
-        const c = h.nextElementSibling;
-        const s = h.querySelector('.acc-icon') || h.querySelector('span');
-        if (c && c.classList.contains('acc-content')) {
-            c.classList.remove('show');
-            if (s && s.innerText === '−') s.innerText = '+';
-        }
-    });
-    
-    if (isOpening) {
-        content.classList.add('show');
-        if (span) span.innerText = '−';
-    }
-}
-
-function calcHDD() {
-    const cams = parseInt(document.getElementById('camCount').value) || 0;
-    const kbps = parseInt(document.getElementById('camBitrate').value) || 0;
-    const days = parseInt(document.getElementById('recDays').value) || 0;
-
-    if (cams <= 0 || days <= 0) {
-        document.getElementById('hddRes').innerText = "Wymagany dysk: 0 TB";
-        document.getElementById('totalBandwidth').innerText = "0 Mb/s";
-        return;
-    }
-
-    const totalMbps = (cams * kbps) / 1024;
-    // Przeliczenie Mb/s na GB na dobę: (Mbps / 8) * 86400s / 1024
-    const gbPerDay = (totalMbps / 8) * 86400 / 1024;
-    const totalTB = (gbPerDay * days) / 1024;
-
-    // Dobór standardowej pojemności dysku (z uwzględnieniem ~93% realnej pojemności po formatowaniu)
-    const sizes = [1, 2, 3, 4, 6, 8, 10, 12, 14, 16, 18, 20];
-    const recommended = sizes.find(s => s * 0.91 >= totalTB) || Math.ceil(totalTB * 1.1);
-
-    document.getElementById('hddRes').innerText = `Wymagany dysk: ~${totalTB.toFixed(2)} TB (zalecane ${recommended} TB)`;
-    document.getElementById('totalBandwidth').innerText = `${totalMbps.toFixed(1)} Mb/s`;
-}
-
-function renderujCustomAccs() {
-    const list = document.getElementById('custom-accordions-list');
-    list.innerHTML = "";
-
-    customAccs.forEach((item, index) => {
-        list.innerHTML += `
-            <div class="accordion">
-                <div class="acc-header custom-note" onclick="toggleAcc(this)">
-                    <span>📝 ${escapeHTML(item.tytul)}</span>
-                    <span class="acc-icon">+</span>
+            <!-- KALKULATOR OBIEKTYWU I DORI -->
+            <div id="tab-dori" class="calc-panel">
+                <div class="calc-row">
+                    <div>
+                        <label class="calc-lbl">Rozdzielczość kamery:</label>
+                        <select id="doriRes" onchange="calcDORI()">
+                            <option value="1920">2 Mpx (1920×1080)</option>
+                            <option value="2688" selected>4 Mpx (2688×1520)</option>
+                            <option value="2592">5 Mpx (2592×1944)</option>
+                            <option value="3072">6 Mpx (3072×2048)</option>
+                            <option value="3840">8 Mpx / 4K (3840×2160)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="calc-lbl">Przetwornik (matryca):</label>
+                        <select id="doriSensor" onchange="calcDORI()">
+                            <option value="4.8">1/3" (budżetowe)</option>
+                            <option value="5.57" selected>1/2.8" (standard)</option>
+                            <option value="7.18">1/1.8" (duży / nocny PRO)</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="acc-content">
-                    <div class="custom-note-body">${escapeHTML(item.tresc)}</div>
-                    <div class="custom-note-actions">
-                        <button style="background:#f39c12; color:white;" onclick="edytujCustomAcc(${index})">✏️ Edytuj</button>
-                        <button style="background:#e74c3c; color:white;" onclick="usunCustomAcc(${index})">🗑️ Usuń</button>
+
+                <div class="calc-row">
+                    <div>
+                        <label class="calc-lbl">Ogniskowa obiektywu:</label>
+                        <select id="doriLens" onchange="toggleCustomLens(); calcDORI()">
+                            <option value="2.8" selected>2.8 mm (szeroki)</option>
+                            <option value="3.6">3.6 mm (uniwersalny)</option>
+                            <option value="6.0">6.0 mm (wąski)</option>
+                            <option value="12.0">12.0 mm (tele)</option>
+                            <option value="custom">Inna / Motozoom...</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="calc-lbl">Odległość obiektu (m):</label>
+                        <input type="number" id="doriDist" value="8" min="1" max="300" oninput="calcDORI()">
+                    </div>
+                </div>
+
+                <div id="customLensWrap" style="display:none;">
+                    <label class="calc-lbl">Wpisz ogniskową (mm, np. 8.5):</label>
+                    <input type="number" id="customLensVal" value="8.0" min="1.4" max="150" step="0.1" oninput="calcDORI()">
+                </div>
+
+                <div class="res-box">
+                    <div class="res-main" id="doriMainRes">Rozpoznanie osoby (169 px/m)</div>
+                    <div class="res-grid">
+                        <div>Szerokość kadru / Kąt (H)<span id="doriWidth">15.9 m (~90°)</span></div>
+                        <div>Gęstość pikseli (PPM)<span id="doriPpm">169 px/m</span></div>
+                        <div>Max. Rozpoznanie (R)<span id="doriMaxRec">10.8 m</span></div>
+                        <div>Max. Identyfikacja (I)<span id="doriMaxId">5.4 m</span></div>
+                    </div>
+                </div>
+                <div id="doriAlert" class="calc-alert"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ZAKŁADKA 2: BAZA WIEDZY I WŁASNE NOTATKI -->
+    <div id="tab-kb" class="view-panel">
+        <!-- 1. PODSTAWY MONITORINGU -->
+        <div class="accordion">
+            <div class="acc-header" onclick="toggleAcc(this)">1. PODSTAWY MONITORINGU I SŁOWNIK <span>+</span></div>
+            <div class="acc-content">
+                <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                    <p style="margin-top: 0;"><b>Podstawy:</b> Nowoczesny monitoring składa się z kamer rejestrujących obraz, okablowania, zasilania (PoE lub 12V DC), rejestratora zapisującego materiał na dysku twardym oraz routera zapewniającego dostęp w sieci lokalnej i na telefonie.</p>
+
+                    <p style="margin-bottom: 6px;"><b>Typowe architektury systemów:</b></p>
+                    <ul style="padding-left: 18px; margin-top: 0;">
+                        <li><b>IP (IPC + NVR):</b> Monitoring sieciowy (cyfrowy). Kamery przesyłają gotowe pakiety danych po skrętce komputerowej. Najwyższa jakość, łatwa rozbudowa i zaawansowane funkcje AI (np. detekcja człowieka/pojazdu).</li>
+                        <li><b>HDCVI / TVI / AHD (Kamery + XVR):</b> Systemy wysokiej rozdzielczości po kablu koncentrycznym – świetne przy modernizacji starszych instalacji bez kucia ścian pod nową skrętkę.</li>
+                        <li><b>Kamera samodzielna (Wi-Fi / SD / 4G):</b> Działa bez rejestratora, zapisuje nagranie na karcie microSD (najlepiej klasy <i>High Endurance</i>) i łączy się bezpośrednio z aplikacją.</li>
+                    </ul>
+
+                    <p style="margin-bottom: 6px;"><b>Praktyka montażowa (okablowanie i dyski):</b></p>
+                    <ul style="padding-left: 18px; margin-top: 0;">
+                        <li><b>Skrętka UTP (Cat5e / Cat6):</b> Do kamer IP stosuje się pełną miedź (<b>Cu</b>), unikając tanich przewodów <b>CCA</b> (aluminium pokryte miedzią) – przy PoE i dłuższych odcinkach rosną straty i grzanie.</li>
+                        <li><b>Puszki montażowe i hermetyczne:</b> Wtyki RJ45 i przewody kamery należy zabezpieczyć przed wilgocią i warunkami atmosferycznymi w dedykowanej puszce lub uchwycie.</li>
+                        <li><b>Dyski HDD do CCTV:</b> Stosuje się dyski przystosowane do pracy ciągłej 24/7 (np. WD Purple, Seagate SkyHawk), a nie zwykłe dyski biurowe.</li>
+                    </ul>
+
+                    <div class="pro-box">
+                        <b>Słownik techniczny i protokoły (PRO):</b><br>
+                        - <b>NVR / XVR:</b> Network Video Recorder (rejestrator IP) / rejestrator hybrydowy (obsługuje różne standardy analogowe HD oraz kamery IP).<br>
+                        - <b>ONVIF (Profile S/T/G):</b> Otwarty standard komunikacji ułatwiający integrację urządzeń różnych producentów (np. podgląd, strumień, zdarzenia).<br>
+                        - <b>RTSP:</b> Strumień wideo w czasie rzeczywistym (np. <code>rtsp://user:haslo@IP:554/cam/realmonitor?channel=1&amp;subtype=0</code>) używany m.in. w Home Assistant lub Frigate.<br>
+                        - <b>Main Stream vs Sub Stream:</b> Strumień główny (wysoka rozdzielczość i bitrate do zapisu na HDD) oraz strumień pomocniczy (mniejsza rozdzielczość do płynnego podglądu wielu kamer na telefonie lub słabszym łączu).<br>
+                        - <b>CBR vs VBR:</b> Stały bitrate (Constant Bitrate – przewidywalne zużycie dysku i pasma) vs zmienny bitrate (Variable Bitrate – oszczędza miejsce na statycznej scenie, podbija przy dużym ruchu).<br>
+                        - <b>FPS (klatki/s):</b> W CCTV zwykle wystarcza <b>15–25 FPS</b>. Wyższe wartości (50/60 FPS) rzadko poprawiają czytelność twarzy czy tablic, a wyraźnie zwiększają zapotrzebowanie na dysk.<br>
+                        - <b>WDR (Wide Dynamic Range):</b> Funkcja wyrównująca ekspozycję, gdy w kadrze jest jednocześnie bardzo jasno i ciemno (np. wejście do budynku w słońcu lub światła auta w nocy).<br>
+                        - <b>IR / Full-Color / Dual Light:</b> Noc w podczerwieni (obraz czarno-biały, niewidoczny dla oka), pełny kolor z doświetleniem światłem białym lub tryb mieszany (IR na co dzień, światło białe po wykryciu zdarzenia).<br>
+                        - <b>Statyczny IP vs DHCP:</b> Dla kamer i rejestratora w sieci lokalnej najlepiej ustawić stały adres IP (lub rezerwację DHCP na routerze), aby urządzenia nie zmieniały adresu po restarcie.
                     </div>
                 </div>
             </div>
-        `;
-    });
-}
+        </div>
 
-function otworzFormularzAcc() {
-    document.getElementById('edit-acc-index').value = "-1";
-    document.getElementById('form-acc-title').innerText = "Nowa notatka";
-    document.getElementById('acc-title-input').value = "";
-    document.getElementById('acc-body-input').value = "";
-    document.getElementById('custom-acc-form').style.display = "block";
-    document.getElementById('btn-show-form').style.display = "none";
-    document.getElementById('acc-title-input').focus();
-}
+        <!-- 2. DOBÓR SPRZĘTU -->
+        <div class="accordion">
+            <div class="acc-header" onclick="toggleAcc(this)">2. DOBÓR SPRZĘTU, OBIEKTYWY I OBRAZ <span>+</span></div>
+            <div class="acc-content">
+                <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                    <p style="margin-top: 0;"><b>Dobór sprzętu pod zadanie:</b> Dobra kamera to nie tylko megapiksele — liczy się dopasowanie obudowy do miejsca montażu, ogniskowej do odległości celu oraz wielkości matrycy i jasności obiektywu do warunków oświetleniowych (szczególnie w nocy).</p>
 
-function zamknijFormularzAcc() {
-    document.getElementById('custom-acc-form').style.display = "none";
-    document.getElementById('btn-show-form').style.display = "block";
-}
+                    <p style="margin-bottom: 6px;"><b>Obudowy kamer (plusy i minusy):</b></p>
+                    <ul style="padding-left: 18px; margin-top: 0;">
+                        <li><b>Kopułkowa / Eyeball (Turret):</b> Brak szyby przed obiektywem (szkło jest na zewnątrz) eliminuje odblaski podczerwieni IR i ułatwia czyszczenie. Dyskretna, odporna na łatwe przestawienie, świetna pod podbitkę, na elewację i do wnętrz.</li>
+                        <li><b>Kopułkowa klasyczna (Dome):</b> Obiektyw schowany pod kopułą (często wandaloodporną IK10). W modelach z IR trzeba uważać na „świecenie” podczerwieni po kopule przy zabrudzeniu lub złym ułożeniu uszczelki.</li>
+                        <li><b>Tubowa (Bullet):</b> Wyraźnie widoczna (działa odstraszająco), wygodna do montażu na ścianach, słupach i wysięgnikach; często ma mocniejszy oświetlacz nocny i łatwiej ją ustawić na większe odległości.</li>
+                        <li><b>PTZ (Obrotowa):</b> Sterowana zdalnie (obrót, pochylenie, zoom optyczny — np. 10x–45x). Świetna do dozoru dużych placów, ale w stałych punktach (np. furtka) kamera stałoogniskowa jest zwykle pewniejsza, bo zawsze patrzy tam, gdzie trzeba.</li>
+                        <li><b>Fisheye (Rybie oko):</b> Obiektyw ultraszerokokątny (180°/360°) do objęcia całego pomieszczenia jednym urządzeniem — kosztem mniejszej szczegółowości na dalszych krawędziach.</li>
+                    </ul>
 
-function zapiszCustomAcc() {
-    const idx = parseInt(document.getElementById('edit-acc-index').value);
-    const tytul = document.getElementById('acc-title-input').value.trim();
-    const tresc = document.getElementById('acc-body-input').value.trim();
+                    <p style="margin-bottom: 6px;"><b>Ogniskowa obiektywu i kąt widzenia (w mm):</b></p>
+                    <ul style="padding-left: 18px; margin-top: 0;">
+                        <li><b>2.8 mm:</b> Szeroki kąt widzenia (często ok. 95°–110° w poziomie w zależności od matrycy) – dobry podgląd ogólny podwórka, tarasu czy małego parkingu. Im szerzej, tym obiekty na dalszym planie są mniejsze w pikselach.</li>
+                        <li><b>3.6 mm / 4 mm:</b> Węższy kadr, większe przybliżenie niż 2.8 mm – sprawdzi się tam, gdzie zależy na większym detalu na średnim dystansie.</li>
+                        <li><b>6 mm / 8 mm / 12 mm+:</b> Wąski kąt i wyraźne zbliżenie – bramy wjazdowe, furtki, podjazdy, wąskie przejścia lub konkretne punkty (np. tablice z bliskiego/średniego dystansu przy odpowiedniej konfiguracji).</li>
+                        <li><b>Motozoom (np. 2.7–13.5 mm):</b> Regulacja ogniskowej i ostrości zdalnie z poziomu rejestratora lub aplikacji — ogromne ułatwienie przy montażu, bo bez drabiny ustawiasz dokładnie taki kadr, jaki potrzebujesz.</li>
+                    </ul>
 
-    if (!tytul) {
-        alert("Podaj tytuł notatki!");
-        return;
-    }
+                    <p style="margin-bottom: 6px;"><b>Rozdzielczość (Mpx) a realny efekt:</b></p>
+                    <ul style="padding-left: 18px; margin-top: 0;">
+                        <li><b>2 Mpx / 4 Mpx:</b> Najbardziej uniwersalne do typowego monitoringu posesji i firm — rozsądny bitrate, dobre zachowanie w słabszym świetle (szczególnie 4 Mpx na sensownej matrycy).</li>
+                        <li><b>5 Mpx / 6 Mpx / 8 Mpx (4K):</b> Więcej detali na szerokim kadrze, ale wymagają wyższego bitrate'u, większego dysku i mocniejszego rejestratora; w nocy przy małej matrycy mogą szumieć bardziej niż dobrze dobrane 4 Mpx.</li>
+                    </ul>
 
-    if (idx === -1) {
-        customAccs.push({ tytul, tresc });
-    } else {
-        customAccs[idx] = { tytul, tresc };
-    }
+                    <div class="pro-box">
+                        <b>Przetwornik, Oświetlenie, Obraz i Kompresja (PRO):</b><br>
+                        - <b>Rozmiar przetwornika (np. 1/2.8", 1/1.8", 1/1.2"):</b> Im większa matryca (mniejsza druga liczba w ułamku), tym większe pojedyncze piksele i więcej zebranego światła. Duża matryca w nocy robi ogromną różnicę.<br>
+                        - <b>Jasność obiektywu (np. F1.0, F1.4, F1.6):</b> Niższa wartość „F” oznacza jaśniejszy obiektyw przepuszczający więcej światła na matrycę (szczególnie ważne w nocy i w trybach kolorowych).<br>
+                        - <b>WDR (120dB / 140dB):</b> Prawdziwy szeroki zakres dynamiki (nie mylić z prostym cyfrowym DWDR) – łączy klatki o różnej ekspozycji, dzięki czemu widać twarz osoby stojącej w drzwiach na tle jasnego słońca lub reflektory auta w nocy.<br>
+                        - <b>IR vs Full-Color (LED) vs Smart Dual Light:</b><br>
+                          &nbsp;&nbsp;• <i>IR (podczerwień):</i> obraz czarno-biały w nocy, dyskretny dla otoczenia, ale owady, mgła i deszcz potrafią odbijać światło IR.<br>
+                          &nbsp;&nbsp;• <i>Full-Color (światło białe):</i> obraz kolorowy w nocy, pomaga w ocenie koloru ubrania czy auta, wymaga jednak odpowiedniego oświetlenia sceny / doświetlenia LED.<br>
+                          &nbsp;&nbsp;• <i>Smart Dual Light:</i> na co dzień pracuje w dyskretnym IR, a po wykryciu np. człowieka lub pojazdu doświetla scenę światłem białym.<br>
+                        - <b>Kodeki H.264 / H.265 / Smart H.265+:</b> H.265 (HEVC) oszczędza miejsce względem H.264, a <i>Smart H.265+</i> dodatkowo redukuje zapotrzebowanie na dysk i pasmo na statycznych fragmentach sceny (np. nieruchome tło), podbijając jakość przy ruchu.<br>
+                        - <b>Detekcja ruchu (MD) vs AI / SMD / IVS:</b> Zwykła detekcja ruchu reaguje na każdą zmianę pikseli (liście, deszcz, cienie). Analiza oparta na AI/SMD/IVS pozwala filtrować głównie <b>człowieka</b> i <b>pojazd</b>, co ogranicza fałszywe alarmy.
+                    </div>
+                </div>
+            </div>
+        </div>
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(customAccs));
-    renderujCustomAccs();
-    zamknijFormularzAcc();
-}
+        <!-- 4. KONFIGURACJA KAMER -->
+        <div class="accordion">
+            <div class="acc-header" onclick="toggleAcc(this)">4. KONFIGURACJA KAMER (OBRAZ, SD, PTZ) <span>+</span></div>
+            <div class="acc-content">
+                <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                    <p style="margin-top: 0;"><b>Podstawy:</b> Fabryczne ustawienia kamery to dopiero punkt wyjścia. Po montażu warto dostosować ekspozycję, podświetlenie i zapis pod konkretne miejsce (np. wyłączyć automatyczne przełączanie dzień/noc przy migoczącej lub mocnej latarni, skorygować jasność podczerwieni, aby nie prześwietlała twarzy z bliska, oraz ustawić strefy prywatności).</p>
 
-function edytujCustomAcc(index) {
-    const item = customAccs[index];
-    document.getElementById('edit-acc-index').value = index;
-    document.getElementById('form-acc-title').innerText = "Edytuj notatkę";
-    document.getElementById('acc-title-input').value = item.tytul;
-    document.getElementById('acc-body-input').value = item.tresc;
-    document.getElementById('custom-acc-form').style.display = "block";
-    document.getElementById('btn-show-form').style.display = "none";
-    document.getElementById('custom-acc-form').scrollIntoView({ behavior: 'smooth' });
-}
+                    <p style="margin-bottom: 6px;"><b>Obraz, ekspozycja i strefy:</b></p>
+                    <ul style="padding-left: 18px; margin-top: 0;">
+                        <li><b>Dzień / Noc (Day &amp; Night):</b> W trybie <i>Auto</i> kamera przełącza się na IR po spadku jasności. Jeśli w kadrze świeci latarnia lub przejeżdżają auta, obraz potrafi niepotrzebnie „klikać” (przełączać się tam i z powrotem) — wtedy warto wymusić tryb nocny/dzienny na sztywno lub skorygować czułość/opóźnienie przełączania.</li>
+                        <li><b>Podświetlenie IR / LED (Smart IR):</b> Zbyt mocna podczerwień na bliskim dystansie „wypala” twarz lub ścianę tuż przed obiektywem. Włączenie <i>Smart IR</i> i ograniczenie mocy diod pomaga wyrównać jasność.</li>
+                        <li><b>Redukcja szumów (2D / 3D DNR):</b> W nocy kamera podbija wzmocnienie (Gain), co powoduje szum („ziarno”). <i>3D DNR</i> skutecznie wygładza szum na statycznym tle, ale zbyt wysoka wartość może lekko rozmazać szybki ruch.</li>
+                        <li><b>Maski prywatności (Privacy Mask):</b> Pozwalają zasłonić np. okno sąsiada, chodnik lub drogę publiczną poza strefą dozoru, tak aby nie trafiały na nagranie ani podgląd.</li>
+                        <li><b>Obrót i lustro (Flip / Mirror):</b> Przydaje się przy montażu do góry nogami lub gdy podgląd ma odpowiadać naturalnemu kierunkowi ruchu w kadrze.</li>
+                    </ul>
 
-function usunCustomAcc(index) {
-    if (confirm(`Usunąć notatkę „${customAccs[index].tytul}”?`)) {
-        customAccs.splice(index, 1);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(customAccs));
-        renderujCustomAccs();
-    }
-}
+                    <p style="margin-bottom: 6px;"><b>Karta microSD i zapis na kamerze:</b></p>
+                    <ul style="padding-left: 18px; margin-top: 0;">
+                        <li><b>Wyłącznie karty High Endurance:</b> Zwykłe karty pamięci do aparatów czy telefonów szybko zużywają się przy ciągłym zapisie wideo. Wybieraj karty dedykowane do ciągłego zapisu/monitoringu.</li>
+                        <li><b>Formatowanie i nadpisywanie:</b> Nową kartę najlepiej sformatować bezpośrednio w menu kamery lub rejestratora i włączyć <b>nadpisywanie</b> najstarszych plików po zapełnieniu.</li>
+                        <li><b>Harmonogram zapisu:</b> Zastanów się, czy na karcie SD ma iść zapis ciągły, czy tylko po zdarzeniach/ruchu — zapis zdarzeniowy wyraźnie wydłuża retencję i żywotność karty.</li>
+                    </ul>
 
-function escapeHTML(str) {
-    return str.replace(/[&<>'"]/g, tag => ({
-        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
-    }[tag]));
-}
-</script>
+                    <p style="margin-bottom: 6px;"><b>Kamery PTZ (obrotowe):</b></p>
+                    <ul style="padding-left: 18px; margin-top: 0;">
+                        <li><b>Presety:</b> Zapisane punkty widzenia (np. <i>Preset 1 – Brama</i>, <i>Preset 2 – Furtka</i>, <i>Preset 3 – Podjazd</i>) z określonym kadrem i przybliżeniem optycznym.</li>
+                        <li><b>Tour / Patrol i Scan:</b> Automatyczne przechodzenie między presetami (<i>Tour/Patrol</i>) lub płynne skanowanie wyznaczonego odcinka (<i>Scan</i>).</li>
+                        <li><b>Powrót do pozycji domowej (Home / Idle / Park):</b> Bardzo przydatna funkcja — jeśli operator ręcznie obróci kamerę lub najedzie zoomem, po określonym czasie bezczynności kamera sama wraca na główny kadr (np. bramę).</li>
+                    </ul>
 
+                    <div class="pro-box">
+                        <b>Parametry PRO: migawka, ANR, BLC/HLC i ROI:</b><br>
+                        - <b>Migawka (Shutter Speed) i ruch (ghosting):</b> Domyślna migawka <i>Auto</i> w nocy wydłuża czas naświetlania, przez co idący człowiek lub jadące auto rozmazują się w smugę (<i>motion blur / ghosting</i>). Do uchwycenia twarzy w ruchu lub tablic rejestracyjnych ustaw migawkę ręcznie (np. <b>1/100s – 1/250s</b> i krócej przy tablicach), pamiętając, że krótszy czas = mniej światła, więc trzeba zadbać o doświetlenie lub czułą matrycę.<br>
+                        - <b>ANR (Automatic Network Replenishment):</b> Gdy zerwie się połączenie sieciowe między kamerą a rejestratorem NVR, kamera z kartą microSD zapisuje materiał lokalnie, a po odzyskaniu łączności automatycznie dogrywa brakujące nagrania do NVR. Warunkiem działania jest poprawnie skonfigurowana karta SD, obsługa ANR przez oba urządzenia oraz ciągłość/poprawność zapisu.<br>
+                        - <b>BLC (Back Light Compensation) i HLC (Highlight Light Compensation):</b> <i>BLC</i> pomaga doświetlić ciemny obiekt na jasnym tle, a <i>HLC</i> tłumi silne punktowe źródła światła (np. reflektory samochodów w nocy), co bywa pomocne przy podjazdach i wyjazdach.<br>
+                        - <b>ROI (Region of Interest):</b> Pozwala wyznaczyć obszar priorytetowy w kadrze (np. furtkę lub kasę), który zachowa wyższą jakość/szczegółowość, podczas gdy reszta kadru może być kompresowana oszczędniej.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. NVR/DVR I NAGRYWANIE -->
+        <div class="accordion">
+            <div class="acc-header" onclick="toggleAcc(this)">5. REJESTRATOR (NVR/XVR), DYSKI I ARCHIWUM <span>+</span></div>
+            <div class="acc-content">
+                <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                    <p style="margin-top: 0;"><b>Rejestrator i dyski do monitoringu:</b> Rejestrator (NVR dla kamer IP lub XVR dla systemów hybrydowych/HDCVI) odbiera strumienie wideo, zarządza nagrywaniem, analizą i odtwarzaniem archiwum. Zwykłe dyski komputerowe nie są przystosowane do ciągłego zapisu 24/7 — stosuj dyski dedykowane do monitoringu (np. <i>WD Purple</i>, <i>Seagate SkyHawk</i>).</p>
+
+                    <p style="margin-bottom: 6px;"><b>Ważne przy doborze i pracy dysków:</b></p>
+                    <ul style="padding-left: 18px; margin-top: 0;">
+                        <li><b>Nadpisywanie (Overwrite):</b> Włączone na stałe sprawia, że po zapełnieniu dysku rejestrator automatycznie kasuje najstarsze nagrania i zapisuje nowe (zamiast zatrzymywać zapis).</li>
+                        <li><b>Limity rejestratora:</b> Zawsze sprawdź w specyfikacji NVR/XVR maksymalną pojemność dysku na jedną zatokę (np. 6 TB, 8 TB, 10 TB lub więcej) oraz maksymalne pasmo zapisu (w Mb/s) przy dodaniu kamer o wysokim bitrate.</li>
+                        <li><b>Czas retencji:</b> Realna liczba dni archiwum zależy od liczby kamer, bitrate'u (rozdzielczości, kodeka, FPS), harmonogramu zapisu oraz pojemności użytkowej dysku po formacie.</li>
+                    </ul>
+
+                    <p style="margin-bottom: 6px;"><b>Tryby nagrywania (kolory na osi czasu w Dahua):</b></p>
+                    <ul style="padding-left: 18px; margin-top: 0;">
+                        <li><span style="color:#2e7d32; font-weight:bold;">Zielony (Regular / Ciągłe):</span> Zapis 24/7 bez przerw — najbezpieczniejszy, gdy nie chcesz przegapić żadnego zdarzenia nawet przy błędnej detekcji.</li>
+                        <li><span style="color:#f57f17; font-weight:bold;">Żółty (MD / Ruch):</span> Zapis uruchamiany detekcją ruchu — oszczędza miejsce na dysku, ale wymaga dobrze dobranej czułości i masek ruchu.</li>
+                        <li><span style="color:#d32f2f; font-weight:bold;">Czerwony (Alarm / IVS / AI):</span> Zapis powiązany z regułami analityki (np. przekroczenie linii, wtargnięcie w strefę, człowiek/pojazd) lub wejściem alarmowym — ułatwia szybkie odnalezienie istotnych zdarzeń.</li>
+                    </ul>
+
+                    <p style="margin-bottom: 6px;"><b>Praca z archiwum i odtwarzaniem:</b></p>
+                    <ul style="padding-left: 18px; margin-top: 0;">
+                        <li><b>Wyszukiwanie zdarzeń:</b> Zamiast przewijać godziny nagrania ręcznie, filtruj materiał po typie zdarzenia (ruch, człowiek, pojazd, reguła IVS) i konkretnym przedziale czasowym.</li>
+                        <li><b>Podgląd synchroniczny:</b> Przy zdarzeniach obejmujących teren przy kilku kamerach przydaje się jednoczesne odtwarzanie kilku kanałów zsynchronizowanych po czasie.</li>
+                    </ul>
+
+                    <div class="pro-box">
+                        <b>Zarządzanie HDD, S.M.A.R.T., Bufor i Eksport (PRO):</b><br>
+                        - <b>S.M.A.R.T. i kondycja dysku:</b> Regularnie (np. raz na 1–3 miesiące) zaglądaj do <i>Pamięć -&gt; Menedżer HDD -&gt; S.M.A.R.T.</i> Kontroluj temperaturę dysku (najlepiej <b>&lt;45°C</b> — zbyt wysoka temperatura wyraźnie skraca żywotność dysku) oraz atrybuty takie jak <i>Reallocated Sector Count</i> i <i>Current Pending Sector</i> (rosnące wartości sygnalizują zużycie/bad sektory i potrzebę wymiany dysku).<br>
+                        - <b>Pre-record i Post-record:</b> Przy nagrywaniu wyzwalanym zdarzeniem ustaw <b>Pre-record</b> (np. 3–5 s bufora przed zdarzeniem, aby uchwycić wejście osoby lub auta w kadr) oraz krótki <b>Post-record</b> po ustaniu zdarzenia, żeby nie ucinać końcówki.<br>
+                        - <b>Wiele zatok i RAID / grupy:</b> W rejestratorach wielodyskowych warto świadomie wybrać, czy dyski pracują jako osobne wolumeny (maksymalna łączna pojemność i czas archiwum), czy w macierzy RAID (np. pod kątem ciągłości pracy przy awarii dysku — kosztem mniejszej pojemności użytkowej).<br>
+                        - <b>Eksport materiału dowodowego:</b> Zgrywając nagranie na pendrive lub dysk USB, wybieraj format <b>MP4</b> (łatwy do otwarcia na standardowych odtwarzaczach) lub natywny format producenta (np. <b>DAV</b>) wraz z dedykowanym odtwarzaczem (np. <i>SmartPlayer</i>), który pozwala zachować pełne dane strumienia i zweryfikować integralność/autentyczność pliku.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. APLIKACJE I OPROGRAMOWANIE -->
+        <div class="accordion">
+            <div class="acc-header" onclick="toggleAcc(this)">6. APLIKACJE (DMSS, SMARTPSS, CONFIGTOOL) <span>+</span></div>
+            <div class="acc-content">
+                <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                    <p style="margin-top: 0;"><b>Ekosystem oprogramowania Dahua:</b> Do sprawnego uruchomienia, obsługi i serwisowania systemu używa się kilku uzupełniających się narzędzi — każde odpowiada za inny etap pracy.</p>
+
+                    <p style="margin-bottom: 6px;"><b>Główne programy i aplikacje:</b></p>
+                    <ul style="padding-left: 18px; margin-top: 0;">
+                        <li><b>DMSS (Android / iOS):</b> Główna aplikacja mobilna. Pozwala dodać urządzenie przez skan kodu QR (chmura P2P) lub lokalnie po adresie IP, zapewnia podgląd na żywo, odtwarzanie nagrań z archiwum oraz powiadomienia push.</li>
+                        <li><b>SmartPSS Lite (Windows / macOS):</b> Program na komputer do wygodnego podglądu na dużym ekranie, zarządzania wieloma lokalizacjami/rejestratorami, przeglądania harmonogramów i pobierania nagrań na dysk PC.</li>
+                        <li><b>ConfigTool (PC):</b> Niezbędnik instalatora w sieci lokalnej — wykrywa urządzenia Dahua (nawet jeśli mają fabryczny adres w innej podsieci), pozwala je zainicjować (ustawić hasło), zmienić adres IP/maskę/bramę oraz wgrać aktualizację firmware'u.</li>
+                        <li><b>Przeglądarka / interfejs WWW urządzenia:</b> W sieci lokalnej (LAN) do głębszej konfiguracji parametrów obrazu, harmonogramów, reguł AI czy sieci często najwygodniej wejść bezpośrednio na adres IP kamery lub rejestratora.</li>
+                    </ul>
+
+                    <p style="margin-bottom: 6px;"><b>Praktyka konfiguracji i najczęstsze problemy:</b></p>
+                    <ul style="padding-left: 18px; margin-top: 0;">
+                        <li><b>Zgodność podsieci IP:</b> Jeśli kamera ma domyślnie np. <code>192.168.1.108</code>, a Twój router działa w podsieci <code>192.168.0.x</code>, zwykłe wpisanie adresu w przeglądarce może nie zadziałać — użyj <i>ConfigTool</i>, aby dopasować adres IP urządzenia do Twojej sieci.</li>
+                        <li><b>Powiadomienia push w DMSS:</b> Aby powiadomienia przychodziły niezawodnie, trzeba włączyć je w aplikacji, powiązać z odpowiednim zdarzeniem/harmonogramem oraz zezwolić systemowi Android/iOS na powiadomienia i pracę w tle (bez agresywnego usypiania aplikacji).</li>
+                        <li><b>Udostępnianie urządzenia:</b> Zamiast logować kilka osób na to samo konto główne, bezpieczniej i wygodniej jest korzystać z funkcji udostępniania urządzenia (z odpowiednimi uprawnieniami) lub osobnych kont.</li>
+                        <li><b>Aktualizacja firmware'u:</b> Aktualizuj oprogramowanie sprzętowe tylko ze sprawdzonych źródeł pod konkretny model/wersję sprzętową i nie przerywaj zasilania w trakcie procesu.</li>
+                    </ul>
+
+                    <div class="pro-box">
+                        <b>P2P vs IP/Domena, Konto DMSS i Bezpieczeństwo (PRO):</b><br>
+                        - <b>Połączenie P2P:</b> Nie wymaga stałego publicznego adresu IP ani ręcznego przekierowania portów na routerze. Aby działało, urządzenie musi mieć dostęp do internetu, poprawnie wpisaną <b>Bramę domyślną</b> oraz <b>DNS</b> (np. <code>8.8.8.8</code> / <code>1.1.1.1</code> lub adres routera), a status w menu <i>Sieć -&gt; P2P</i> powinien pokazywać <b>Online</b>.<br>
+                        - <b>Połączenie lokalne po IP / VPN / domenie:</b> W sieci domowej lub firmowej warto łączyć się bezpośrednio po lokalnym adresie IP (nie obciążając wtedy łącza zewnętrznego ani chmury), a do zdalnego dostępu bez chmury stosuje się m.in. VPN lub własne przekierowania/DDNS (z zachowaniem zasad bezpieczeństwa sieciowego).<br>
+                        - <b>Konto chmurowe DMSS i numer seryjny (SN):</b> Dodanie urządzenia podczas zalogowania na konto DMSS wiąże numer seryjny (SN) rejestratora/kamery z tym kontem. Jeśli instalator doda sprzęt na swoje konto zamiast klienta, klient nie doda go u siebie bez wcześniejszego udostępnienia lub usunięcia/odpięcia z konta instalatora.<br>
+                        - <b>Bezpieczeństwo dostępu:</b> Zawsze zmieniaj hasła domyślne na unikalne i silne, nie udostępniaj pochopnie hasła administratora oraz kontroluj listę urządzeń i sesji powiązanych z kontem.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7. POWIADOMIENIA I ANALITYKA -->
+        <div class="accordion">
+            <div class="acc-header" onclick="toggleAcc(this)">7. POWIADOMIENIA I ANALITYKA AI (SMD / IVS) <span>+</span></div>
+            <div class="acc-content">
+                <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                    <p style="margin-top: 0;"><b>Podstawy:</b> Zwykła detekcja ruchu (MD) reaguje na każdą zmianę pikseli w kadrze — kołyszące się gałęzie, deszcz, śnieg, owady/pająki przy obiektywie, zmieniające się cienie czy światła aut. W efekcie telefon potrafi dostawać setki fałszywych powiadomień, przez co łatwo przeoczyć prawdziwe zdarzenie.</p>
+
+                    <p style="margin-bottom: 6px;"><b>Praktyczne zasady powiadomień i zdarzeń:</b></p>
+                    <ul style="padding-left: 18px; margin-top: 0;">
+                        <li><b>Powiadomienia push tylko dla istotnych zdarzeń:</b> Zamiast alertów ze zwykłego ruchu (MD), powiąż powiadomienia na telefon z regułami analityki (człowiek/pojazd, IVS) albo wybranymi strefami i porami dnia.</li>
+                        <li><b>Harmonogram powiadomień:</b> Możesz ustawić inne zasady na dzień (np. gdy domownicy/pracownicy kręcą się po posesji) i inne na noc lub wyjazd.</li>
+                        <li><b>Maskowanie i czułość:</b> W zwykłym MD wycinaj obszary ruchome (np. drzewa, ulica), a w analityce dopieraj czułość i wielkość obiektu tak, aby kamera nie gubiła sylwetki z dalsza ani nie reagowała na drobne zakłócenia.</li>
+                    </ul>
+
+                    <div class="pro-box">
+                        <b>SMD, IVS, zasoby AI i eliminacja fałszywych alarmów (PRO):</b><br>
+                        - <b>SMD (Smart Motion Detection):</b> Analizuje wykryty ruch i filtruje go pod kątem sylwetki <b>Człowieka</b> oraz <b>Pojazdu</b>. Znacznie ogranicza fałszywe alarmy od liści, deszczu czy drobnych zwierząt, choć w trudnych warunkach (np. bardzo złe oświetlenie, częściowe zasłonięcie, nietypowy kształt) zawsze warto przetestować działanie w realnej scenie.<br>
+                        - <b>IVS (ochrona perymetryczna / reguły analityczne):</b> Pozwala rysować konkretne reguły na obrazie:<br>
+                          &nbsp;&nbsp;1. <i>Przekroczenie linii (Tripwire):</i> Wyzwala zdarzenie przy przejściu obiektu przez linię w zadanym kierunku (np. wejście w głąb posesji, a nie wyjście lub przejazd po chodniku obok).<br>
+                          &nbsp;&nbsp;2. <i>Wtargnięcie w strefę (Intrusion):</i> Wyzwala zdarzenie, gdy wykryty obiekt wejdzie lub utrzyma się w wyznaczonym obszarze (często z progiem czasu/liczby obiektów).<br>
+                          &nbsp;&nbsp;3. <i>Inne reguły (zależnie od modelu):</i> np. wałęsanie się (<i>Loitering</i>), pozostawienie/zniknięcie obiektu czy liczenie osób/pojazdów.<br>
+                        - <b>Limit zasobów AI:</b> Funkcje AI wymagają mocy obliczeniowej kamery lub rejestratora — liczba kanałów, na których jednocześnie może działać SMD lub IVS, zależy od konkretnego modelu NVR/kamery i bywa wzajemnie ograniczana (np. wybór między trybem AI kamery a AI rejestratora).<br>
+                        - <b>Złota zasada alertów:</b> Nie włączaj jednocześnie zwykłej detekcji ruchu i reguł IVS/AI do powiadomień push — jeśli zwykły MD nadal wysyła alerty, powiadomienia na telefonie nadal będą pełne szumu.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 8. DIAGNOSTYKA PROBLEMÓW -->
+        <div class="accordion">
+            <div class="acc-header" onclick="toggleAcc(this)">8. DIAGNOSTYKA I SERWIS (CHECKLISTA) <span>+</span></div>
+            <div class="acc-content">
+                <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                    <p style="margin-top: 0;"><b>Podstawy diagnostyki:</b> W serwisie najlepiej działa metoda „dziel i rządź” — oddzielnie sprawdzaj zasilanie, kabel/port, sieć, konfigurację obrazu oraz nośnik zapisu, zamiast zgadywać na ślepo. Najpierw warto wykluczyć najprostsze przyczyny zewnętrzne i konfiguracyjne.</p>
+
+                    <p style="margin-bottom: 6px;"><b>Zasilanie, okablowanie i sieć lokalna:</b></p>
+                    <ul style="padding-left: 18px; margin-top: 0;">
+                        <li><b>Kamera offline / brak obrazu:</b> Sprawdź kontrolki PoE/link na switchu lub NVR. Zwróć uwagę na wilgoć we wtyku RJ45 (zielony nalot śniedzi na pinach PoE to klasyk przy nieszczelnych puszkach), źle zaciśnięte żyły, uszkodzony kabel lub przekroczenie budżetu mocy PoE.</li>
+                        <li><b>Restartowanie się kamery w nocy:</b> W nocy włącza się podświetlenie IR lub doświetlenie LED, co podbija pobór mocy. Przy zbyt dużym spadku napięcia na kablu (szczególnie na długim lub cienkim przewodzie <code>12V DC</code>) albo zbyt słabym zasilaniu/porcie kamera potrafi się resetować po zmroku.</li>
+                        <li><b>Konflikt IP / brak wejścia do urządzenia:</b> Jeśli dwa urządzenia mają ten sam adres IP lub kamera ma adres z innej podsieci niż Twój komputer/router, połączenie będzie niestabilne lub niemożliwe. Użyj narzędzia <i>ConfigTool</i> w sieci lokalnej, aby podejrzeć rzeczywisty adres IP i podsieć.</li>
+                        <li><b>P2P Offline (brak podglądu zdalnego):</b> Sprawdź, czy rejestrator/kamera ma dostęp do internetu, poprawnie wpisaną <b>Bramę domyślną</b> oraz <b>DNS</b> (np. <code>1.1.1.1</code> lub <code>8.8.8.8</code>), a status P2P widnieje jako <i>Online</i>. Zweryfikuj też, czy router lub sieć nie blokuje połączeń wychodzących.</li>
+                    </ul>
+
+                    <p style="margin-bottom: 6px;"><b>Obraz, noc, optyka i zakłócenia:</b></p>
+                    <ul style="padding-left: 18px; margin-top: 0;">
+                        <li><b>Brak obrazu w nocy / „mleko” lub oślepienie (IR glare):</b> Przyczyną bywa pajęczyna tuż przed obiektywem, zabrudzona soczewka/szyba, deszcz, mgła, odbicie podczerwieni od bliskiej ściany/rynny, a także niesprawny oświetlacz IR lub zacięty filtr mechaniczny ICR.</li>
+                        <li><b>Nienaturalne kolory w dzień (np. różowy/fioletowy odcień):</b> Często oznacza, że filtr podczerwieni ICR nie odsunął się prawidłowo z toru optycznego po przejściu z trybu nocnego na dzienny.</li>
+                        <li><b>Rozmazany ruch (motion blur / ghosting):</b> Zbyt długi czas migawki (szczególnie w nocy w trybie <i>Auto</i>) sprawia, że idąca osoba lub jadące auto zostawiają smugę. Sprawdź ustawienia migawki i oświetlenia.</li>
+                        <li><b>Migotanie / pasy na obrazie:</b> Sprawdź ustawienie częstotliwości zasilania sieciowego / oświetlenia (np. <b>50 Hz</b> w Polsce vs 60 Hz) oraz upewnij się, że w pobliżu nie ma silnych zakłóceń elektromagnetycznych lub problemów z masą/zasilaniem.</li>
+                    </ul>
+
+                    <p style="margin-bottom: 6px;"><b>Nagrania, dyski HDD, karty SD i powiadomienia:</b></p>
+                    <ul style="padding-left: 18px; margin-top: 0;">
+                        <li><b>Brak nagrań mimo podglądu na żywo:</b> Sprawdź harmonogram nagrywania (czy dni/godziny nie są puste), status i kondycję dysku HDD lub karty microSD, włączenie nadpisywania oraz dostępność wolnego miejsca/pasmo zapisu.</li>
+                        <li><b>Brak powiadomień push w DMSS:</b> Sprawdź, czy powiadomienia są włączone w samej aplikacji DMSS (np. przy urządzeniu w ustawieniach powiadomień/subskrypcji), czy reguła zdarzenia działa i generuje alerty oraz czy system telefonu nie usypia aplikacji w tle (uprawnienia powiadomień i oszczędzanie baterii).</li>
+                    </ul>
+
+                    <div class="warn-box">
+                        <b>⚠️ Zanim zrobisz twardy reset (przycisk Reset na płycie):</b><br>
+                        Najpierw sprawdź <i>ConfigToolem</i>, czy kamera nie zmieniła adresu IP, nie ma konfliktu IP albo czy nie jest tylko odpięta od sieci/zasilania. Twardy reset kasuje konfigurację sieciową, ustawienia oraz hasło i przywraca ustawienia fabryczne (w wielu modelach np. <code>192.168.1.108</code> po przytrzymaniu przycisku reset zwykle przez <b>10–15 sekund na włączonym zasilaniu</b>, aż zareagują diody/IR). Zrób go świadomie, mając pewność, że wiesz, jak ponownie zainicjować i skonfigurować urządzenie — a przy utracie hasła bez fizycznego dostępu lub przy urządzeniach zablokowanych kontem sprawdź oficjalne procedury producenta.
+                    </div>
+
+                    <div class="pro-box">
+                        <b>Metodyka serwisowa i testy izolacyjne (PRO):</b><br>
+                        - <b>Test zamiany miejscami (izolacja usterki):</b> Gdy kamera nie działa, przepnij ją krótkim, pewnym patchcordem bezpośrednio do switcha/NVR przy rejestratorze i zasilaniu. Jeśli wtedy rusza — winny jest długi kabel, złącze RJ45, puszka, spadek napięcia lub konkretny port.<br>
+                        - <b>Kontrola temperatur i zasilania pod obciążeniem:</b> Wiele usterek ujawnia się dopiero w szczycie obciążenia (np. upał, pełna moc IR/LED w nocy, zapis wielu strumieni). Weryfikuj spadki napięcia przy włączonym IR oraz temperaturę dysku w <i>S.M.A.R.T.</i> (najlepiej poniżej ok. <b>45°C</b>).<br>
+                        - <b>Logi systemowe i S.M.A.R.T.:</b> Zaglądaj do logów rejestratora/kamery (rozłączenia, błędy dysku, logowania, utrata sygnału wideo) oraz atrybutów <i>S.M.A.R.T.</i> dysku — pozwalają odróżnić jednorazowy zanik łącza od postępującej awarii sprzętu.<br>
+                        - <b>Porządek po serwisie:</b> Po każdej zmianie IP, hasła, harmonogramu, dysku lub firmware'u przetestuj nie tylko podgląd na żywo, ale też <b>odtwarzanie zapisu z archiwum</b>, <b>P2P</b> i <b>powiadomienia push</b>.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 9. BEZPIECZEŃSTWO I PRYWATNOŚĆ -->
+        <div class="accordion">
+            <div class="acc-header" onclick="toggleAcc(this)">9. BEZPIECZEŃSTWO CYBERNETYCZNE I PRAWO <span>+</span></div>
+            <div class="acc-content">
+                <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                    <p style="margin-top: 0;"><b>Podstawy bezpieczeństwa:</b> Kamery i rejestratory to urządzenia sieciowe pracujące 24/7. Dobre zabezpieczenie chroni zarówno przed nieautoryzowanym podglądem czy przejęciem sprzętu, jak i przed problemami prawnymi związanymi z nagrywaniem cudzej przestrzeni lub danych osobowych.</p>
+
+                    <p style="margin-bottom: 6px;"><b>Konta, hasła i higiena urządzenia:</b></p>
+                    <ul style="padding-left: 18px; margin-top: 0;">
+                        <li><b>Silne, unikalne hasła:</b> Używaj długich, unikalnych haseł (np. min. 8–12+ znaków, kombinacja wielkich i małych liter, cyfr oraz znaków specjalnych) i nigdy nie powielaj ich w innych usługach.</li>
+                        <li><b>Zasada najmniejszych uprawnień:</b> Nie dawaj wszystkim konta administratora. Twórz osobne konta dla domowników, operatorów czy pracowników — z uprawnieniami wyłącznie do podglądu na żywo (i ewentualnie odtwarzania, jeśli to potrzebne), bez prawa do kasowania dysku, zmiany ustawień sieciowych czy zarządzania użytkownikami.</li>
+                        <li><b>Aktualizacje i kontrola logów:</b> Śledź komunikaty o aktualizacjach firmware'u dla swojego modelu i okresowo sprawdzaj logi (nieudane logowania, zmiany konfiguracji, rozłączenia).</li>
+                    </ul>
+
+                    <p style="margin-bottom: 6px;"><b>Prawo, RODO i prywatność (ujęcie praktyczne):</b></p>
+                    <ul style="padding-left: 18px; margin-top: 0;">
+                        <li><b>Zakres kadru na posesji prywatnej:</b> Kamery powinny obejmować przede wszystkim Twój teren, a nie przestrzeń publiczną (ulicę, chodnik) ani posesję czy okna sąsiadów. Tam, gdzie nie da się uniknąć krawędzi cudzego terenu, stosuj odpowiednie kadrowanie i <i>Privacy Mask</i>.</li>
+                        <li><b>Informowanie o monitoringu:</b> W firmach, lokalach usługowych i miejscach, gdzie rejestruje się wizerunek osób (w tym pracowników czy klientów), stosuje się odpowiednie oznaczenia informacyjne oraz zasady przetwarzania danych (RODO) i retencji nagrań.</li>
+                        <li><b>Ostrożność przy udostępnianiu nagrań:</b> Nagrania z monitoringów udostępniaj wyłącznie uprawnionym podmiotom lub zgodnie z właściwymi procedurami — unikaj publikowania cudzego wizerunku w sieci. <i>(Uwaga: poniższe wskazówki mają charakter praktyczno-techniczny, a nie porady prawnej.)</i></li>
+                    </ul>
+
+                    <div class="pro-box">
+                        <b>Hardening systemu CCTV i architektura sieci (PRO):</b><br>
+                        - <b>Zakaz pochopnego przekierowania portów (Port Forwarding):</b> Nie wystawiaj portów zarządzania, strumieniowania ani portów usługowych rejestratora czy kamer bezpośrednio do internetu bez warstwy zabezpieczającej (np. VPN). Automatyczne skanery w sieci stale szukają podatnych urządzeń i słabych haseł.<br>
+                        - <b>Segmentacja / VLAN:</b> Wydziel kamery i rejestrator do osobnej sieci/VLAN-u, odizolowanego od komputerów, laptopów czy urządzeń biurowych/domowych, z kontrolą reguł firewalla między strefami.<br>
+                        - <b>Ograniczenie dostępu kamer do internetu (WAN):</b> Kamery IP zazwyczaj nie potrzebują bezpośredniego dostępu do internetu — zablokowanie im ruchu wychodzącego do WAN na poziomie routera/firewalla zmniejsza powierzchnię ataku, podczas gdy niezbędną łączność może realizować rejestrator (np. pod kątem P2P, powiadomień czy synchronizacji czasu NTP).<br>
+                        - <b>Wyłączanie zbędnych usług i synchronizacja czasu (NTP):</b> Wyłączaj nieużywane usługi/porty (np. niepotrzebne protokoły sieciowe czy automatyczne przekierowania typu UPnP na routerze, jeśli nie są świadomie kontrolowane) i zadbaj o poprawny czas systemowy (NTP) — spójny czas jest kluczowy w logach zdarzeń oraz przy analizie nagrań.<br>
+                        - <b>Bezpieczne udostępnianie zdalne:</b> Jeśli potrzebujesz dostępu spoza sieci lokalnej, preferuj rozwiązania takie jak VPN lub mechanizmy producenta oparte na uwierzytelnianiu i szyfrowaniu, zamiast otwierania „na surowo” portów urządzenia w sieci publicznej.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 10. KONSERWACJA I PROCEDURY -->
+        <div class="accordion">
+            <div class="acc-header" onclick="toggleAcc(this)">10. KONSERWACJA I PROCEDURY SERWISOWE <span>+</span></div>
+            <div class="acc-content">
+                <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                    <p style="margin-top: 0;"><b>Podstawy:</b> Monitoring pracuje 24/7, często na zewnątrz, w kurzu, wilgoci, upale i mrozie. Regularny przegląd oraz jasne procedury serwisowe pozwalają wykryć drobne usterki zanim doprowadzą do utraty nagrań lub awarii krytycznego węzła.</p>
+
+                    <p style="margin-bottom: 6px;"><b>Okresowy przegląd instalacji (zwykle co 6–12 miesięcy, w trudnych warunkach częściej):</b></p>
+                    <ol style="padding-left: 18px; margin-top: 0;">
+                        <li><b>Czyszczenie optyki, obudów i otoczenia:</b> Przetrzyj szybkę obiektywu miękką mikrofibrą (bez agresywnej chemii, która mogłaby uszkodzić powłoki) i usuń pajęczyny wokół obudowy oraz w pobliżu diod IR/LED — pająki i owady często lgną do ciepła i światła w nocy, powodując fałszywe alarmy lub odbicia (<i>IR glare</i>). Sprawdź też, czy gałęzie/krzewy nie weszły w kadr i czy puszki oraz dławnice są szczelne.</li>
+                        <li><b>Weryfikacja zapisu, odtwarzania i eksportu:</b> Odtwórz losowe nagranie sprzed kilku dni (zarówno z dnia, jak i z nocy) oraz przetestuj eksport fragmentu (np. na pendrive lub dysk USB) — nie ufaj samej ikonie nagrywania na ekranie, bo podgląd na żywo może działać mimo błędu zapisu.</li>
+                        <li><b>Kontrola zasilania, UPS i chłodzenia:</b> Przetestuj podtrzymanie zasilacza awaryjnego UPS (np. odłączając zasilanie sieciowe na krótki test pod obciążeniem i sprawdzając, czy NVR, router i switch PoE nie restartują się ani nie tracą łączności). Sprawdź stan akumulatorów w UPS, temperaturę i wentylację szafy/miejsca montażu rejestratora i switcha oraz stan złączy (brak śniedzi czy luzów).</li>
+                        <li><b>Sprawdzenie analityki, czasu i podglądu zdalnego:</b> Zweryfikuj, czy zegar w systemie jest poprawny (np. synchronizacja NTP), czy reguły SMD/IVS i powiadomienia push działają zgodnie z oczekiwaniami oraz czy podgląd lokalny i zdalny (P2P / aplikacja / komputer) działa płynnie.</li>
+                        <li><b>Dokumentacja powykonawcza:</b> Zapisz i aktualizuj w notatce/dokumentacji adresy IP urządzeń, maskę/bramę/DNS, przypisanie kamer do portów switcha/kanałów NVR, dane dostępowe/konta, e-mail lub metody odzyskiwania hasła, wersje firmware'u oraz daty przeglądów i wymiany podzespołów.</li>
+                    </ol>
+
+                    <p style="margin-bottom: 6px;"><b>Procedury serwisowe i uruchomieniowe:</b></p>
+                    <ul style="padding-left: 18px; margin-top: 0;">
+                        <li><b>Po pierwszym uruchomieniu / montażu:</b> Przetestuj każdą kamerę w dzień i w nocy, sprawdź kadry i ostrość, zweryfikuj zapis na dysku/SD, skonfiguruj nadpisywanie, przetestuj alerty i przekaż użytkownikowi czytelną dokumentację oraz osobne konto podglądu.</li>
+                        <li><b>Przed większymi zmianami (np. aktualizacja firmware'u, zmiana sieci, wymiana dysku):</b> Wykonaj kopię zapasową konfiguracji (jeśli rejestrator/kamera na to pozwala), zanotuj bieżące ustawienia i upewnij się, że masz fizyczny dostęp do sprzętu oraz pełne dane logowania.</li>
+                        <li><b>Po zaniku zasilania lub awarii:</b> Skontroluj logi zdarzeń, status dysków (w tym <i>S.M.A.R.T.</i>), ciągłość nagrań z okresu awarii oraz działanie <i>ANR</i> (jeśli kamery mają karty SD).</li>
+                    </ul>
+
+                    <div class="pro-box">
+                        <b>Harmonogram utrzymania, S.M.A.R.T., UPS i kopie konfiguracji (PRO):</b><br>
+                        - <b>Rytm kontroli:</b> Raz na kilka tygodni lub w razie potrzeby rzuć okiem na logi, stan dysków i powiadomienia; co <b>6–12 miesięcy</b> wykonaj pełny przegląd fizyczny i test zapisu/eksportu/UPS (w miejscach zapylonych, nadmorskich lub z dużym ruchem owadów warto robić to częściej).<br>
+                        - <b>Kondycja dysków i akumulatorów:</b> Dyski do monitoringu i akumulatory w UPS to elementy eksploatacyjne. W <i>S.M.A.R.T.</i> obserwuj temperaturę (najlepiej <b>&lt;45°C</b>) oraz liczniki błędów/sektorów, a w UPS pamiętaj, że akumulatory po kilku latach (często ok. 2–4 lat w zależności od modelu i temperatury) tracą pojemność i mogą nie utrzymać obciążenia mimo pozornie poprawnego wskaźnika.<br>
+                        - <b>Czas systemowy (NTP):</b> Pilnuj spójnego czasu na kamerach, rejestratorze i sieci — rozjechany zegar utrudnia korelację zdarzeń z innych systemów (np. alarmu czy kontroli dostępu) i osłabia wartość materiału dowodowego.<br>
+                        - <b>Kopia konfiguracji i procedury awaryjne:</b> Trzymaj aktualny eksport konfiguracji rejestratora w bezpiecznym miejscu oraz jasną instrukcję na wypadek awarii (kto jest kontaktem serwisowym, gdzie stoi sprzęt, jak bezpiecznie wyłączyć/zrestartować system i jak zgłosić incydent).
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 11. TABELA DORI I DOBÓR OBIEKTYWÓW -->
+        <div class="accordion">
+            <div class="acc-header" onclick="toggleAcc(this)">11. ZASIĘGI DORI I DOBÓR OBIEKTYWÓW <span>+</span></div>
+            <div class="acc-content">
+                <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                    <p style="margin-top: 0;"><b>Norma EN 62676-4 (DORI):</b> Określa, z jakiej maksymalnej odległości kamera pozwoli rozróżnić szczegóły na podstawie gęstości pikseli na metr (<b>PPM</b> – <i>Pixels Per Meter</i>) w poziomie. Im węższy kąt obiektywu (dłuższa ogniskowa w mm) lub wyższa rozdzielczość, tym dalej sięga dana klasa DORI — ale węższy jest ogólny kadr.</p>
+
+                    <ul style="padding-left: 18px; margin-top: 0;">
+                        <li><b>D – Detection (25 px/m):</b> Wykrycie, że w kadrze porusza się człowiek lub obiekt (dobre do ogólnego alarmu/obecności, za mało na szczegóły).</li>
+                        <li><b>O – Observation (62 px/m):</b> Rozpoznanie szczegółów ubioru, sylwetki i kierunku ruchu.</li>
+                        <li><b>R – Recognition (125 px/m):</b> Rozpoznanie znajomej osoby z dużym prawdopodobieństwem.</li>
+                        <li><b>I – Identification (250 px/m):</b> Pewna identyfikacja nieznanej osoby lub szczegółów kluczowych (np. twarz w kadrze, tablica w odpowiednich warunkach).</li>
+                    </ul>
+
+                    <p style="margin-bottom: 6px;"><b>Orientacyjne zasięgi DORI i kąty widzenia (wartości poglądowe — zależą od matrycy i modelu):</b></p>
+                    <table class="spec-table">
+                        <thead>
+                            <tr>
+                                <th>Obiektyw / Matryca</th>
+                                <th>Kąt (H)</th>
+                                <th>Detekcja</th>
+                                <th>Rozpoznanie</th>
+                                <th>Identyfikacja</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><b>2.8 mm</b> (4 Mpx)</td>
+                                <td>~102°</td>
+                                <td>56 m</td>
+                                <td>11 m</td>
+                                <td>5.6 m</td>
+                            </tr>
+                            <tr>
+                                <td><b>3.6 mm</b> (4 Mpx)</td>
+                                <td>~84°</td>
+                                <td>80 m</td>
+                                <td>16 m</td>
+                                <td>8.0 m</td>
+                            </tr>
+                            <tr>
+                                <td><b>6.0 mm</b> (4 Mpx)</td>
+                                <td>~52°</td>
+                                <td>120 m</td>
+                                <td>24 m</td>
+                                <td>12.0 m</td>
+                            </tr>
+                            <tr>
+                                <td><b>12.0 mm</b> (4 Mpx)</td>
+                                <td>~26°</td>
+                                <td>240 m</td>
+                                <td>48 m</td>
+                                <td>24.0 m</td>
+                            </tr>
+                            <tr>
+                                <td><b>Motozoom 2.7–13.5 mm</b> (4 Mpx)</td>
+                                <td>~105°–29°</td>
+                                <td>~54–270 m</td>
+                                <td>~11–54 m</td>
+                                <td>~5.4–27 m</td>
+                            </tr>
+                            <tr>
+                                <td><b>2.8 mm</b> (8 Mpx / 4K)</td>
+                                <td>~106°</td>
+                                <td>85 m</td>
+                                <td>17 m</td>
+                                <td>8.5 m</td>
+                            </tr>
+                            <tr>
+                                <td><b>6.0 mm</b> (8 Mpx / 4K)</td>
+                                <td>~55°</td>
+                                <td>170 m</td>
+                                <td>34 m</td>
+                                <td>17.0 m</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <p style="margin-bottom: 6px;"><b>Praktyczne zasady doboru obiektywu i kadru:</b></p>
+                    <ul style="padding-left: 18px; margin-top: 0;">
+                        <li><b>Szeroki kadr vs detal:</b> Obiektyw <code>2.8 mm</code> świetnie obejmuje podwórko czy wejście, ale osoba oddalona o kilkanaście metrów będzie mała w pikselach. Do bramy, furtki lub wąskiego przejścia często lepiej sprawdza się dłuższa ogniskowa albo motozoom.</li>
+                        <li><b>Wysokość montażu:</b> Zbyt wysoki montaż (np. 5–6 m i więcej nad furtką/wejściem) daje widok z góry („czubek głowy”) i utrudnia rozpoznanie twarzy — przy wejściach/furtkach zazwyczaj lepiej sprawdza się niższa, rozsądna wysokość (np. ok. 2.5–3.5 m, zależnie od osłony przed manipulacją).</li>
+                        <li><b>Martwa strefa i oślepianie:</b> Pamiętaj, że tuż pod kamerą powstaje martwa strefa, a kierowanie obiektywu prosto w nisko wiszące słońce, jasne okna czy reflektory aut pogarsza czytelność obrazu.</li>
+                    </ul>
+
+                    <div class="pro-box">
+                        <b>Matryca, jasność obiektywu i realia w terenie (PRO):</b><br>
+                        - <b>Rozmiar przetwornika ma znaczenie:</b> Kamera 4 Mpx na dużym przetworniku (np. <b>1/1.8"</b> lub <b>1/1.2"</b>) da w nocy znacznie czystszy i jaśniejszy obraz niż kamera 8 Mpx na małym przetworniku (np. <b>1/2.8"</b>). Większy fizyczny piksel zbiera więcej światła i pozwala uniknąć agresywnego podbijania wzmocnienia (szumu).<br>
+                        - <b>Jasność obiektywu (F1.0 – F1.6):</b> Niższa liczba przysłony (np. <code>F1.0</code> lub <code>F1.2</code>) oznacza więcej światła docierającego do matrycy, co pomaga w słabym oświetleniu i przy trybach kolorowych w nocy.<br>
+                        - <b>Motozoom jako „bezpiecznik” montażowy:</b> Przy zmiennych warunkach lub gdy nie masz 100% pewności co do docelowej odległości przed wierceniem, obiektyw motozoom pozwala precyzyjnie dopasować kadr i ostrość już na gotowej instalacji.<br>
+                        - <b>Tablice rejestracyjne i ruch:</b> Sam zasięg DORI w tabeli to teoria optyczna dla idealnych warunków — przy odczycie tablic czy twarzy w ruchu kluczowe są także kąt patrzenia kamery, czas migawki, brak prześwietlenia od reflektorów/IR oraz odpowiednia gęstość pikseli w docelowym punkcie (warto zweryfikować to w kalkulatorze DORI).
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 12. ŚCIĄGAWKA SIECIOWA DAHUA (PORTY, RTSP, ONVIF) -->
+        <div class="accordion">
+            <div class="acc-header" onclick="toggleAcc(this)">12. PORTY SIECIOWE, RTSP I ONVIF (ŚCIĄGAWKA) <span>+</span></div>
+            <div class="acc-content">
+                <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                    <p style="margin-top: 0;"><b>Domyślne dane dostępowe (przed inicjalizacją):</b><br>
+                    - Fabryczny adres IP: <code>192.168.1.108</code> (maska <code>255.255.255.0</code>)<br>
+                    - Konto główne: <code>admin</code> (hasło ustawiasz przy pierwszej inicjalizacji urządzenia)<br>
+                    - Pamiętaj: jeśli Twój router/komputer działa w innej podsieci (np. <code>192.168.0.x</code> lub <code>10.0.0.x</code>), najwygodniej zmienić adres IP w <i>ConfigTool</i> jeszcze przed wejściem przez przeglądarkę.</p>
+
+                    <p style="margin-bottom: 6px;"><b>Najważniejsze porty i protokoły:</b></p>
+                    <table class="spec-table">
+                        <thead>
+                            <tr>
+                                <th>Port</th>
+                                <th>Protokół</th>
+                                <th>Przeznaczenie</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><b>37777</b></td>
+                                <td>TCP</td>
+                                <td>Główny port komunikacji prywatnej producenta (np. podgląd/zarządzanie, NVR, narzędzia PC)</td>
+                            </tr>
+                            <tr>
+                                <td><b>37778</b></td>
+                                <td>UDP</td>
+                                <td>Transmisja strumieni i komunikacja/wykrywanie w sieci lokalnej</td>
+                            </tr>
+                            <tr>
+                                <td><b>80 / 443</b></td>
+                                <td>TCP</td>
+                                <td>Interfejs WWW (HTTP / HTTPS) oraz obsługa zapytań HTTP / ONVIF</td>
+                            </tr>
+                            <tr>
+                                <td><b>554</b></td>
+                                <td>TCP/UDP</td>
+                                <td>Strumieniowanie wideo i audio w czasie rzeczywistym (RTSP)</td>
+                            </tr>
+                            <tr>
+                                <td><b>37810</b></td>
+                                <td>UDP</td>
+                                <td>Odkrywanie i inicjalizacja urządzeń w sieci lokalnej (np. <i>ConfigTool</i>)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <p style="margin-bottom: 6px;"><b>ONVIF i integracje (np. NVR, Home Assistant, Frigate, VLC):</b></p>
+                    <ul style="padding-left: 18px; margin-top: 0;">
+                        <li><b>ONVIF:</b> Standard ułatwiający dodanie kamery do rejestratora lub systemu zewnętrznego (np. innej marki lub oprogramowania VMS). W razie problemów z połączeniem sprawdź, czy ONVIF jest włączony w ustawieniach kamery oraz czy używasz poprawnego loginu/hasła (w części urządzeń konfiguruje się osobnego użytkownika ONVIF).</li>
+                        <li><b>Sub Stream do podglądu / analizy:</b> Strumień pomocniczy (<code>subtype=1</code>) ma mniejsze wymagania na sieć i CPU niż strumień główny (<code>subtype=0</code>), co bywa przydatne przy podglądzie wielu kamer albo zewnętrznej analizie obrazu.</li>
+                        <li><b>Test połączenia:</b> Zanim podepniesz kamerę do docelowego systemu, warto sprawdzić jej strumień RTSP np. w odtwarzaczu VLC w sieci lokalnej, aby upewnić się, że działa sieć, port <code>554</code> i dane uwierzytelniania.</li>
+                    </ul>
+
+                    <div class="pro-box">
+                        <b>Gotowe adresy URL (RTSP i zrzut JPG) oraz wskazówki PRO:</b><br>
+                        - <b>Strumień główny (Main Stream):</b><br>
+                        <code>rtsp://admin:HASLO@192.168.1.108:554/cam/realmonitor?channel=1&amp;subtype=0</code><br>
+                        - <b>Strumień pomocniczy (Sub Stream):</b><br>
+                        <code>rtsp://admin:HASLO@192.168.1.108:554/cam/realmonitor?channel=1&amp;subtype=1</code><br>
+                        - <b>Pojedyncza klatka JPEG (Snapshot):</b><br>
+                        <code>http://192.168.1.108/cgi-bin/snapshot.cgi?channel=1</code><br>
+                        - <b>Uwierzytelnianie i znaki specjalne w haśle:</b> Przy starszych klientach lub integracjach HTTP/CGI bywa wymagane włączenie <i>HTTP Digest</i> (lub odpowiedniego trybu autoryzacji w urządzeniu). Jeśli hasło zawiera znaki specjalne takie jak <code>@</code>, <code>:</code>, <code>/</code> czy <code>#</code>, w linku RTSP mogą one zaburzać parsowanie adresu — w integracjach bezpieczniej jest używać dedykowanych pól na użytkownika i hasło albo zakodować znaki (URL encoding) lub użyć hasła bez problematycznych znaków.<br>
+                        - <b>Bezpieczeństwo sieciowe:</b> Portów usługowych i strumieni (w tym RTSP/HTTP/portów zarządzania) nie należy wystawiać bezpośrednio do internetu bez warstwy zabezpieczającej (np. VPN) — najlepiej używać ich w zaufanej sieci lokalnej lub wydzielonym VLAN-ie.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 13. ZAAWANSOWANE USTAWIENIA OBRAZU (WDR, HLC, BLC, LPR) -->
+        <div class="accordion">
+            <div class="acc-header" onclick="toggleAcc(this)">13. ZAAWANSOWANA REGULACJA OBRAZU (BLC, HLC, LPR) <span>+</span></div>
+            <div class="acc-content">
+                <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                    <p style="margin-top: 0;"><b>Podstawy:</b> Zaawansowane ustawienia obrazu służą do opanowania trudnych kontrastów i światła w kadrze. Warto zmieniać je celowo pod konkretny problem na scenie — włączenie wszystkiego naraz bez potrzeby często pogarsza ostrość, płynność lub kontrast.</p>
+
+                    <p style="margin-bottom: 6px;"><b>Kiedy używać poszczególnych kompensacji i filtrów:</b></p>
+                    <ul style="padding-left: 18px; margin-top: 0;">
+                        <li><b>WDR (Wide Dynamic Range):</b> Gdy w kadrze jest jednocześnie bardzo jasno i bardzo ciemno (np. kamera we wnętrzu patrzy na przeszklone drzwi wejściowe lub okno w słoneczny dzień). Prawdziwy WDR łączy klatki o różnej ekspozycji, żeby nie tracić detali ani w jasnych, ani w ciemnych partiach.</li>
+                        <li><b>BLC (Backlight Compensation):</b> Rozjaśnia ciemny obiekt na pierwszym planie kosztem prześwietlenia jasnego tła za nim (np. sylwetka przed jasnym tłem, gdy nie używasz WDR lub scena jest statyczna).</li>
+                        <li><b>HLC (Highlight Compensation):</b> Tłumi bardzo silne, punktowe źródła światła w nocy (np. reflektory samochodów, mocne lampy/latarnie), aby nie „zalewały” całej matrycy jasną łuną.</li>
+                        <li><b>2D / 3D DNR (Redukcja szumów):</b> Ogranicza „ziarno” w słabym świetle i w nocy. Zbyt wysoka wartość (np. powyżej ok. 60–70, zależnie od modelu) powoduje rozmycie i efekt „akwareli” na poruszających się obiektach.</li>
+                    </ul>
+
+                    <p style="margin-bottom: 6px;"><b>Praktyka strojenia na scenie:</b></p>
+                    <ul style="padding-left: 18px; margin-top: 0;">
+                        <li><b>Nie mieszaj bez potrzeby WDR, BLC i HLC:</b> Zwykle wybiera się jeden mechanizm dopasowany do problemu na danej scenie i testuje go w dzień oraz w nocy.</li>
+                        <li><b>Sprawdzaj efekt w ruchu:</b> Parametry oceniaj nie tylko na nieruchomym kadrze, ale też podczas przejścia człowieka lub przejazdu auta.</li>
+                    </ul>
+
+                    <div class="pro-box">
+                        <b>Konfiguracja pod tablice rejestracyjne (ANPR / LPR – PRO):</b><br>
+                        Zwykła kamera na ustawieniach automatycznych w nocy często zarejestruje tylko dwie jasne plamy reflektorów i prześwietloną odblaskową tablicę. Aby poprawić czytelność numerów:<br>
+                        1. Wyłącz <b>WDR</b> (i BLC), a włącz <b>HLC</b> (np. na poziomie ok. 50–70, dopasowanym do reflektorów).<br>
+                        2. Ustaw stały, krótki czas migawki (<b>Shutter</b>: np. <b>1/500s – 1/1000s</b> lub krótszy przy szybszym ruchu), aby zamrozić jadący pojazd.<br>
+                        3. Ogranicz wzmocnienie (<b>Gain</b>: np. max <b>30–40</b>, zależnie od modelu i oświetlenia). Tło wokół auta stanie się ciemniejsze lub niemal czarne, ale sama tablica (wsparta odpowiednim IR/oświetleniem i brakiem prześwietlenia) będzie znacznie czytelniejsza.<br>
+                        4. Pilnuj geometrii: kąt montażu kamery względem osi jazdy powinien być możliwie mały (zwykle nie więcej niż ok. <b>25°–30°</b> w poziomie i pionie), a sama tablica musi mieć odpowiednią szerokość w pikselach i stabilny kadr.<br>
+                        5. Wskazówka: do ciągłego, niezawodnego odczytu tablic (szczególnie w trudnych warunkach lub przy większych prędkościach) lepiej stosować dedykowane kamery lub rozwiązania ANPR/LPR niż przypadkową kamerę przeglądową.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 14. OKABLOWANIE CCTV: ePoE, HDCVI I ZASILANIE -->
+        <div class="accordion">
+            <div class="acc-header" onclick="toggleAcc(this)">14. OKABLOWANIE CCTV: ePoE, BALUNY I ZASILANIE <span>+</span></div>
+            <div class="acc-content">
+                <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                    <p style="margin-top: 0;"><b>Przesył powyżej 100 metrów (Systemy IP):</b><br>
+                    Standardowy Ethernet kończy się na 100 m. W systemach Dahua masz kilka sprawdzonych rozwiązań na dłuższe odcinki:</p>
+                    <ul style="padding-left: 18px; margin-top: 0;">
+                        <li><b>ePoE / Long Distance PoE:</b> Wybrane switche i rejestratory Dahua pozwalają zasilić kamerę i przesłać obraz po zwykłej skrętce Cat 5e/6 na odległość <b>do 300 m (100 Mb/s)</b> lub <b>do 800 m (10 Mb/s)</b> — pamiętaj jednak o konieczności obsługi ePoE po stronie nadajnika i odbiornika oraz dopasowaniu parametrów strumienia do niższego pasma na bardzo długich dystansach.</li>
+                        <li><b>Extender PoE (wzmacniacz):</b> Przelotowy moduł zasilany z samego PoE, montowany po drodze (np. ok. 80–90 m), wydłużający zasięg o kolejny odcinek. Zwracaj uwagę na zapas mocy PoE i unikanie zbyt wielu przeskoków na jednej gałęzi.</li>
+                        <li><b>Światłowód + Media Konwertery:</b> Najpewniejsze rozwiązanie na duże odległości oraz między osobnymi budynkami — zapewnia pełną izolację galwaniczną i brak bezpośredniego przenoszenia przepięć po miedzi między obiektami.</li>
+                    </ul>
+
+                    <p style="margin-bottom: 6px;"><b>Dobór przewodów i zabezpieczenie złączy:</b></p>
+                    <ul style="padding-left: 18px; margin-top: 0;">
+                        <li><b>Skrętka miedziana (Cu):</b> Do kamer IP stosuj przewody z pełnej miedzi (<i>Cat5e</i> lub <i>Cat6</i>), unikając kabli <b>CCA</b> (aluminium pokryte miedzią), które mają wyższą rezystancję, gorzej znoszą PoE i są bardziej kruche.</li>
+                        <li><b>Przewód zasilający 12V (np. 2× 0,75 mm²):</b> Gdy prowadzisz osobne zasilanie 12V DC, dobieraj przekrój do długości trasy i poboru kamery (w tym w nocy przy włączonym IR/LED), aby uniknąć zbyt dużego spadku napięcia.</li>
+                        <li><b>Szczelność w puszkach:</b> Wtyki RJ45, baluny i złącza zasilania umieszczaj w puszkach montażowych/hermetycznych, z zachowaniem pętli ociekowej — wilgoć i śniedź na stykach to jedna z najczęstszych przyczyn awarii w terenie.</li>
+                    </ul>
+
+                    <div class="pro-box">
+                        <b>Systemy HDCVI po skrętce (Transformatory wideo / Baluny) i 12V DC (PRO):</b><br>
+                        Kamery analogowe HD (HDCVI / AHD / TVI) można podłączyć skrętką UTP zamiast kabla koncentrycznego przy użyciu pary transformatorów dopasowujących impedancję (<b>75&Omega;</b> na <b>100&Omega;</b>).<br>
+                        - <b>Zasada parowania:</b> Do sygnału wideo użyj jednej skręconej pary (np. pomarańczowa + biało-pomarańczowa). Pozostałe skręcone pary możesz wykorzystać np. do zasilania <b>12V DC</b> lub innych sygnałów niskonapięciowych.<br>
+                        - <b>Spadki napięcia przy 12V DC:</b> Przy niskim napięciu 12V na dłuższym przewodzie (często już od ok. 30–40 m, zależnie od przekroju i prądu) spadek napięcia potrafi być odczuwalny — szczególnie w nocy, gdy włącza się podświetlenie IR lub LED i rośnie pobór mocy (kamera może wtedy tracić zasilanie lub restartować się w pętli).<br>
+                        - <b>Rozwiązania przy 12V DC:</b> Na dłuższych odcinkach łącz po dwie żyły na plus i dwie na minus (zmniejszając rezystancję pętli), stosuj grubszy przewód zasilający, zasilacz z regulacją napięcia (np. podkręcony na ok. 13.5–14V, jeśli dopuszcza to sprzęt i długość trasy) albo przesył PoE z konwerterem PoE -&gt; 12V przy kamerze.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 15. KODY BŁĘDÓW I ODZYSKIWANIE DOSTĘPU -->
+        <div class="accordion">
+            <div class="acc-header" onclick="toggleAcc(this)">15. BŁĘDY NVR I RESETOWANIE HASŁA DAHUA <span>+</span></div>
+            <div class="acc-content">
+                <div style="font-size: 0.85rem; line-height: 1.5; color: #333;">
+                    <p style="margin-top: 0;"><b>Najczęstsze komunikaty błędów na liście kamer w NVR:</b></p>
+                    <ul style="padding-left: 18px; margin-top: 0;">
+                        <li><b>Nieprawidłowa nazwa użytkownika lub hasło:</b> Hasło kamery różni się od hasła rejestratora (częste, gdy kamera była inicjowana osobno przed podpięciem do NVR albo zmieniono hasło bezpośrednio w kamerze). Kliknij ikonę edycji (ołówka) przy kamerze na liście w NVR i wpisz jej aktualne hasło.</li>
+                        <li><b>Użytkownik zablokowany (Account Locked):</b> Zbyt wiele nieudanych prób logowania (zwykle kilka prób z rzędu). Blokada mija zazwyczaj po określonym czasie (np. kilkunastu–30 minutach, zależnie od ustawień/modelu) lub po ponownym uruchomieniu urządzenia — uwaga: jeśli w tle inne urządzenie (np. NVR, SmartPSS, skrypt) nadal wysyła złe hasło, blokada będzie wracać!</li>
+                        <li><b>Nie można połączyć z hostem sieciowym / Brak połączenia sieciowego:</b> Kamera i port/sieć NVR są w innych podsieciach IP (np. kamera ma <code>192.168.1.108</code>, a sieć/NVR działa w innej podsieci), występuje konflikt IP, przerwa na kablu, zły port lub wyłączony/niezgodny protokół.</li>
+                        <li><b>Zasoby są ograniczone / Brak dekodowania:</b> Rejestrator nie wyrabia z jednoczesnym dekodowaniem wielu strumieni wysokiej rozdzielczości na wyjściu lokalnym (np. podgląd siatki wielu kamer w strumieniu głównym 4K na monitorze HDMI). Przełącz podgląd na <i>Strumień pomocniczy (Sub Stream)</i> lub zmniejsz liczbę jednoczesnych okien w siatce.</li>
+                        <li><b>Przekroczone pasmo / limity kanałów:</b> Zbyt wysoki łączny bitrate kamer (np. wysokie rozdzielczości, dużo FPS, brak Smart H.265+) może zbliżać się do limitu pasma wejściowego/zapisu NVR, co objawia się zrywaniem obrazu lub problemami z dodaniem kolejnej kamery.</li>
+                    </ul>
+
+                    <div class="warn-box">
+                        <b>🔑 Procedura resetu zapomnianego hasła (bez przycisku Reset):</b><br>
+                        1. Na ekranie logowania NVR lub kamery kliknij opcję odzyskiwania/resetu hasła (np. <b>„Zapomniałeś hasła?”</b>).<br>
+                        2. Zeskanuj wyświetlony <b>kod QR</b> w aplikacji mobilnej <b>DMSS</b> (np. w sekcji narzędzi / resetowania hasła urządzenia) i postępuj zgodnie z instrukcją w aplikacji.<br>
+                        3. Kod zabezpieczający / weryfikacja kierowana jest na kanał odzyskiwania skonfigurowany podczas inicjalizacji (np. adres e-mail — pamiętaj o limicie czasu ważności kodu).<br>
+                        4. Jeśli e-mail/metoda odzyskiwania nie była skonfigurowana lub nie działa, wygeneruj w <i>ConfigTool</i> plik XML z urządzenia i przekaż go do autoryzowanego wsparcia technicznego/dystrybutora w celu wygenerowania pliku resetującego — taki plik ma ograniczony czas ważności (często ok. 24h) i przestaje działać po restarcie urządzenia, dlatego należy go użyć na tym samym stanie zasilania i w terminie jego ważności.
+                    </div>
+
+                    <div class="pro-box">
+                        <b>Diagnostyka błędów logowania, limitów NVR i higieny haseł (PRO):</b><br>
+                        - <b>Szukaj „cichego sprawcy” blokady konta:</b> Gdy konto na kamerze lub NVR ciągle się blokuje, zanim zaczniesz resetować hasło, sprawdź wszystkie miejsca, które mogą logować się automatycznie (rejestrator, SmartPSS, DMSS, integracje RTSP/ONVIF) — jedno zapomniane urządzenie ze starym hasłem potrafi w kółko blokować konto.<br>
+                        - <b>Ujednolicanie i dokumentowanie haseł:</b> Przy większej liczbie kamer pilnuj spójnej polityki inicjalizacji i na bieżąco aktualizuj zapisane dane w notatce/dokumentacji po każdej zmianie hasła — oszczędza to sporo czasu przy serwisie.<br>
+                        - <b>Rozdzielenie dekodowania lokalnego od nagrywania:</b> To, że rejestrator nie dekoduje wszystkich kamer w 4K na żywo na monitorze HDMI, nie musi oznaczać, że nie nagrywa ich poprawnie na dysk — zawsze zweryfikuj zarówno podgląd na żywo, jak i zapis w archiwum.<br>
+                        - <b>Konto chmurowe a reset hasła:</b> Reset hasła lokalnego przywraca dostęp do logowania do urządzenia, ale jeśli rejestrator był wcześniej powiązany z konkretnym kontem w chmurze, przy zmianie właściciela lub przenoszeniu sprzętu pamiętaj też o właściwym odpięciu/udostępnieniu urządzenia zgodnie z procedurą aplikacji.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KONTENER NA WŁASNE AKORDEONY -->
+        <div id="custom-accordions-list"></div>
+
+        <!-- PRZYCISK DODAWANIA -->
+        <button id="btn-show-form" class="btn-add-acc" onclick="otworzFormularzAcc()">＋ Dodaj własną notatkę / obiekt</button>
+
+        <!-- FORMULARZ DODAWANIA / EDYCJI -->
+        <div id="custom-acc-form" class="custom-form-card">
+            <h3 id="form-acc-title" style="margin-top:0; font-size: 1rem;">Nowa notatka</h3>
+            <input type="hidden" id="edit-acc-index" value="-1">
+
+            <label style="font-weight:bold; font-size:0.85rem;">Tytuł na pasku:</label>
+            <input type="text" id="acc-title-input" placeholder="np. Obiekt Firma X – IP, hasła, porty...">
+
+            <label style="font-weight:bold; font-size:0.85rem;">Treść notatki:</label>
+            <textarea id="acc-body-input" rows="5" placeholder="Wpisz dane konfiguracji, adresy kamer..."></textarea>
+
+            <div style="display:flex; gap:8px;">
+                <button onclick="zapiszCustomAcc()" style="flex:1; padding:10px; background:#2e7d32; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">Zapisz</button>
+                <button onclick="zamknijFormularzAcc()" style="flex:1; padding:10px; background:#7f8c8d; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">Anuluj</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="monitoring.js"></script>
 </body>
 </html>

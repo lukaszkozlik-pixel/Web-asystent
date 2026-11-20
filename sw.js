@@ -1,4 +1,4 @@
-const CACHE_NAME = 'Web-aystent-v3.2.4';
+const CACHE_NAME = 'Web-aystent-v3.2.5';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -6,24 +6,17 @@ const ASSETS_TO_CACHE = [
   './app.js',
   './manifest.json',
   './tools-src/nadajniki.html',
-  './tools-src/bibliotekaDVBT.html',
+  './tools-src/dvbt.js',
   './tools-src/satelity.html',
-  './tools-src/bibliotekaSAT.html',
+  './tools-src/sat.js',
   './tools-src/Jednostki.html',
+  './tools-src/jednostki.js',
   './tools-src/internet.html',
+  './tools-src/internet.js',
   './tools-src/monitoring.html',
-  './tools-src/kalkulator-cctv.html',
-  './tools-src/kalkulator-cctv.js',
+  './tools-src/monitoring.js',
   
-  './tools-src/docs/czestotliwosciDVBT.html',
-  './tools-src/docs/kolorySat.html',
-  './tools-src/docs/KonstelacjaDVbt2.html',
-  './tools-src/docs/KonstelacjaSat.html',
-  './tools-src/docs/muxy.html',
-  './tools-src/docs/Parametry-DVB-t.html',
-  './tools-src/docs/ParametrySAT.html',
-  './tools-src/docs/UnicablePB.html',
-  './tools-src/docs/NC_PLUS_RESET.html'
+
 ];
 
 self.addEventListener('install', (event) => {

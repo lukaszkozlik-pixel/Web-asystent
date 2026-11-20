@@ -1,25 +1,70 @@
+const STORAGE_KEY = 'wlasne_acc_monitoring';
+let customAccs = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
 document.addEventListener("DOMContentLoaded", () => {
     calcHDD();
     switchPowerMode();
     calcDORI();
+    renderujCustomAccs();
 });
+
+/* --- PRZEŁĄCZANIE ZAKŁADEK GŁÓWNYCH --- */
+function switchMainMonitoringTab(tabName, btn) {
+    const targetPanel = document.getElementById('tab-' + tabName);
+    if (!targetPanel) return;
+
+    document.querySelectorAll('.main-tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+
+    if (btn) btn.classList.add('active');
+    targetPanel.classList.add('active');
+}
 
 /* --- PRZEŁĄCZANIE ZAKŁADEK KALKULATORA --- */
 function switchCalcTab(tabName, btn) {
+    const targetPanel = document.getElementById('tab-' + tabName);
+    if (!targetPanel) return;
+
     document.querySelectorAll('.calc-tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.calc-panel').forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('tab-' + tabName).classList.add('active');
+
+    if (btn) btn.classList.add('active');
+    targetPanel.classList.add('active');
+}
+
+/* --- AKORDEONY BAZY WIEDZY I NOTATEK --- */
+function toggleAcc(header) {
+    const content = header.nextElementSibling;
+    if (!content || !content.classList.contains('acc-content')) return;
+    const span = header.querySelector('.acc-icon') || header.querySelector('span');
+    const parentPanel = header.closest('.view-panel') || document;
+
+    const isOpening = !content.classList.contains('show');
+
+    parentPanel.querySelectorAll('.acc-header').forEach(h => {
+        const c = h.nextElementSibling;
+        const s = h.querySelector('.acc-icon') || h.querySelector('span');
+        if (c && c.classList.contains('acc-content')) {
+            c.classList.remove('show');
+            if (s) s.innerText = '+';
+        }
+    });
+
+    if (isOpening) {
+        content.classList.add('show');
+        if (span) span.innerText = '−';
+    }
 }
 
 /* --- 1. KALKULATOR HDD --- */
 function toggleCustomBitrate() {
     const codec = document.getElementById('camCodec').value;
-    document.getElementById('customBitrateWrap').style.display = (codec === 'custom') ? 'block' : 'none';
+    const isCustom = (codec === 'custom');
+    document.getElementById('customBitrateWrap').style.display = isCustom ? 'block' : 'none';
+    document.getElementById('camFps').disabled = isCustom;
 }
 
-function getBitrateKbps(mpx, codec) {
-    // Typowy średni bitrate [kb/s] dla kamery w zależności od rozdzielczości i kodeka
+function getBitrateKbps(mpx, codec, fps) {
     const matrix = {
         "2": { smart265: 1024, h265: 2048, h264: 4096 },
         "4": { smart265: 2048, h265: 4096, h264: 6144 },
@@ -27,21 +72,36 @@ function getBitrateKbps(mpx, codec) {
         "6": { smart265: 3072, h265: 5120, h264: 8192 },
         "8": { smart265: 4096, h265: 6144, h264: 8192 }
     };
+
+    const fpsFactor = {
+        "30": 1.15,
+        "25": 1.00,
+        "20": 0.85,
+        "15": 0.70,
+        "12": 0.60,
+        "10": 0.53,
+        "6":  0.40
+    };
+
     const row = matrix[String(mpx)] || matrix["4"];
-    return row[codec] || 4096;
+    const baseKbps = row[codec] || 4096;
+    const mult = fpsFactor[String(fps)] || 1.0;
+
+    return Math.round(baseKbps * mult);
 }
 
 function calcHDD() {
-    const cams = parseInt(document.getElementById('camCount').value) || 0;
-    const days = parseInt(document.getElementById('recDays').value) || 0;
+    const cams = parseInt(document.getElementById('camCount').value, 10) || 0;
+    const days = parseInt(document.getElementById('recDays').value, 10) || 0;
     const mpx = document.getElementById('camMpx').value;
     const codec = document.getElementById('camCodec').value;
+    const fps = parseInt(document.getElementById('camFps').value, 10) || 25;
     const duty = parseFloat(document.getElementById('recDuty').value) || 1.0;
-    const bays = parseInt(document.getElementById('hddBays').value) || 1;
-    
-    const kbps = (codec === 'custom') 
-        ? (parseInt(document.getElementById('customBitrateVal').value) || 0) 
-        : getBitrateKbps(mpx, codec);
+    const bays = parseInt(document.getElementById('hddBays').value, 10) || 1;
+
+    const kbps = (codec === 'custom')
+        ? (parseInt(document.getElementById('customBitrateVal').value, 10) || 0)
+        : getBitrateKbps(mpx, codec, fps);
 
     const alertBox = document.getElementById('hddAlert');
 
@@ -56,26 +116,16 @@ function calcHDD() {
     }
 
     const totalMbps = (cams * kbps) / 1024;
-    // Uwaga: przelicznik bitów na bajty (1000^3 lub 1024^3) – tutaj używamy spójnego przelicznika jednostek binarnych (GiB/TiB)
     const gbPerDay = ((totalMbps / 8) * 86400 / 1024) * duty;
     const totalTB = (gbPerDay * days) / 1024;
 
     const sizes = [1, 2, 3, 4, 6, 8, 10, 12, 14, 16, 18, 20];
 
-    // Najmniejsza pojemność pojedynczego dysku, która w wybranej liczbie zatok pokryje wymagane TB (z uwzględnieniem ~91% po formacie)
     const perBayRequired = totalTB / bays;
     const singleDriveSize = sizes.find(s => s * 0.91 >= perBayRequired) || Math.ceil(perBayRequired / 0.91);
 
-    // Sprawdzenie, czy nie ma lepszego wariantu mieszanego (np. 1 lub 2 większe dyski zamiast powielania nadmiaru w 4 zatokach)
-    let recLabel = `${bays}× ${singleDriveSize} TB`;
-    let totalNominalTB = singleDriveSize * bays;
-
-    if (bays > 1) {
-        // Szukamy najmniejszej łącznej pojemności nominalnej przy użyciu do `bays` dysków (w praktyce w NVR stosuje się równe dyski, ale warto pokazać równe sztuki)
-        recLabel = `${bays}× ${singleDriveSize} TB`;
-    } else {
-        recLabel = `1× ${singleDriveSize} TB`;
-    }
+    const totalNominalTB = singleDriveSize * bays;
+    const recLabel = bays > 1 ? `${bays}× ${singleDriveSize} TB` : `1× ${singleDriveSize} TB`;
 
     const usableTB = totalNominalTB * 0.91;
     const realDays = (usableTB * 1024) / gbPerDay;
@@ -86,7 +136,6 @@ function calcHDD() {
     document.getElementById('realDays').innerText = `~${realDays.toFixed(1)} dni`;
     document.getElementById('usableSpace').innerText = `${usableTB.toFixed(2)} TB (z ${totalNominalTB} TB)`;
 
-    // Komunikaty ostrzegawcze i wyjaśniające podział na zatoki
     let alerts = [];
 
     if (bays > 1 && singleDriveSize === 1 && totalTB < 1.8) {
@@ -114,7 +163,7 @@ function calcHDD() {
     }
 }
 
-/* --- 2. ZASILANIE: WSPÓLNY WYBÓR PoE LUB 12V DC (2x0.75 / UTP) --- */
+/* --- 2. ZASILANIE: PoE LUB 12V DC --- */
 function switchPowerMode() {
     const mode = document.getElementById('powerMode').value;
     const poeBox = document.getElementById('powerModePoe');
@@ -137,10 +186,10 @@ function toggleCustomWatt() {
 }
 
 function calcPoE() {
-    const cams = parseInt(document.getElementById('poeCamCount').value) || 0;
+    const cams = parseInt(document.getElementById('poeCamCount').value, 10) || 0;
     const selWatt = document.getElementById('poeCamType').value;
-    const wattPerCam = (selWatt === 'custom') 
-        ? (parseFloat(document.getElementById('customWattVal').value) || 0) 
+    const wattPerCam = (selWatt === 'custom')
+        ? (parseFloat(document.getElementById('customWattVal').value) || 0)
         : (parseFloat(selWatt) || 0);
     const cableLen = parseFloat(document.getElementById('poeCableLen').value) || 0;
     const alertBox = document.getElementById('poeAlert');
@@ -192,7 +241,7 @@ function calcDC() {
     const wireType = document.getElementById('dcWireType').value;
     const cableLen = parseFloat(document.getElementById('dcCableLen').value) || 0;
     const wattPerCam = parseFloat(document.getElementById('dcCamWatt').value) || 0;
-    const cams = parseInt(document.getElementById('dcCamCount').value) || 1;
+    const cams = parseInt(document.getElementById('dcCamCount').value, 10) || 1;
     const alertBox = document.getElementById('dcAlert');
 
     if (cableLen <= 0 || wattPerCam <= 0) return;
@@ -243,11 +292,11 @@ function toggleCustomLens() {
 }
 
 function calcDORI() {
-    const horizPx = parseInt(document.getElementById('doriRes').value) || 2688;
+    const horizPx = parseInt(document.getElementById('doriRes').value, 10) || 2688;
     const sensorWidthMm = parseFloat(document.getElementById('doriSensor').value) || 5.57;
     const selLens = document.getElementById('doriLens').value;
-    const focalMm = (selLens === 'custom') 
-        ? (parseFloat(document.getElementById('customLensVal').value) || 2.8) 
+    const focalMm = (selLens === 'custom')
+        ? (parseFloat(document.getElementById('customLensVal').value) || 2.8)
         : (parseFloat(selLens) || 2.8);
     const distM = parseFloat(document.getElementById('doriDist').value) || 1;
     const alertBox = document.getElementById('doriAlert');
@@ -294,4 +343,92 @@ function calcDORI() {
     document.getElementById('doriPpm').innerText = `${Math.round(ppm)} px/m`;
     document.getElementById('doriMaxRec').innerText = `${maxRecM.toFixed(1)} m`;
     document.getElementById('doriMaxId').innerText = `${maxIdM.toFixed(1)} m`;
+}
+
+/* --- 4. WŁASNE NOTATKI / OBIEKTY --- */
+function renderujCustomAccs() {
+    const list = document.getElementById('custom-accordions-list');
+    if (!list) return;
+    list.innerHTML = "";
+
+    customAccs.forEach((item, index) => {
+        list.innerHTML += `
+            <div class="accordion">
+                <div class="acc-header custom-note" onclick="toggleAcc(this)">
+                    <span>📝 ${escapeHTML(item.tytul)}</span>
+                    <span class="acc-icon">+</span>
+                </div>
+                <div class="acc-content">
+                    <div class="custom-note-body">${escapeHTML(item.tresc)}</div>
+                    <div class="custom-note-actions">
+                        <button style="background:#f39c12; color:white;" onclick="edytujCustomAcc(${index})">✏️ Edytuj</button>
+                        <button style="background:#e74c3c; color:white;" onclick="usunCustomAcc(${index})">🗑️ Usuń</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+}
+
+function otworzFormularzAcc() {
+    document.getElementById('edit-acc-index').value = "-1";
+    document.getElementById('form-acc-title').innerText = "Nowa notatka";
+    document.getElementById('acc-title-input').value = "";
+    document.getElementById('acc-body-input').value = "";
+    document.getElementById('custom-acc-form').style.display = "block";
+    document.getElementById('btn-show-form').style.display = "none";
+    document.getElementById('acc-title-input').focus();
+}
+
+function zamknijFormularzAcc() {
+    document.getElementById('custom-acc-form').style.display = "none";
+    document.getElementById('btn-show-form').style.display = "block";
+}
+
+function zapiszCustomAcc() {
+    const idx = parseInt(document.getElementById('edit-acc-index').value, 10);
+    const tytul = document.getElementById('acc-title-input').value.trim();
+    const tresc = document.getElementById('acc-body-input').value.trim();
+
+    if (!tytul) {
+        alert("Podaj tytuł notatki!");
+        return;
+    }
+
+    if (idx === -1) {
+        customAccs.push({ tytul, tresc });
+    } else {
+        customAccs[idx] = { tytul, tresc };
+    }
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(customAccs));
+    renderujCustomAccs();
+    zamknijFormularzAcc();
+}
+
+function edytujCustomAcc(index) {
+    const item = customAccs[index];
+    if (!item) return;
+    document.getElementById('edit-acc-index').value = index;
+    document.getElementById('form-acc-title').innerText = "Edytuj notatkę";
+    document.getElementById('acc-title-input').value = item.tytul;
+    document.getElementById('acc-body-input').value = item.tresc;
+    document.getElementById('custom-acc-form').style.display = "block";
+    document.getElementById('btn-show-form').style.display = "none";
+    document.getElementById('custom-acc-form').scrollIntoView({ behavior: 'smooth' });
+}
+
+function usunCustomAcc(index) {
+    if (!customAccs[index]) return;
+    if (confirm(`Usunąć notatkę „${customAccs[index].tytul}”?`)) {
+        customAccs.splice(index, 1);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(customAccs));
+        renderujCustomAccs();
+    }
+}
+
+function escapeHTML(str) {
+    return String(str).replace(/[&<>'"]/g, tag => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+    }[tag]));
 }

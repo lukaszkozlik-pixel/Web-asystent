@@ -3,41 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Satelita - Kierunki</title>
+    <title>SAT – Kierunki, Unicable, Parametry i Wiedza</title>
     <link rel="stylesheet" href="../style.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        body { 
-            margin: 0; 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-            background: #f0f2f5; 
-            color: #2c3e50; 
-            display: flex; 
-            flex-direction: column; 
-            height: 100vh; 
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: #f0f2f5;
+            color: #2c3e50;
+            padding-bottom: 36px;
         }
-        
-        header { 
-            padding: 0 16px; 
-            display: flex; 
-            align-items: center; 
+
+        header {
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
             justify-content: space-between;
             height: 56px;
-            position: relative; 
-            z-index: 1000; 
-            background: #fff;
+            position: relative;
+            z-index: 1000;
+            background: #ffffff;
             box-shadow: 0 1px 3px rgba(0,0,0,0.08);
         }
-        
-        h1 { 
-            font-size: 1.1rem; 
-            margin: 0; 
-            position: absolute; 
-            left: 0; 
-            right: 0; 
-            text-align: center; 
-            pointer-events: none; 
+
+        h1 {
+            font-size: 1.08rem;
+            margin: 0;
+            position: absolute;
+            left: 0;
+            right: 0;
+            text-align: center;
+            pointer-events: none;
             font-weight: 600;
             letter-spacing: 0.3px;
         }
@@ -56,133 +56,81 @@
             display: none;
         }
 
-        #map { 
-            height: 40%; 
-            width: 100%; 
-            z-index: 1; 
-            border-bottom: 2px solid rgba(0,0,0,0.08); 
+        .container {
+            padding: 12px;
+            max-width: 560px;
+            margin: 0 auto;
         }
 
-        .btn-recenter {
-            position: fixed; 
-            top: 30%; 
-            right: 5%;
-            background: #ffffff; 
-            border: 2px solid #004ba0;
-            border-radius: 50%; 
-            width: 48px; 
-            height: 48px;
-            font-size: 1.4rem; 
-            color: #004ba0; 
-            z-index: 1000;
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            cursor: pointer;
-        }
-        
-        .list-container { 
-            flex: 1; 
-            overflow-y: auto; 
-            padding: 12px; 
-            box-sizing: border-box;
-        }
-        
-        .sat-card {
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 14px 16px;
-            margin-bottom: 10px;
+        .main-tabs {
             display: flex;
-            justify-content: space-between;
+            gap: 5px;
+            margin-bottom: 12px;
+            background: #e3f2fd;
+            padding: 4px;
+            border-radius: 10px;
+            flex-wrap: wrap;
+        }
+
+        .main-tab-btn {
+            flex: 1 1 22%;
+            padding: 9px 6px;
+            border: none;
+            border-radius: 7px;
+            background: transparent;
+            color: #37474f;
+            font-weight: 700;
+            font-size: 0.78rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .main-tab-btn.active {
+            background: #004ba0;
+            color: #ffffff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+        }
+
+        .view-panel {
+            display: none;
+        }
+
+        .view-panel.active {
+            display: block;
+        }
+
+        /* --- MAPA I KOMPAS --- */
+        .compass-calibration {
+            background: #ffffff;
+            padding: 8px 12px;
+            font-size: 0.78rem;
+            display: flex;
             align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            border: 1px solid rgba(0,0,0,0.05);
-            transition: all 0.2s ease;
+            justify-content: space-between;
+            gap: 8px;
+            border-radius: 10px 10px 0 0;
+            border: 1px solid rgba(0,0,0,0.06);
+            border-bottom: 1px solid #e0e0e0;
         }
 
-        .sat-card:active {
-            transform: scale(0.98);
+        .compass-calibration input[type="range"] {
+            flex: 1;
+            margin: 0;
         }
 
-        .sat-card.active { 
-            border: 2px solid #00c853; 
-            background: #f1f8e9; 
-            box-shadow: 0 4px 12px rgba(0, 200, 83, 0.15);
+        .map-wrapper {
+            position: relative;
+            border-radius: 0 0 10px 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            margin-bottom: 12px;
         }
 
-        .sat-info { 
-            display: flex; 
-            flex-direction: column; 
-        }
-        
-        .sat-name { 
-            font-weight: 700; 
-            font-size: 1.05rem; 
-            color: #004ba0; 
-            margin-bottom: 2px;
-        }
-        
-        .sat-pos { 
-            font-size: 0.8rem; 
-            color: #656d76; 
-        }
-        
-        .sat-angles { 
-            margin-top: 6px; 
-            font-weight: 700; 
-            color: #333; 
-            font-size: 0.9rem;
-        }
-
-        .btn-line { 
-            background: #004ba0; 
-            color: white; 
-            border: none; 
-            padding: 10px 18px; 
-            border-radius: 8px; 
-            font-weight: bold; 
-            font-size: 0.8rem;
-            cursor: pointer;
-            text-transform: uppercase;
-            transition: background 0.2s, transform 0.1s;
-        }
-
-        .btn-line:active {
-            background: #00c853; 
-            transform: scale(0.95);
-        }
-
-        .leaflet-control-attribution {
-            font-size: 8px !important; 
-            background: rgba(255, 255, 255, 0.6) !important; 
-            max-width: 60%; 
-            border-top-left-radius: 4px;
-        }
-        
-        .btn-fullscreen {
-            position: fixed; 
-            top: calc(30% + 58px);
-            right: 5%;
-            background: #ffffff; 
-            border: 2px solid #004ba0;
-            border-radius: 50%; 
-            width: 48px; 
-            height: 48px;
-            font-size: 1.2rem; 
-            color: #004ba0; 
-            z-index: 1000;
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            cursor: pointer;
-            transition: transform 0.15s, background 0.15s;
-        }
-        .btn-fullscreen:active {
-            transform: scale(0.92);
-            background: #e8f0fe;
+        #map {
+            height: 300px;
+            width: 100%;
+            z-index: 1;
         }
 
         #map:fullscreen {
@@ -190,316 +138,654 @@
             width: 100vw !important;
         }
 
-        /* PISTACJOWA, WYRAŹNA IGŁA KOMPASU (3px szerokości, 150px długości) */
-        .phone-heading {
-            width: 3px;                    
-            height: 150px;                 
-            background-color: #98fb98;     
-            border: 1px solid rgba(0, 0, 0, 0.4); 
-            border-radius: 2px;            
-            box-shadow: 0 0 6px rgba(0, 0, 0, 0.7); 
-            transform-origin: 50% 50px;     /* Obrót wokół punktu GPS (w 1/3 wysokości igły) */
-            transition: transform 0.08s ease-out; 
-        }
-        
-        .phone-heading-wrapper {
-            margin-left: -1.5px;
-            margin-top: -50px;             
-        }
-        
-        /* PANEL KALIBRACJI KOMPASU */
-        .compass-calibration {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 6px 12px;
-            font-size: 0.8rem;
+        .btn-recenter, .btn-fullscreen {
+            position: absolute;
+            right: 12px;
+            background: #ffffff;
+            border: 2px solid #004ba0;
+            border-radius: 50%;
+            width: 42px;
+            height: 42px;
+            font-size: 1.15rem;
+            color: #004ba0;
+            z-index: 500;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            border-bottom: 1px solid #ddd;
-            z-index: 999;
+            justify-content: center;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.22);
+            cursor: pointer;
         }
-        .compass-calibration input[type="range"] {
+
+        .btn-recenter {
+            bottom: 64px;
+        }
+
+        .btn-fullscreen {
+            bottom: 14px;
+        }
+
+        .btn-recenter:active, .btn-fullscreen:active {
+            transform: scale(0.92);
+            background: #e8f0fe;
+        }
+
+        .phone-heading {
+            width: 3px;
+            height: 150px;
+            background-color: #98fb98;
+            border: 1px solid rgba(0, 0, 0, 0.45);
+            border-radius: 2px;
+            box-shadow: 0 0 6px rgba(0, 0, 0, 0.7);
+            transform-origin: 50% 50px;
+            transition: transform 0.08s ease-out;
+        }
+
+        .phone-heading-wrapper {
+            margin-left: -1.5px;
+            margin-top: -50px;
+        }
+
+        .sat-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 13px 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.06);
+            transition: all 0.2s ease;
+        }
+
+        .sat-card:active {
+            transform: scale(0.98);
+        }
+
+        .sat-card.active {
+            border: 2px solid #00c853;
+            background: #f1f8e9;
+            box-shadow: 0 4px 12px rgba(0, 200, 83, 0.15);
+        }
+
+        .sat-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sat-name {
+            font-weight: 700;
+            font-size: 1.02rem;
+            color: #004ba0;
+            margin-bottom: 2px;
+        }
+
+        .sat-pos {
+            font-size: 0.78rem;
+            color: #656d76;
+        }
+
+        .sat-angles {
+            margin-top: 6px;
+            font-weight: 700;
+            color: #2c3e50;
+            font-size: 0.88rem;
+        }
+
+        .btn-line {
+            background: #004ba0;
+            color: #ffffff;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.78rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .btn-line:active {
+            background: #00c853;
+            transform: scale(0.95);
+        }
+
+        /* --- TABELE --- */
+        .table-card {
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1px solid rgba(0,0,0,0.06);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            overflow-x: auto;
+            margin-bottom: 12px;
+        }
+
+        .section-subtitle {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #004ba0;
+            margin: 6px 2px 8px;
+        }
+
+        table.sat-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+            background: #ffffff;
+            color: #2c3e50;
+        }
+
+        table.sat-table thead th {
+            background: #f5f7fa;
+            color: #004ba0;
+            padding: 10px 8px;
+            font-size: 0.73rem;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            border-bottom: 2px solid #004ba0;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        table.sat-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #eeeeee;
+            vertical-align: middle;
+        }
+
+        table.sat-table tbody tr:nth-child(even) {
+            background: #fafafa;
+        }
+
+        .tone-badge {
+            display: inline-block;
+            color: #e65100;
+            font-weight: 700;
+            font-size: 0.76rem;
+            margin-left: 4px;
+            background: #fff3e0;
+            padding: 2px 5px;
+            border-radius: 4px;
+        }
+
+        .dot {
+            height: 14px;
+            width: 14px;
+            border-radius: 50%;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 7px;
+            border: 1px solid #b0bec5;
+        }
+
+        .bg-yellow { background-color: #ffff00; }
+        .bg-green  { background-color: #008000; }
+        .bg-red    { background-color: #ff0000; }
+        .bg-black  { background-color: #000000; }
+        .bg-white  { background-color: #ffffff; }
+
+        .tag {
+            font-family: monospace;
+            background: #f0f4f8;
+            padding: 2px 5px;
+            border-radius: 4px;
+            color: #1565c0;
+            font-weight: 700;
+        }
+
+        .voltage {
+            color: #d32f2f;
+            font-weight: 700;
+        }
+
+        .ub-col {
+            font-weight: 700;
+            color: #1a73e8;
+        }
+
+        .pb-col {
+            font-weight: 700;
+            color: #2e7d32;
+            background: #f1f8e9;
+        }
+
+        .diff {
+            color: #e65100 !important;
+            font-weight: 700;
+        }
+
+        .note-sub {
+            display: block;
+            font-size: 0.7rem;
+            color: #656d76;
+            font-weight: normal;
+            text-transform: none;
+        }
+
+        .filter-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            margin-bottom: 10px;
+            background: #ffffff;
+        }
+
+        .filter-input:focus {
+            outline: none;
+            border-color: #004ba0;
+        }
+
+        /* --- BIBLIOTEKA WIEDZY (AKORDEONY) --- */
+        .accordion {
+            background: #ffffff;
+            border-radius: 12px;
+            margin-bottom: 11px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.06);
+        }
+
+        .acc-header {
+            background: #004ba0;
+            color: #ffffff;
+            padding: 14px 15px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+
+        .acc-header:active {
+            background: #003d82;
+        }
+
+        .acc-header.custom-note {
+            background: #2c3e50;
+        }
+
+        .acc-header.custom-note:active {
+            background: #1a252f;
+        }
+
+        .acc-content {
+            display: none;
+            padding: 14px 15px;
+            border-top: 1px solid #eeeeee;
+            background: #ffffff;
+            color: #2c3e50;
+            font-size: 0.84rem;
+            line-height: 1.52;
+        }
+
+        .acc-content.show {
+            display: block;
+        }
+
+        .acc-content p {
+            margin-top: 0;
+            margin-bottom: 8px;
+        }
+
+        .acc-content ul, .acc-content ol {
+            padding-left: 18px;
+            margin-top: 4px;
+            margin-bottom: 10px;
+        }
+
+        .acc-content li {
+            margin-bottom: 4px;
+        }
+
+        .pro-box {
+            background: #e8f0fe;
+            padding: 10px 12px;
+            border-radius: 6px;
+            border-left: 4px solid #004ba0;
+            margin-top: 10px;
+            margin-bottom: 8px;
+        }
+
+        .warn-box {
+            background: #fff3e0;
+            padding: 10px 12px;
+            border-radius: 6px;
+            border-left: 4px solid #ff9800;
+            margin-top: 10px;
+            margin-bottom: 8px;
+        }
+
+        code {
+            background: rgba(0, 75, 160, 0.08);
+            padding: 1px 4px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .custom-note-body {
+            white-space: pre-wrap;
+            font-size: 0.92rem;
+            line-height: 1.48;
+            margin-bottom: 12px;
+            user-select: text;
+            -webkit-user-select: text;
+        }
+
+        .custom-note-actions {
+            display: flex;
+            gap: 8px;
+            border-top: 1px dashed #ddd;
+            padding-top: 10px;
+        }
+
+        .custom-note-actions button {
             flex: 1;
-            margin: 0;
+            padding: 8px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.82rem;
+            cursor: pointer;
+        }
+
+        .btn-add-acc {
+            width: 100%;
+            padding: 13px;
+            background: #004ba0;
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 0.92rem;
+            cursor: pointer;
+            margin-top: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .custom-form-card {
+            display: none;
+            background: #ffffff;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+            margin-top: 10px;
+            border: 1px solid rgba(0,0,0,0.06);
+        }
+
+        .custom-form-card input, .custom-form-card textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 6px;
+            margin-bottom: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.92rem;
         }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>Kierunki Satelit</h1>
+    <h1>SAT / Anteny i Unicable</h1>
     <button id="compass-btn" class="btn-compass" onclick="initCompass()">🧭 Kompas</button>
 </header>
 
-<!-- Panel szybkiej korekcji kompasu -->
-    <div class="compass-calibration">
-        <span>🧭 Korekta kompasu: <b id="offset-val">0</b>°</span>
-        <input type="range" id="offsetRange" min="-180" max="180" value="0" step="5" oninput="zmienOffset(this.value)">
-        <button onclick="resetOffset()" style="background:none; border:1px solid #ccc; border-radius:4px; cursor:pointer; padding:2px 6px; font-size:0.75rem;">Reset</button>
+<div class="container">
+    <div class="main-tabs">
+        <button class="main-tab-btn active" onclick="switchSatTab('map', this)">🧭 Satelity</button>
+        <button class="main-tab-btn" onclick="switchSatTab('params', this)">📡 Pasmo i kable</button>
+        <button class="main-tab-btn" onclick="switchSatTab('unicable', this)">🔌 Unicable</button>
+        <button class="main-tab-btn" onclick="switchSatTab('kb', this)">📚 Wiedza</button>
     </div>
 
-<div id="map"></div>
-<button class="btn-recenter" title="Wycentruj na mojej pozycji" onclick="wycentrujMape()">⌖</button>
-<button class="btn-fullscreen" title="Pełny ekran" onclick="toggleFullscreen()">⛶</button>
+    <!-- ZAKŁADKA 1: MAPA, KOMPAS I SATELITY -->
+    <div id="tab-map" class="view-panel active">
+        <div class="compass-calibration">
+            <span>🧭 Korekta kompasu: <b id="offset-val">0</b>°</span>
+            <input type="range" id="offsetRange" min="-180" max="180" value="0" step="5" oninput="zmienOffset(this.value)">
+            <button onclick="resetOffset()" style="background:#f5f5f5; border:1px solid #ccc; border-radius:4px; cursor:pointer; padding:2px 6px; font-size:0.75rem;">Reset</button>
+        </div>
 
-<div class="list-container" id="satList">
-    <div style="padding: 30px; text-align: center; color: #666; font-size: 0.95rem;">
-        ⏳ Pobieram pozycję GPS...
+        <div class="map-wrapper">
+            <div id="map"></div>
+            <button class="btn-recenter" title="Wycentruj na mojej pozycji" onclick="wycentrujMape()">⌖</button>
+            <button class="btn-fullscreen" title="Pełny ekran mapy" onclick="toggleFullscreen()">⛶</button>
+        </div>
+
+        <div id="satList">
+            <div style="padding: 24px; text-align: center; color: #666; font-size: 0.9rem;">
+                ⏳ Pobieram pozycję GPS...
+            </div>
+        </div>
+    </div>
+
+    <!-- ZAKŁADKA 2: PARAMETRY PASMA KU, KABLE QUATTRO I RESET DEKODERÓW -->
+    <div id="tab-params" class="view-panel">
+        <div class="section-subtitle">Pasmo Ku (LNB uniwersalny: LO1 9,75 GHz / LO2 10,6 GHz)</div>
+        <div class="table-card">
+            <table class="sat-table" style="min-width: 560px;">
+                <thead>
+                    <tr>
+                        <th>Pasmo</th>
+                        <th>Polaryzacja</th>
+                        <th>Zakres [GHz]</th>
+                        <th>Przełącznik</th>
+                        <th>1 pośrednia</th>
+                        <th>Generator</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><b>Dolne</b></td>
+                        <td><span style="color:#1565c0; font-weight:700;">Pozioma</span></td>
+                        <td>10.700 – 11.700</td>
+                        <td>18 V</td>
+                        <td>950 – 1950 MHz</td>
+                        <td>LO1 9,75 GHz</td>
+                    </tr>
+                    <tr>
+                        <td><b>Dolne</b></td>
+                        <td><span style="color:#d32f2f; font-weight:700;">Pionowa</span></td>
+                        <td>10.700 – 11.700</td>
+                        <td>13 lub 14 V</td>
+                        <td>950 – 1950 MHz</td>
+                        <td>LO1 9,75 GHz</td>
+                    </tr>
+                    <tr>
+                        <td><b>Górne</b></td>
+                        <td><span style="color:#1565c0; font-weight:700;">Pozioma</span></td>
+                        <td>11.700 – 12.750</td>
+                        <td>18 V <span class="tone-badge">+ 22 kHz</span></td>
+                        <td>1100 – 2150 MHz</td>
+                        <td>LO2 10,6 GHz</td>
+                    </tr>
+                    <tr>
+                        <td><b>Górne</b></td>
+                        <td><span style="color:#d32f2f; font-weight:700;">Pionowa</span></td>
+                        <td>11.700 – 12.750</td>
+                        <td>13 lub 14 V <span class="tone-badge">+ 22 kHz</span></td>
+                        <td>1100 – 2150 MHz</td>
+                        <td>LO2 10,6 GHz</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section-subtitle">Oznaczenia kolorów kabli (QUATTRO / Multiswitch)</div>
+        <div class="table-card">
+            <table class="sat-table" style="min-width: 450px;">
+                <thead>
+                    <tr>
+                        <th>Kolor</th>
+                        <th>Oznaczenie</th>
+                        <th>Pasmo / Polaryzacja</th>
+                        <th>Sterowanie</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="dot bg-yellow"></span><b>Żółty</b></td>
+                        <td><span class="tag">H/H</span> (HH, Hi)</td>
+                        <td>Górne / Pozioma</td>
+                        <td><span class="voltage">18V / 22kHz</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="dot bg-green"></span><b>Zielony</b></td>
+                        <td><span class="tag">L/H</span> (HL, Lo)</td>
+                        <td>Dolne / Pozioma</td>
+                        <td><span class="voltage">18V / 0kHz</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="dot bg-red"></span><b>Czerwony</b></td>
+                        <td><span class="tag">H/V</span> (VH, Hi)</td>
+                        <td>Górne / Pionowa</td>
+                        <td><span class="voltage">13V / 22kHz</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="dot bg-black"></span><b>Czarny</b></td>
+                        <td><span class="tag">L/V</span> (VL, Lo)</td>
+                        <td>Dolne / Pionowa</td>
+                        <td><span class="voltage">13V / 0kHz</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="dot bg-white"></span><b>Biały</b></td>
+                        <td colspan="3">Terr.TV / Telewizja Naziemna</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+
+        <div class="table-card" style="padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+            <div>
+                <div style="font-weight: 700; font-size: 0.9rem; color: #004ba0;">Przelicznik jednostek dBµV / dBm (75 Ω)</div>
+                <div style="font-size: 0.78rem; color: #656d76;">Przeliczanie poziomów sygnału SAT i DVB-T2</div>
+            </div>
+            <a href="Jednostki.html" style="background: #004ba0; color: #ffffff; text-decoration: none; padding: 9px 14px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; white-space: nowrap;">Otwórz ↗</a>
+        </div>
+                
+    </div>
+
+    <!-- ZAKŁADKA 3: UNICABLE (USER BANDS) -->
+    <div id="tab-unicable" class="view-panel">
+        <input type="text" id="ubFilterInput" class="filter-input" placeholder="Filtruj pasma UB (np. UB 1, 1210, 1420, 2084, 975)..." oninput="filterUnicableTable()">
+
+        <div class="table-card">
+            <table class="sat-table" style="min-width: 400px;">
+                <thead>
+                    <tr>
+                        <th>UB</th>
+                        <th>Polsat Box<span class="note-sub">(Inverto)</span></th>
+                        <th>Standard<span class="note-sub">(GT-Sat / Opticum)</span></th>
+                    </tr>
+                </thead>
+                <tbody id="unicableTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ZAKŁADKA 4: BIBLIOTEKA WIEDZY SAT + NOTATKI -->
+    <div id="tab-kb" class="view-panel">
+        <div class="accordion">
+            <div class="acc-header" onclick="toggleAcc(this)">1. PASMO KU, LNB UNIWERSALNY I PRZEŁĄCZANIE 13/18V + 22KHZ <span>+</span></div>
+            <div class="acc-content">
+                <p><b>Podstawy:</b> Konwerter uniwersalny (LNB) przetwarza sygnał z pasma Ku (<code>10,700–12,750 GHz</code>) na pierwszą pośrednią (IF) w zakresie odbieranym przez tuner satelitarny (zwykle <code>950–2150 MHz</code>).</p>
+                <ul>
+                    <li><b>Polaryzacja:</b> Napięcie ok. <code>13–14 V</code> wybiera polaryzację pionową (<b>V</b>), a ok. <code>18 V</code> — poziomą (<b>H</b>).</li>
+                    <li><b>Pasmo dolne vs górne:</b> Ton <code>22 kHz</code> przełącza oscylator lokalny między <b>LO1 = 9,75 GHz</b> (pasmo dolne <code>10,7–11,7 GHz</code>) a <b>LO2 = 10,6 GHz</b> (pasmo górne <code>11,7–12,75 GHz</code>).</li>
+                    <li><b>Wzorzec częstotliwości pośredniej:</b> Dla pasma dolnego <code>f_IF = |f_SAT - 9750|</code> (w MHz), a dla pasma górnego <code>f_IF = |f_SAT - 10600|</code> (w MHz).</li>
+                </ul>
+                <div class="pro-box">
+                    <b>Quattro vs Quad (PRO):</b><br>
+                    Konwerter <b>Quattro</b> ma 4 stałe wyjścia (<code>L/V</code>, <code>L/H</code>, <code>H/V</code>, <code>H/H</code>) do podłączenia pod multiswitch — nie wolno podłączać pojedynczego dekodera bezpośrednio pod wyjście Quattro i oczekiwać pełnego przełączania pasm/polaryzacji. Konwerter <b>Quad</b> ma 4 niezależne wyjścia uniwersalne.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion">
+            <div class="acc-header" onclick="toggleAcc(this)">2. UNICABLE / SCR (EN50494 / EN50607) I KONFLIKTY UB <span>+</span></div>
+            <div class="acc-content">
+                <p><b>Podstawy:</b> Technologia <b>Unicable / SCR</b> pozwala przesłać wiele niezależnych pasm użytkownika (<b>UB / User Bands</b>) jednym przewodem koncentrycznym do jednego lub wielu tunerów/głowic (np. dekodery z nagrywarką obsługujące kilka głowic jednocześnie).</p>
+                <ul>
+                    <li><b>Częstotliwości UB:</b> W tabeli Unicable znajdziesz przypisania UB 1–24 dla <b>Polsat Box / Inverto</b> oraz wariantu <b>Standard (GT-Sat / Opticum)</b>.</li>
+                    <li><b>Różnice między producentami:</b> Częstotliwości UB potrafią się różnić między konwerterami/multiswitchami różnych producentów — zawsze ustawiaj w tunerze częstotliwość odpowiadającą konkretnemu urządzeniu.</li>
+                </ul>
+                <div class="warn-box">
+                    <b>⚠️ Najczęstszy błąd w Unicable:</b><br>
+                    Przypisanie tego samego numeru/częstotliwości <b>UB</b> do dwóch różnych głowic lub dwóch odbiorników na tym samym przewodzie powoduje wzajemne zakłócanie/zrywanie kanałów przy przełączaniu.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion">
+            <div class="acc-header" onclick="toggleAcc(this)">3. USTAWIANIE ANTENY SAT: AZYMUT, ELEWACJA, SKOS (SKEW) I MER/C/N <span>+</span></div>
+            <div class="acc-content">
+                <p><b>Podstawy:</b> Precyzyjne ustawienie anteny satelitarnej wymaga ustawienia trzech elementów: <b>azymutu</b>, <b>elewacji</b> oraz <b>kąta skręcenia konwertera (skew)</b>.</p>
+                <ul>
+                    <li><b>Azymut i elewacja:</b> Wyznaczane na podstawie współrzędnych lokalizacji oraz pozycji orbitalnej satelity (np. Hotbird <code>13°E</code>, Astra <code>19.2°E</code>). Pamiętaj, że przy antenach offsetowych kąt fizycznego pochylenia czaszy różni się od elewacji geometrycznej satelity (offset jest uwzględniony w skali anteny).</li>
+                    <li><b>Skręcenie konwertera (Skew):</b> Obrót LNB w uchwycie poprawia separację polaryzacji H i V oraz podnosi jakość sygnału, szczególnie na skrajach pasma/obszaru pokrycia.</li>
+                    <li><b>Pomiar jakości:</b> Strojenie opieraj przede wszystkim na maksymalizacji parametrów jakościowych (np. <b>MER / C/N / SNR</b>) i minimalizacji błędów (<b>BER</b>), a nie wyłącznie na pasku poziomu.</li>
+                </ul>
+                <div class="pro-box">
+                    <b>Praktyka montażowa (PRO):</b><br>
+                    Przed dokręceniem śrub masztu i obejm sprawdź stabilność mocowania oraz stan uszczelnienia złączy F na zewnątrz (wulkanizacja / osłony) — najmniejszy luz lub wilgoć w złączu potrafi po czasie zbić jakość lub odciąć zasilanie LNB.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion">
+            <div class="acc-header" onclick="toggleAcc(this)">4. DISEQC, MULTISWITCHE I DIAGNOZA BRAKU SYGNAŁU <span>+</span></div>
+            <div class="acc-content">
+                <p><b>Podstawy:</b> Przełączniki <b>DiSEqC</b> pozwalają sterować kilkoma konwerterami/pozycjami satelitarnymi (np. Hotbird + Astra), a <b>multiswitche</b> dystrybuują sygnał z konwertera Quattro (oraz często naziemnej TV) do wielu gniazd.</p>
+                <ul>
+                    <li><b>Brak sygnału na wszystkich transponderach:</b> Sprawdź napięcie zasilania konwertera (13/18 V), ciągłość przewodu, zwarcie na złączu F, poprawność wyboru wejścia/portu DiSEqC lub ustawienia Unicable.</li>
+                    <li><b>Brak części kanałów / polaryzacji / pasma:</b> Często wskazuje na zamienione przewody (np. L/H z H/H lub V z H), niesprawny port multiswitcha/DiSEqC, błędny skew lub lekko rozregulowaną antenę.</li>
+                </ul>
+            </div>
+        </div>
+        <div class="accordion">
+            <div class="acc-header" onclick="toggleAcc(this)">5. KODY RESETU DUALBOX I ULTRABOX4K <span>+</span></div>
+            <div class="acc-content">
+                <div style="margin-bottom: 10px;">
+                    <b>Bez kasowania nagrań:</b><br>
+                    <code>MENU</code> → czerwony → czerwony → <code>27</code> → <code>37</code> → <code>38</code>
+                </div>
+                <div>
+                    <b>Całkowity:</b><br>
+                    <code>MENU</code> → czerwony → czerwony → <code>73</code> → <code>73</code> → <code>38</code>
+                </div>
+            </div>
+        </div>
+        <!-- KONTENER NA WŁASNE AKORDEONY -->
+        <div id="custom-accordions-list"></div>
+
+        <!-- PRZYCISK DODAWANIA -->
+        <button id="btn-show-form" class="btn-add-acc" onclick="otworzFormularzAcc()">＋ Dodaj własną notatkę</button>
+
+        <!-- FORMULARZ DODAWANIA / EDYCJI -->
+        <div id="custom-acc-form" class="custom-form-card">
+            <h3 id="form-acc-title" style="margin-top:0; font-size: 1rem;">Nowa notatka</h3>
+            <input type="hidden" id="edit-acc-index" value="-1">
+
+            <label style="font-weight:bold; font-size:0.85rem;">Tytuł na pasku:</label>
+            <input type="text" id="acc-title-input" placeholder="np. Kody serwisowe dekoderów...">
+
+            <label style="font-weight:bold; font-size:0.85rem;">Treść notatki:</label>
+            <textarea id="acc-body-input" rows="5" placeholder="Wpisz treść..."></textarea>
+
+            <div style="display:flex; gap:8px;">
+                <button onclick="zapiszCustomAcc()" style="flex:1; padding:10px; background:#2ecc71; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">Zapisz</button>
+                <button onclick="zamknijFormularzAcc()" style="flex:1; padding:10px; background:#7f8c8d; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">Anuluj</button>
+            </div>
+        </div>
     </div>
 </div>
 
-<script>
-    let map, userMarker, headingMarker, currentLine;
-    let userCoords = null;
-
-    const satellites = [
-        { name: "Hotbird 13°E", lon: 13.0, lat: 0.0 }, // Satelita geostacjonarny leży nad równikiem
-        { name: "Astra 19.2°E", lon: 19.2, lat: 0.0 },
-        { name: "Astra 23.5°E", lon: 23.5, lat: 0.0 },
-        { name: "Thor 0.8°W", lon: -0.8, lat: 0.0 },
-        { name: "Hispasat 30°W", lon: -30.0, lat: 0.0 }
-    ];
-
-    window.addEventListener('load', () => {
-        initMap();
-        setupCompass();
-    });
-
-    function initMap() {
-        const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '© OpenStreetMap'
-        });
-
-        const topoMap = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-            maxZoom: 17,
-            attribution: '© OpenTopoMap (CC-BY-SA)'
-        });
-
-        const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            attribution: 'Esri Satellite'
-        });
-
-        map = L.map('map', {
-            center: [52.23, 21.01],
-            zoom: 6,
-            layers: [satellite], 
-            zoomControl: false
-        });
-
-        const baseMaps = {
-            "Satelita": satellite,
-            "Topografia": topoMap,
-            "Mapa": osm
-        };
-        L.control.layers(baseMaps, null, { position: 'topright' }).addTo(map);
-
-        if (navigator.geolocation) {
-            navigator.geolocation.watchPosition(position => {
-                userCoords = [position.coords.latitude, position.coords.longitude];
-                
-                if (!userMarker) {
-                    map.setView(userCoords, 16);
-                    userMarker = L.circleMarker(userCoords, {
-                        color: '#ffffff',
-                        fillColor: '#004ba0',
-                        fillOpacity: 1,
-                        weight: 3,
-                        radius: 9
-                    }).addTo(map).bindPopup("Twoja pozycja");
-
-                    const headingIcon = L.divIcon({
-                        className: 'phone-heading-wrapper',
-                        html: '<div class="phone-heading" id="phone-arrow"></div>',
-                        iconSize: [3, 150],
-                        iconAnchor: [1.5, 50]
-                    });
-                    headingMarker = L.marker(userCoords, { icon: headingIcon }).addTo(map);
-                } else {
-                    userMarker.setLatLng(userCoords);
-                    headingMarker.setLatLng(userCoords);
-                }
-                
-                displaySatellites();
-            }, () => {
-                document.getElementById('satList').innerHTML = "<p style='text-align:center; padding:20px; color:#d93025; font-weight:bold;'>Błąd GPS. Włącz lokalizację w telefonie.</p>";
-            }, { enableHighAccuracy: true });
-        }
-    }
-
-    // Obsługa kompasu
-    function setupCompass() {
-        if (window.DeviceOrientationEvent) {
-            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-                document.getElementById('compass-btn').style.display = 'block';
-            } else {
-                window.addEventListener('deviceorientationabsolute', handleOrientation, true);
-                window.addEventListener('deviceorientation', handleOrientation, true);
-            }
-        }
-    }
-
-    function initCompass() {
-        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-            DeviceOrientationEvent.requestPermission().then(response => {
-                if (response === 'granted') {
-                    window.addEventListener('deviceorientation', handleOrientation, true);
-                    document.getElementById('compass-btn').style.display = 'none';
-                }
-            }).catch(console.error);
-        }
-    }
-
-   // Pobieranie zapisanego offsetu z pamięci przeglądarki (domyślnie 0)
-    let compassOffset = parseInt(localStorage.getItem('compass_offset') || '0');
-    
-    // Inicjalizacja suwaka przy starcie
-    window.addEventListener('DOMContentLoaded', () => {
-        const range = document.getElementById('offsetRange');
-        if (range) {
-            range.value = compassOffset;
-            document.getElementById('offset-val').innerText = compassOffset;
-        }
-    });
-
-    function zmienOffset(val) {
-        compassOffset = parseInt(val);
-        document.getElementById('offset-val').innerText = compassOffset;
-        localStorage.setItem('compass_offset', compassOffset); // Zapis do pamięci
-    }
-
-    function resetOffset() {
-        compassOffset = 0;
-        const range = document.getElementById('offsetRange');
-        if (range) range.value = 0;
-        document.getElementById('offset-val').innerText = '0';
-        localStorage.setItem('compass_offset', '0');
-    }
-
-    let currentHeading = 0;
-
-    function handleOrientation(e) {
-        let heading = e.webkitCompassHeading || e.alpha;
-        if (heading !== null && heading !== undefined) {
-            if (!e.webkitCompassHeading && e.alpha) {
-                heading = 360 - e.alpha; 
-            }
-
-            // --- UWZGLEDNIENIE RĘCZNEGO OFFSETU UŻYTKOWNIKA ---
-            heading = (heading + compassOffset + 360) % 360;
-
-            // --- FILTR WYGŁADZAJĄCY ---
-            let diff = heading - currentHeading;
-            if (diff > 180) diff -= 360;
-            if (diff < -180) diff += 360;
-            
-            currentHeading += diff * 0.25; 
-            currentHeading = (currentHeading + 360) % 360;
-
-            const arrow = document.getElementById('phone-arrow');
-            if (arrow) {
-                arrow.style.transform = `rotate(${currentHeading}deg)`;
-            }
-        }
-    }
-
-    function wycentrujMape() {
-        if (userCoords && map) {
-            map.setView(userCoords, 16, { animate: true });
-        }
-    }
-
-    function displaySatellites() {
-        const list = document.getElementById('satList');
-        list.innerHTML = "";
-
-        satellites.forEach(sat => {
-            const az = calculateAzimuth(userCoords[0], userCoords[1], sat.lon);
-            const el = calculateElevation(userCoords[0], userCoords[1], sat.lon);
-            
-            const card = document.createElement('div');
-            card.className = 'sat-card';
-            card.innerHTML = `
-                <div class="sat-info">
-                    <span class="sat-name">${sat.name}</span>
-                    <span class="sat-pos">Pozycja: ${sat.lon}°</span>
-                    <span class="sat-angles">Azymut: ${az}° | Elewacja: ${el}°</span>
-                </div>
-                <button class="btn-line" onclick="drawLine(${az}, this)">WYBIERZ</button>
-            `;
-            list.item ? list.appendChild(card) : list.append(card);
-        });
-    }
-
-    // POPRAWIONE RYSOWANIE LINII: startuje dokładnie z punktu GPS użytkownika
-    function drawLine(az, btn) {
-        if (!userCoords) return;
-
-        document.querySelectorAll('.sat-card').forEach(c => c.classList.remove('active'));
-        btn.closest('.sat-card').classList.add('active');
-
-        if (currentLine) map.removeLayer(currentLine);
-
-        // Wyznaczamy punkt docelowy w kierunku azymutu oddalony o ok. 5-10 km, żeby linia przecinała horyzont mapy
-        const angleRad = (az - 90) * Math.PI / 180;
-        const distanceKm = 10.0; 
-        const latDelta = (distanceKm / 111) * Math.sin(angleRad + Math.PI/2); // uproszczenie lokalne
-        // Dokładniejsze wyznaczenie punktu na podstawie azymutu:
-        const R = 6371; // promień Ziemi w km
-        const lat1 = userCoords[0] * Math.PI / 180;
-        const lon1 = userCoords[1] * Math.PI / 180;
-        const brng = az * Math.PI / 180;
-
-        // Formuła punktu docelowego na podstawie dystansu i azymutu
-        const dR = 5.0 / R; // 5 km długości linii na mapie
-        const lat2 = Math.asin(Math.sin(lat1) * Math.cos(dR) + Math.cos(lat1) * Math.sin(dR) * Math.cos(brng));
-        const lon2 = lon1 + Math.atan2(Math.sin(brng) * Math.sin(dR) * Math.cos(lat1), Math.cos(dR) - Math.sin(lat1) * Math.sin(lat2));
-
-        const endPoint = [lat2 * 180 / Math.PI, lon2 * 180 / Math.PI];
-
-        // Linia startuje TERAZ precyzyjnie z userCoords (Twojej pozycji)
-        currentLine = L.polyline([userCoords, endPoint], { 
-            color: '#00c853', 
-            weight: 5, 
-            dashArray: '8, 8' 
-        }).addTo(map);
-
-        map.setView(userCoords, 16, { animate: true });
-    }
-
-    function calculateAzimuth(lat, lon, satLon) {
-        const phi = lat * Math.PI / 180;
-        const dL = (lon - satLon) * Math.PI / 180;
-        const az = Math.PI + Math.atan2(Math.tan(dL), Math.sin(phi));
-        return Math.round((az * 180 / Math.PI) % 360);
-    }
-
-    function calculateElevation(lat, lon, satLon) {
-        const phi = lat * Math.PI / 180;
-        const dL = (lon - satLon) * Math.PI / 180;
-        const R = 6371; 
-        const r = 42164; 
-        const num = Math.cos(phi) * Math.cos(dL) - (R/r);
-        const den = Math.sqrt(1 - Math.pow(Math.cos(phi) * Math.cos(dL), 2));
-        const el = Math.atan2(num, den);
-        return Math.round(el * 180 / Math.PI);
-    }
-    
-    function toggleFullscreen() {
-        const mapElement = document.getElementById('map');
-        if (!document.fullscreenElement) {
-            if (mapElement.requestFullscreen) mapElement.requestFullscreen();
-            else if (mapElement.webkitRequestFullscreen) mapElement.webkitRequestFullscreen();
-        } else {
-            if (document.exitFullscreen) document.exitFullscreen();
-            else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-        }
-    }
-
-    document.addEventListener("fullscreenchange", () => { setTimeout(() => { map.invalidateSize(); }, 200); });
-    document.addEventListener("webkitfullscreenchange", () => { setTimeout(() => { map.invalidateSize(); }, 200); });
-</script>
-
+<script src="sat.js"></script>
 </body>
 </html>

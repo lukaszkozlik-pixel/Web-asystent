@@ -3,40 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kierunki DVB-T</title>
+    <title>DVB-T2 – Kierunki, Parametry, MUX-y i Wiedza</title>
     <link rel="stylesheet" href="../style.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        body { 
-            margin: 0; 
-            background: #f0f2f5; 
-            color: #2c3e50; 
-            display: flex; 
-            flex-direction: column; 
-            height: 100vh; 
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background: #f0f2f5;
+            color: #2c3e50;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            padding-bottom: 36px;
         }
 
-        header { 
-            padding: 0 16px; 
-            display: flex; 
-            align-items: center; 
+        header {
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
             justify-content: space-between;
             height: 56px;
             position: relative;
-            z-index: 1000; 
-            background: #fff;
+            z-index: 1000;
+            background: #ffffff;
             box-shadow: 0 1px 3px rgba(0,0,0,0.08);
         }
 
-        h1 { 
-            font-size: 1.1rem; 
-            margin: 0; 
-            position: absolute; 
-            left: 0; 
-            right: 0; 
-            text-align: center; 
+        h1 {
+            font-size: 1.08rem;
+            margin: 0;
+            position: absolute;
+            left: 0;
+            right: 0;
+            text-align: center;
             pointer-events: none;
             font-weight: 600;
             letter-spacing: 0.3px;
@@ -56,140 +56,81 @@
             display: none;
         }
 
-        #map { 
-            height: 42%; 
-            width: 100%; 
-            z-index: 1; 
-            border-bottom: 2px solid rgba(0,0,0,0.08); 
+        .container {
+            padding: 12px;
+            max-width: 560px;
+            margin: 0 auto;
         }
 
-        .btn-recenter {
-            position: fixed; 
-            top: 30%; 
-            right: 5%;
-            background: #ffffff; 
-            border: 2px solid #004ba0;
-            border-radius: 50%; 
-            width: 48px; 
-            height: 48px;
-            font-size: 1.4rem; 
-            color: #004ba0; 
-            z-index: 1000;
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            cursor: pointer;
-        }
-        .btn-recenter:active {
-            transform: scale(0.92);
-            background: #e8f0fe;
+        .main-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 12px;
+            background: #e3f2fd;
+            padding: 4px;
+            border-radius: 10px;
+            flex-wrap: wrap;
         }
 
-        .list-container { 
-            flex: 1; 
-            overflow-y: auto; 
-            padding: 12px; 
-            box-sizing: border-box;
-        }
-
-        .transmitter-card {
-            background: #ffffff; 
-            margin-bottom: 10px; 
-            padding: 14px 16px;
-            border-radius: 12px; 
-            display: flex; 
-            justify-content: space-between;
-            align-items: center; 
-            border-left: 6px solid #b0bec5; 
-            cursor: pointer; 
-            transition: all 0.2s ease; 
-            color: #2c3e50;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            border: 1px solid rgba(0,0,0,0.05);
-            border-left-width: 6px;
-        }
-
-        .transmitter-card:active {
-            transform: scale(0.98);
-        }
-
-        .transmitter-card.active { 
-            border-left-color: #d93025; 
-            background: #fce8e6; 
-            box-shadow: 0 4px 12px rgba(217, 48, 37, 0.15);
-        }
-
-        .tx-name {
+        .main-tab-btn {
+            flex: 1 1 22%;
+            padding: 9px 6px;
+            border: none;
+            border-radius: 7px;
+            background: transparent;
+            color: #37474f;
             font-weight: 700;
-            font-size: 1.02rem;
-            color: #1f2937;
-            margin-bottom: 3px;
-        }
-
-        .azimuth-container {
-            text-align: right;
-            min-width: 70px;
-        }
-
-        .azimuth-val { 
-            font-size: 1.35rem; 
-            font-weight: 800; 
-            color: #1a73e8; 
-            line-height: 1;
-        }
-        
-        .transmitter-card.active .azimuth-val {
-            color: #d93025;
-        }
-
-        .distance { 
-            font-size: 0.82rem; 
-            color: #656d76; 
-            font-weight: 500;
-        }
-
-        .leaflet-control-layers {
-            margin-top: 10px !important;
-            margin-right: 10px !important;
-            border-radius: 8px !important;
-            border: none !important;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important;
-        }
-        .leaflet-control-layers-toggle {
-            width: 40px !important;
-            height: 40px !important;
-            background-size: 24px 24px !important;
-        }
-        .leaflet-control-attribution {
-            font-size: 8px !important; 
-            background: rgba(255, 255, 255, 0.6) !important; 
-            max-width: 60%; 
-            border-top-left-radius: 4px;
-        }
-        
-        .btn-fullscreen {
-            position: fixed; 
-            top: calc(30% + 58px); 
-            right: 5%;
-            background: #ffffff; 
-            border: 2px solid #1a73e8; 
-            border-radius: 50%; 
-            width: 48px; 
-            height: 48px;
-            font-size: 1.2rem; 
-            color: #1a73e8; 
-            z-index: 1000;
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            font-size: 0.78rem;
             cursor: pointer;
-            transition: transform 0.15s, background 0.15s;
+            transition: all 0.2s;
+            text-align: center;
         }
-        .btn-fullscreen:active {
-            transform: scale(0.92);
-            background: #e8f0fe;
+
+        .main-tab-btn.active {
+            background: #1a73e8;
+            color: #ffffff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+        }
+
+        .view-panel {
+            display: none;
+        }
+
+        .view-panel.active {
+            display: block;
+        }
+
+        /* --- MAPA I KOMPAS --- */
+        .compass-calibration {
+            background: #ffffff;
+            padding: 8px 12px;
+            font-size: 0.78rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            border-radius: 10px 10px 0 0;
+            border: 1px solid rgba(0,0,0,0.06);
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .compass-calibration input[type="range"] {
+            flex: 1;
+            margin: 0;
+        }
+
+        .map-wrapper {
+            position: relative;
+            border-radius: 0 0 10px 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            margin-bottom: 12px;
+        }
+
+        #map {
+            height: 300px;
+            width: 100%;
+            z-index: 1;
         }
 
         #map:fullscreen {
@@ -197,318 +138,646 @@
             width: 100vw !important;
         }
 
-        /* PISTACJOWA, WYRAŹNA IGŁA KOMPASU (3px szerokości, 150px długości) */
-        .phone-heading {
-            width: 3px;                    
-            height: 150px;                 
-            background-color: #98fb98;     
-            border: 1px solid rgba(0, 0, 0, 0.4); 
-            border-radius: 2px;            
-            box-shadow: 0 0 6px rgba(0, 0, 0, 0.7); 
-            transform-origin: 50% 50px;     
-            transition: transform 0.08s ease-out; 
-        }
-        
-        .phone-heading-wrapper {
-            margin-left: -1.5px;
-            margin-top: -50px;             
-        }
-        
-        /* PANEL KALIBRACJI KOMPASU */
-        .compass-calibration {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 6px 12px;
-            font-size: 0.8rem;
+        .btn-recenter, .btn-fullscreen {
+            position: absolute;
+            right: 12px;
+            background: #ffffff;
+            border: 2px solid #1a73e8;
+            border-radius: 50%;
+            width: 42px;
+            height: 42px;
+            font-size: 1.15rem;
+            color: #1a73e8;
+            z-index: 500;
             display: flex;
             align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.22);
+            cursor: pointer;
+        }
+
+        .btn-recenter {
+            bottom: 64px;
+        }
+
+        .btn-fullscreen {
+            bottom: 14px;
+        }
+
+        .btn-recenter:active, .btn-fullscreen:active {
+            transform: scale(0.92);
+            background: #e8f0fe;
+        }
+
+        .phone-heading {
+            width: 3px;
+            height: 150px;
+            background-color: #98fb98;
+            border: 1px solid rgba(0, 0, 0, 0.45);
+            border-radius: 2px;
+            box-shadow: 0 0 6px rgba(0, 0, 0, 0.7);
+            transform-origin: 50% 50px;
+            transition: transform 0.08s ease-out;
+        }
+
+        .phone-heading-wrapper {
+            margin-left: -1.5px;
+            margin-top: -50px;
+        }
+
+        .transmitter-card {
+            background: #ffffff;
+            margin-bottom: 10px;
+            padding: 13px 15px;
+            border-radius: 12px;
+            display: flex;
             justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(0,0,0,0.06);
+            border-left: 6px solid #90a4ae;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .transmitter-card:active {
+            transform: scale(0.98);
+        }
+
+        .transmitter-card.active {
+            border-left-color: #d93025;
+            background: #fce8e6;
+            box-shadow: 0 4px 12px rgba(217, 48, 37, 0.15);
+        }
+
+        .tx-name {
+            font-weight: 700;
+            font-size: 0.98rem;
+            color: #1f2937;
+            margin-bottom: 3px;
+        }
+
+        .tx-meta {
+            font-size: 0.76rem;
+            color: #546e7a;
+            margin-top: 2px;
+        }
+
+        .azimuth-container {
+            text-align: right;
+            min-width: 68px;
+        }
+
+        .azimuth-val {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #1a73e8;
+            line-height: 1;
+        }
+
+        .transmitter-card.active .azimuth-val {
+            color: #d93025;
+        }
+
+        .distance {
+            font-size: 0.8rem;
+            color: #656d76;
+            font-weight: 500;
+        }
+
+        /* --- TABELE --- */
+        .table-card {
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1px solid rgba(0,0,0,0.06);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            overflow-x: auto;
+            margin-bottom: 12px;
+        }
+
+        table.dvbt-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            background: #ffffff;
+            color: #2c3e50;
+        }
+
+        table.dvbt-table thead th {
+            background: #f5f7fa;
+            color: #1a73e8;
+            padding: 10px 7px;
+            font-size: 0.74rem;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            border: 1px solid #e0e0e0;
+            border-bottom: 2px solid #1a73e8;
+            text-align: center;
+        }
+
+        table.dvbt-table td {
+            padding: 9px 7px;
+            border: 1px solid #eeeeee;
+            vertical-align: middle;
+        }
+
+        table.dvbt-table tbody tr:nth-child(even) {
+            background: #fafafa;
+        }
+
+        .ch-num {
+            font-weight: 800;
+            color: #d32f2f;
+            font-size: 0.95rem;
+            text-align: center;
+        }
+
+        .freq-val {
+            font-weight: 700;
+            color: #111827;
+            display: block;
+            text-align: center;
+        }
+
+        .band-badge {
+            display: inline-block;
+            font-size: 0.68rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+            margin-top: 2px;
+        }
+
+        .band-vhf {
+            color: #2e7d32;
+            background: #e8f5e9;
+        }
+
+        .band-uhf {
+            color: #1565c0;
+            background: #e3f2fd;
+        }
+
+        .mux-badge {
+            display: inline-block;
+            padding: 3px 7px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 0.72rem;
+            color: #ffffff;
+            text-align: center;
+        }
+
+        .m1 { background: #d32f2f; }
+        .m2 { background: #1976d2; }
+        .m3 { background: #388e3c; }
+        .m4 { background: #e65100; }
+        .m6 { background: #f57c00; }
+        .m8 { background: #546e7a; }
+
+        .lcn-item {
+            display: block;
+            margin-bottom: 3px;
+            line-height: 1.35;
+            color: #374151;
+        }
+
+        .lcn-num {
+            color: #1a73e8;
+            font-weight: 700;
+            font-family: monospace;
+            margin-right: 4px;
+        }
+
+        .filter-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            margin-bottom: 10px;
+            background: #ffffff;
+        }
+
+        .filter-input:focus {
+            outline: none;
+            border-color: #1a73e8;
+        }
+
+        /* --- BIBLIOTEKA WIEDZY (AKORDEONY) --- */
+        .accordion {
+            background: #ffffff;
+            border-radius: 12px;
+            margin-bottom: 11px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.06);
+        }
+
+        .acc-header {
+            background: #1a73e8;
+            color: #ffffff;
+            padding: 14px 15px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+
+        .acc-header:active {
+            background: #1557b0;
+        }
+
+        .acc-content {
+            display: none;
+            padding: 14px 15px;
+            border-top: 1px solid #eeeeee;
+            background: #ffffff;
+            color: #2c3e50;
+            font-size: 0.84rem;
+            line-height: 1.52;
+        }
+
+        .acc-content.show {
+            display: block;
+        }
+
+        .acc-content p {
+            margin-top: 0;
+            margin-bottom: 8px;
+        }
+
+        .acc-content ul, .acc-content ol {
+            padding-left: 18px;
+            margin-top: 4px;
+            margin-bottom: 10px;
+        }
+
+        .acc-content li {
+            margin-bottom: 4px;
+        }
+
+        .pro-box {
+            background: #e8f0fe;
+            padding: 10px 12px;
+            border-radius: 6px;
+            border-left: 4px solid #1a73e8;
+            margin-top: 10px;
+            margin-bottom: 8px;
+        }
+
+        .warn-box {
+            background: #fff3e0;
+            padding: 10px 12px;
+            border-radius: 6px;
+            border-left: 4px solid #ff9800;
+            margin-top: 10px;
+            margin-bottom: 8px;
+        }
+
+        code {
+            background: rgba(26, 115, 232, 0.08);
+            padding: 1px 4px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .acc-header.custom-note {
+            background: #2c3e50;
+        }
+        .acc-header.custom-note:active {
+            background: #1a252f;
+        }
+
+        .custom-note-body {
+            white-space: pre-wrap;
+            font-size: 0.92rem;
+            line-height: 1.48;
+            margin-bottom: 12px;
+            user-select: text;
+            -webkit-user-select: text;
+        }
+
+        .custom-note-actions {
+            display: flex;
             gap: 8px;
-            border-bottom: 1px solid #ddd;
-            z-index: 999;
+            border-top: 1px dashed #ddd;
+            padding-top: 10px;
         }
-        .compass-calibration input[type="range"] {
+
+        .custom-note-actions button {
             flex: 1;
-            margin: 0;
+            padding: 8px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.82rem;
+            cursor: pointer;
         }
-        
+
+        .btn-add-acc {
+            width: 100%;
+            padding: 13px;
+            background: #1a73e8;
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 0.92rem;
+            cursor: pointer;
+            margin-top: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .custom-form-card {
+            display: none;
+            background: #ffffff;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+            margin-top: 10px;
+            border: 1px solid rgba(0,0,0,0.06);
+        }
+
+        .custom-form-card input, .custom-form-card textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 6px;
+            margin-bottom: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.92rem;
+        }
+
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>Kierunki DVB-T</h1>
-        <button id="compass-btn" class="btn-compass" onclick="initCompass()">🧭 Kompas</button>
-    </header>
-    
-    <!-- Panel szybkiej korekcji kompasu -->
-    <div class="compass-calibration">
-        <span>🧭 Korekta kompasu: <b id="offset-val">0</b>°</span>
-        <input type="range" id="offsetRange" min="-180" max="180" value="0" step="5" oninput="zmienOffset(this.value)">
-        <button onclick="resetOffset()" style="background:none; border:1px solid #ccc; border-radius:4px; cursor:pointer; padding:2px 6px; font-size:0.75rem;">Reset</button>
+<header>
+    <h1>DVB-T2 / Naziemna TV</h1>
+    <button id="compass-btn" class="btn-compass" onclick="initCompass()">🧭 Kompas</button>
+</header>
+
+<div class="container">
+    <div class="main-tabs">
+        <button class="main-tab-btn active" onclick="switchDvbtTab('map', this)">🧭 Nadajniki</button>
+        <button class="main-tab-btn" onclick="switchDvbtTab('params', this)">📊 Parametry</button>
+        <button class="main-tab-btn" onclick="switchDvbtTab('muxes', this)">📺 MUX-y</button>
+        <button class="main-tab-btn" onclick="switchDvbtTab('kb', this)">📚 Wiedza</button>
     </div>
 
-    <div id="map"></div>
-    <button class="btn-recenter" title="Wycentruj na mojej pozycji" onclick="wycentrujMape()">⌖</button>
-    <button class="btn-fullscreen" title="Pełny ekran" onclick="toggleFullscreen()">⛶</button>
+    <!-- ZAKŁADKA 1: MAPA, KOMPAS I NADAJNIKI -->
+    <div id="tab-map" class="view-panel active">
+        <div class="compass-calibration">
+            <span>🧭 Korekta kompasu: <b id="offset-val">0</b>°</span>
+            <input type="range" id="offsetRange" min="-180" max="180" value="0" step="5" oninput="zmienOffset(this.value)">
+            <button onclick="resetOffset()" style="background:#f5f5f5; border:1px solid #ccc; border-radius:4px; cursor:pointer; padding:2px 6px; font-size:0.75rem;">Reset</button>
+        </div>
 
-    <div class="list-container" id="transmitter-list">
-        <div style="padding: 30px; text-align: center; color: #666; font-size: 0.95rem;">
-            ⏳ Pobieram pozycję GPS...
+        <div class="map-wrapper">
+            <div id="map"></div>
+            <button class="btn-recenter" title="Wycentruj na mojej pozycji" onclick="wycentrujMape()">⌖</button>
+            <button class="btn-fullscreen" title="Pełny ekran mapy" onclick="toggleFullscreen()">⛶</button>
+        </div>
+
+        <div id="transmitter-list">
+            <div style="padding: 24px; text-align: center; color: #666; font-size: 0.9rem;">
+                ⏳ Pobieram pozycję GPS...
+            </div>
         </div>
     </div>
 
-<script>
-    let map, userMarker, headingMarker;
-    let currentLine = null;
-    let userCoords = null;
+    <!-- ZAKŁADKA 2: PARAMETRY NADAWANIA I POMIARÓW + TABELA KANAŁÓW -->
+    <div id="tab-params" class="view-panel">
+        <div class="table-card">
+            <table class="dvbt-table" style="min-width: 780px;">
+                <thead>
+                    <tr>
+                        <th>Kanał</th>
+                        <th>Częst. [MHz]</th>
+                        <th>Pol.</th>
+                        <th>MUX</th>
+                        <th>Modulacja</th>
+                        <th>GI</th>
+                        <th>FEC</th>
+                        <th>Sygnał [dBµV]</th>
+                        <th>MER [dB]</th>
+                        <th>C/N [dB]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="ch-num">6</td>
+                        <td><span class="freq-val">184.5</span><span class="band-badge band-vhf">VHF</span></td>
+                        <td style="text-align:center;"><b>H</b></td>
+                        <td rowspan="2" style="text-align:center;"><span class="mux-badge m8">MUX-8</span></td>
+                        <td rowspan="2" style="text-align:center;">64-QAM</td>
+                        <td rowspan="2" style="text-align:center;">1/4</td>
+                        <td rowspan="2" style="text-align:center;">5/6</td>
+                        <td rowspan="2" style="text-align:center;">51 – 74</td>
+                        <td rowspan="2" style="text-align:center;">&gt;26</td>
+                        <td style="text-align:center;">&gt;27 (min 23)</td>
+                    </tr>
+                    <tr>
+                        <td class="ch-num">7</td>
+                        <td><span class="freq-val">191.5</span><span class="band-badge band-vhf">VHF</span></td>
+                        <td style="text-align:center;"><b>V</b></td>
+                        <td style="text-align:center;">31</td>
+                    </tr>
+                    <tr>
+                        <td class="ch-num">21</td>
+                        <td><span class="freq-val">474</span><span class="band-badge band-uhf">UHF</span></td>
+                        <td rowspan="6" style="text-align:center;"><b>H</b></td>
+                        <td style="text-align:center;"><span class="mux-badge m4">MUX-4</span></td>
+                        <td rowspan="6" style="text-align:center;">256-QAM</td>
+                        <td style="text-align:center;">1/8</td>
+                        <td style="text-align:center;">4/5</td>
+                        <td rowspan="6" style="text-align:center;">48–75<br><small>(max 85)</small></td>
+                        <td rowspan="6" style="text-align:center;">&gt;32<br><small>(min 28)</small></td>
+                        <td rowspan="6" style="text-align:center;">&gt;31<br><small>(min 29)</small></td>
+                    </tr>
+                    <tr>
+                        <td class="ch-num">22</td>
+                        <td><span class="freq-val">482</span><span class="band-badge band-uhf">UHF</span></td>
+                        <td style="text-align:center;"><span class="mux-badge m3">MUX-3</span><br><small>Kraków</small></td>
+                        <td rowspan="5" style="text-align:center;">19/128</td>
+                        <td rowspan="5" style="text-align:center;">3/4</td>
+                    </tr>
+                    <tr>
+                        <td class="ch-num">23</td>
+                        <td><span class="freq-val">490</span><span class="band-badge band-uhf">UHF</span></td>
+                        <td style="text-align:center;"><span class="mux-badge m2">MUX-2</span></td>
+                    </tr>
+                    <tr>
+                        <td class="ch-num">24</td>
+                        <td><span class="freq-val">498</span><span class="band-badge band-uhf">UHF</span></td>
+                        <td style="text-align:center;"><span class="mux-badge m6">MUX-6</span></td>
+                    </tr>
+                    <tr>
+                        <td class="ch-num">41</td>
+                        <td><span class="freq-val">634</span><span class="band-badge band-uhf">UHF</span></td>
+                        <td style="text-align:center;"><span class="mux-badge m3">MUX-3</span><br><small>Katowice</small></td>
+                    </tr>
+                    <tr>
+                        <td class="ch-num">43</td>
+                        <td><span class="freq-val">650</span><span class="band-badge band-uhf">UHF</span></td>
+                        <td style="text-align:center;"><span class="mux-badge m1">MUX-1</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
 
-    const transmitters = [
-        { name: "RTCN Katowice / Kosztowy", lat: 50.1878, lon: 19.1161 },
-        { name: "RTON Wisła / Skrzyczne", lat: 49.6844, lon: 19.0303 },
-        { name: "Ostrava / Hostálkovice", lat: 49.8514, lon: 18.2111 },
-        { name: "Rybnik / Chwałowice", lat: 50.0658, lon: 18.5539 }
-    ];
+        <input type="text" id="freqFilterInput" class="filter-input" placeholder="Filtruj kanały VHF/UHF (np. 23, 490, MUX-8, CZ-Mux, L2)..." oninput="filterFreqTable()">
 
-    window.addEventListener('load', () => {
-        initMap();
-        setupCompass();
-    });
+        <div class="table-card">
+            <table class="dvbt-table" id="freqReferenceTable">
+                <thead>
+                    <tr>
+                        <th style="width:65px;">Kanał</th>
+                        <th>Częst. / Pasmo</th>
+                        <th>MUX / Uwagi</th>
+                    </tr>
+                </thead>
+                <tbody id="freqReferenceBody"></tbody>
+            </table>
+        </div>
 
-    function initMap(lat, lon) {
-        // Domyślne współrzędne startowe (np. Śląsk / Polska), dopóki GPS nie złapie pozycji
-        const startLat = lat || 50.25;
-        const startLon = lon || 19.0;
+        <div class="table-card" style="padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+    <div>
+        <div style="font-weight: 700; font-size: 0.9rem; color: #1a73e8;">Przelicznik jednostek dBµV / dBm (75 Ω)</div>
+        <div style="font-size: 0.78rem; color: #546e7a;">Szybkie przeliczanie poziomów sygnału DVB-T2 i SAT</div>
+    </div>
+    <a href="Jednostki.html" style="background: #1a73e8; color: #ffffff; text-decoration: none; padding: 9px 14px; border-radius: 8px; font-weight: 700; font-size: 0.8rem; white-space: nowrap;">Otwórz ↗</a>
+</div>
 
-        map = L.map('map', { zoomControl: false }).setView([startLat, startLon], 15);
+    </div>
 
-        const streetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap'
-        });
+   
+    <!-- ZAKŁADKA 3: BIBLIOTEKA WIEDZY DVB-T2 / ANTENY -->
+    <div id="tab-kb" class="view-panel">
 
-        const topoMap = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-            maxZoom: 17,
-            attribution: '© OpenTopoMap (CC-BY-SA)'
-        });
+        <div class="accordion">
+            <div class="acc-header" onclick="window.open('https://mapy.radiopolska.pl/','_blank')"><span>RadioPolska - Mapa Interaktywna</span><span>▶</span></div>
+        </div>
 
-        const satMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            attribution: 'Esri Satellite'
-        });
+        <div class="accordion">
+            <div class="acc-header" onclick="window.open('https://emi.emitel.pl/plan_www/','_blank')"><span>Emitel - Planowane przerwy emisji</span><span>▶</span></div>
+        </div>
 
-        satMap.addTo(map); // Domyślnie satelita
 
-        const baseMaps = {
-            "Satelita": satMap,
-            "Topografia": topoMap,
-            "Mapa": streetMap
-        };
-        L.control.layers(baseMaps, null, { position: 'topright' }).addTo(map);
-
-        if (navigator.geolocation) {
-            navigator.geolocation.watchPosition(pos => {
-                userCoords = [pos.coords.latitude, pos.coords.longitude];
-
-                if (!userMarker) {
-                    map.setView(userCoords, 16);
-                    userMarker = L.circleMarker(userCoords, { 
-                        color: '#ffffff', 
-                        fillColor: '#1a73e8', 
-                        fillOpacity: 1, 
-                        weight: 3, 
-                        radius: 9 
-                    }).addTo(map);
-                    
-                    const headingIcon = L.divIcon({
-                        className: 'phone-heading-wrapper',
-                        html: '<div class="phone-heading" id="phone-arrow"></div>',
-                        iconSize: [3, 150],
-                        iconAnchor: [1.5, 50]
-                    });
-                    headingMarker = L.marker(userCoords, { icon: headingIcon }).addTo(map);
-                } else {
-                    userMarker.setLatLng(userCoords);
-                    headingMarker.setLatLng(userCoords);
-                }
-                renderList();
-            }, err => {
-                console.error("Błąd GPS:", err);
-                document.getElementById("transmitter-list").innerHTML = 
-                    `<div style="padding:20px; text-align:center; color:#d93025; font-weight:bold;">
-                        ⚠️ Brak sygnału GPS (${err.message}).<br><small style="color:#666;">Włącz lokalizację w ustawieniach.</small>
-                     </div>`;
-            }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 });
-        }
-    }
-
-    function setupCompass() {
-        if (window.DeviceOrientationEvent) {
-            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-                document.getElementById('compass-btn').style.display = 'block';
-            } else {
-                window.addEventListener('deviceorientationabsolute', handleOrientation, true);
-                window.addEventListener('deviceorientation', handleOrientation, true);
-            }
-        }
-    }
-
-    function initCompass() {
-        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-            DeviceOrientationEvent.requestPermission().then(response => {
-                if (response === 'granted') {
-                    window.addEventListener('deviceorientation', handleOrientation, true);
-                    document.getElementById('compass-btn').style.display = 'none';
-                }
-            }).catch(console.error);
-        }
-    }
-
-    // Pobieranie zapisanego offsetu z pamięci przeglądarki (domyślnie 0)
-    let compassOffset = parseInt(localStorage.getItem('compass_offset') || '0');
-    
-    // Inicjalizacja suwaka przy starcie
-    window.addEventListener('DOMContentLoaded', () => {
-        const range = document.getElementById('offsetRange');
-        if (range) {
-            range.value = compassOffset;
-            document.getElementById('offset-val').innerText = compassOffset;
-        }
-    });
-
-    function zmienOffset(val) {
-        compassOffset = parseInt(val);
-        document.getElementById('offset-val').innerText = compassOffset;
-        localStorage.setItem('compass_offset', compassOffset); // Zapis do pamięci
-    }
-
-    function resetOffset() {
-        compassOffset = 0;
-        const range = document.getElementById('offsetRange');
-        if (range) range.value = 0;
-        document.getElementById('offset-val').innerText = '0';
-        localStorage.setItem('compass_offset', '0');
-    }
-
-    let currentHeading = 0;
-
-    function handleOrientation(e) {
-        let heading = e.webkitCompassHeading || e.alpha;
-        if (heading !== null && heading !== undefined) {
-            if (!e.webkitCompassHeading && e.alpha) {
-                heading = 360 - e.alpha; 
-            }
-
-            // --- UWZGLEDNIENIE RĘCZNEGO OFFSETU UŻYTKOWNIKA ---
-            heading = (heading + compassOffset + 360) % 360;
-
-            // --- FILTR WYGŁADZAJĄCY ---
-            let diff = heading - currentHeading;
-            if (diff > 180) diff -= 360;
-            if (diff < -180) diff += 360;
-            
-            currentHeading += diff * 0.25; 
-            currentHeading = (currentHeading + 360) % 360;
-
-            const arrow = document.getElementById('phone-arrow');
-            if (arrow) {
-                arrow.style.transform = `rotate(${currentHeading}deg)`;
-            }
-        }
-    }
-
-    function wycentrujMape() {
-        if (userCoords && map) {
-            map.setView(userCoords, 16, { animate: true });
-        }
-    }
-
-    function renderList() {
-        const list = document.getElementById("transmitter-list");
-        if (!userCoords) return;
-        
-        list.innerHTML = "";
-
-        const results = transmitters.map(tx => ({
-            ...tx,
-            dist: calculateDistance(userCoords[0], userCoords[1], tx.lat, tx.lon),
-            bear: calculateBearing(userCoords[0], userCoords[1], tx.lat, tx.lon)
-        })).sort((a, b) => a.dist - b.dist);
-
-        results.forEach(tx => {
-            const card = document.createElement('div');
-            card.className = 'transmitter-card';
-            card.onclick = function() { drawLine(tx, this); };
-            
-            card.innerHTML = `
-                <div>
-                    <div class="tx-name">${tx.name}</div>
-                    <div class="distance">Odległość: <b>${tx.dist.toFixed(1)} km</b></div>
+        <div class="accordion">
+            <div class="acc-header" onclick="toggleAcc(this)">1. DVB-T2 / HEVC, MODULACJA, GI I FEC <span>+</span></div>
+            <div class="acc-content">
+                <p><b>Podstawy:</b> Standard <b>DVB-T2</b> z kodekiem wideo <b>HEVC (H.265)</b> zapewnia wyższą efektywność widmową i lepszą jakość/pojemność multipleksu niż starsze DVB-T / MPEG-4. Odbiornik (telewizor lub dekoder STB) musi obsługiwać zarówno standard DVB-T2, jak i dekodowanie HEVC.</p>
+                <ul>
+                    <li><b>Modulacja (np. 64-QAM / 256-QAM):</b> Wyższy rząd modulacji (np. 256-QAM) pozwala upakować więcej danych w kanale, ale wymaga czystszego sygnału i wyższego odstępu sygnału od szumu/zakłóceń.</li>
+                    <li><b>Przedział ochronny (GI – Guard Interval):</b> Czas ochronny między symbolami OFDM chroniący przed interferencjami międzysymbolowymi przy wielodrogowości (odbicia od budynków, wzgórz, sieci SFN).</li>
+                    <li><b>FEC (Forward Error Correction):</b> Korekcja błędów w strumieniu — im wyższy narzut korekcji (np. <code>3/4</code> vs bardziej wymagający pod względem C/N), tym inny kompromis między przepływnością a odpornością na błędy.</li>
+                </ul>
+                <div class="pro-box">
+                    <b>SFN (Single Frequency Network) i wielodrogowość (PRO):</b><br>
+                    W sieciach SFN wiele nadajników może nadawać ten sam multipleks na tym samym kanale. Jeśli sygnały z dwóch nadajników lub odbicia docierają do anteny z opóźnieniem przekraczającym okno ochronne (GI) lub o zbliżonym poziomie w niekorzystnej fazie, odbiornik może tracić stabilność mimo pozornie niezłego poziomu sygnału na mierniku.
                 </div>
-                <div class="azimuth-container">
-                    <div class="azimuth-val">${tx.bear}°</div>
-                    <div style="font-size: 0.65rem; color: #888; text-transform: uppercase; font-weight: bold;">Azymut</div>
+            </div>
+        </div>
+
+        <div class="accordion">
+            <div class="acc-header" onclick="toggleAcc(this)">2. POMIARY SYGNAŁU: POZIOM [dBµV], MER, C/N, BER <span>+</span></div>
+            <div class="acc-content">
+                <p><b>Podstawy:</b> Sam poziom sygnału w <code>dBµV</code> nie wystarcza do oceny jakości odbioru cyfrowego. Zbyt słaby sygnał powoduje „pikselowanie” i zrywanie, ale zbyt mocny sygnał potrafi przesterować wzmacniacz lub głowicę odbiornika.</p>
+                <ul>
+                    <li><b>Poziom sygnału [dBµV]:</b> W tabeli parametrów orientacyjny zakres dla pasma UHF to ok. <code>48–75 dBµV</code> (z zastrzeżeniem max ok. <code>85 dBµV</code>), a dla VHF ok. <code>51–74 dBµV</code> — zawsze dopasowuj go do czułości i odporności konkretnego odbiornika/multiswitcha/wzmacniacza.</li>
+                    <li><b>MER (Modulation Error Ratio) [dB]:</b> Mierzy jakość konstelacji sygnału cyfrowego — im wyższy MER, tym czystszy sygnał i większy margines na zakłócenia.</li>
+                    <li><b>C/N (Carrier-to-Noise Ratio) [dB]:</b> Stosunek mocy nośnej do szumu w kanale; kluczowy dla stabilnego odbioru bez błędów.</li>
+                    <li><b>bBER / aBER:</b> Stopa błędów bitowych przed i po korekcji błędów — nawet przy przyzwoitym poziomie dBµV wysoka liczba błędów świadczy o zakłóceniach, odbiciach lub przesterowaniu.</li>
+                </ul>
+                <div class="warn-box">
+                    <b>⚠️ Za mocny sygnał też szkodzi:</b><br>
+                    Przekroczenie maksymalnego poziomu wejściowego (np. przez zbyt mocny wzmacniacz antenowy w pobliżu nadajnika lub silne sygnały LTE/5G) wywołuje intermodulację i błędy odbioru, które wyglądają podobnie do słabego sygnału.
                 </div>
-            `;
-            list.appendChild(card);
-        });
-    }
+            </div>
+        </div>
 
-    function drawLine(tx, card) {
-        if (!userCoords) return;
+        <div class="accordion">
+            <div class="acc-header" onclick="toggleAcc(this)">3. PASMA VHF / UHF, POLARYZACJA I ANTENY <span>+</span></div>
+            <div class="acc-content">
+                <p><b>Podstawy:</b> W Polsce naziemna telewizja cyfrowa wykorzystuje pasmo <b>VHF</b> (np. kanały 5–12, m.in. MUX-8) oraz pasmo <b>UHF</b> (kanały 21–48, m.in. MUX-1, MUX-2, MUX-3, MUX-4, MUX-6).</p>
+                <ul>
+                    <li><b>Polaryzacja (H / V):</b> Antena musi być ustawiona zgodnie z polaryzacją danego nadajnika/multipleksu — poziomo (<b>H</b>) lub pionowo (<b>V</b>). Błędna polaryzacja potrafi silnie stłumić sygnał.</li>
+                    <li><b>Zysk kierunkowy vs kąt przyjęcia:</b> Anteny kierunkowe (np. Yagi-Uda, logarytmiczno-periodyczne) mają większy zysk i lepiej tłumią sygnały spoza osi (np. zakłócenia lub nadajniki w innym kierunku), ale wymagają dokładniejszego celowania i mają węższy listek główny.</li>
+                    <li><b>Zwrotnice i sumatory:</b> Łącząc antenę VHF i UHF uważaj na dopasowanie pasm i ewentualne przejście zasilania (np. do przedwzmacniacza tylko w jednej gałęzi, gdy druga nie potrzebuje/nie znosi zasilania).</li>
+                </ul>
+                <div class="pro-box">
+                    <b>Praktyka strojenia na dachu (PRO):</b><br>
+                    - Najpierw ustawiaj antenę pasywną (bez wzmacniacza) na najlepszy <b>MER i C/N</b> (oraz minimalne błędy), nie tylko na sam pasek siły.<br>
+                    - Wzmacniacz stosuj dopiero wtedy, gdy po uwzględnieniu strat na kablu i rozgałęźnikach sygnał jest za słaby, a jakość (MER/C/N) na wejściu jest dobra — wzmacniacz nie „naprawi” złego, zaszumionego sygnału, tylko wzmocni go razem z szumem.<br>
+                    - Unikaj przypadkowych „anten wzmacnianych” z fabrycznym wzmacniaczem w pobliżu mocnych nadajników.
+                </div>
+            </div>
+        </div>
 
-        document.querySelectorAll('.transmitter-card').forEach(c => c.classList.remove('active'));
-        card.classList.add('active');
+        <div class="accordion">
+            <div class="acc-header" onclick="toggleAcc(this)">4. ZAKŁÓCENIA LTE / 5G (PASMO 700/800 MHz) I FILTRY <span>+</span></div>
+            <div class="acc-content">
+                <p><b>Podstawy:</b> Po refarmingu pasma UHF górne kanały (powyżej kanału 48 / 694 MHz) zostały przeznaczone pod sieci szerokopasmowe (m.in. 5G/LTE), a w pobliżu pracują też pasma 800 MHz. Silny sygnał ze stacji bazowej w pobliżu instalacji antenowej może przeciążać wzmacniacze lub głowice TV/STB.</p>
+                <ul>
+                    <li><b>Objawy zakłóceń:</b> Nagłe zrywanie wybranych multipleksów mimo dobrego poziomu, skoki błędów w określonych porach lub przy obciążeniu sieci komórkowej w pobliżu.</li>
+                    <li><b>Filtry LTE / 5G (low-pass / band-pass):</b> Tłumią pasma komórkowe powyżej zakresu TV naziemnej — warto stosować je tam, gdzie w pobliżu znajduje się nadajnik BTS lub występują problemy intermodulacyjne.</li>
+                </ul>
+                <div class="pro-box">
+                    <b>Okablowanie i ekranowanie (PRO):</b><br>
+                    Stosuj porządny kabel koncentryczny (np. <code>75 Ω</code> z dobrym ekranowaniem, oplot + folia, pełna miedź) oraz starannie zarobione złącza F/IEC — nieszczelne złącza i słabe ekrany łatwo łapią zakłócenia zewnętrzne i powodują utratę ekranowania w instalacji.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion">
+            <div class="acc-header" onclick="toggleAcc(this)">5. LCN, HBBTV I PROCEDURY SERWISOWE <span>+</span></div>
+            <div class="acc-content">
+                <p><b>Podstawy:</b> <b>LCN</b> (<i>Logical Channel Number</i>) to numeracja logiczna kanałów nadawana w strumieniu przez nadawcę, dzięki której kanały układają się w określonej kolejności (np. TVP1 na 1, TVP2 na 2, TVP3 na 3, Polsat na 4, TVN na 5 itd.).</p>
+                <ul>
+                    <li><b>HbbTV:</b> Telewizja hybrydowa łącząca przekaz naziemny z treściami internetowymi — wymaga połączenia odbiornika z internetem oraz włączonej obsługi HbbTV w menu TV/dekodera.</li>
+                    <li><b>Aktualizacja listy / ponowne skanowanie:</b> Przy zmianach parametrów nadawania, układzie kanałów lub dodaniu nowych pozycji warto wykonać ponowne wyszukiwanie kanałów (z zachowaniem lub wyczyszczeniem starej listy, zależnie od sytuacji).</li>
+                </ul>
+                <div class="pro-box">
+                    <b>Checklista serwisowa przy problemie z odbiorem (PRO):</b><br>
+                    1. Sprawdź, czy problem dotyczy jednego MUX-a (konkretny kanał/częstotliwość/polaryzacja) czy wszystkich.<br>
+                    2. Zweryfikuj kierunek, polaryzację i stan mechaniczny anteny oraz brak przeszkód/odbicia.<br>
+                    3. Sprawdź zasilanie przedwzmacniacza (jeśli występuje), kabel, złącza, rozgałęźniki/multiswitche i ewentualne przesterowanie.<br>
+                    4. Odczytaj poziomy i jakość (MER / C/N / błędy) bezpośrednio na przewodzie lub gnieździe, a na koniec zrób skan kanałów i weryfikację LCN/HbbTV.
+                </div>
+            </div>
+        </div>
     
-        if (currentLine) map.removeLayer(currentLine);
-        
-        // Obliczanie punktu końcowego linii na podstawie azymutu i odległości (start precyzyjnie z pozycji użytkownika)
-        const R = 6371; 
-        const lat1 = userCoords[0] * Math.PI / 180;
-        const lon1 = userCoords[1] * Math.PI / 180;
-        const brng = calculateBearing(userCoords[0], userCoords[1], tx.lat, tx.lon) * Math.PI / 180;
 
-        const dR = 5.0 / R; // 5 km długości linii na mapie w kierunku nadajnika
-        const lat2 = Math.asin(Math.sin(lat1) * Math.cos(dR) + Math.cos(lat1) * Math.sin(dR) * Math.cos(brng));
-        const lon2 = lon1 + Math.atan2(Math.sin(brng) * Math.sin(dR) * Math.cos(lat1), Math.cos(dR) - Math.sin(lat1) * Math.sin(lat2));
+    <!-- KONTENER NA WŁASNE AKORDEONY -->
+        <div id="custom-accordions-list"></div>
 
-        const endPoint = [lat2 * 180 / Math.PI, lon2 * 180 / Math.PI];
+        <!-- PRZYCISK DODAWANIA -->
+        <button id="btn-show-form" class="btn-add-acc" onclick="otworzFormularzAcc()">＋ Dodaj własną notatkę</button>
 
-        currentLine = L.polyline([userCoords, endPoint], {
-            color: '#d93025',
-            weight: 5,
-            dashArray: '8, 8'
-        }).addTo(map);
-    
-        if (userCoords) {
-            map.setView(userCoords, 16, { animate: true });
-        }
-    }
+        <!-- FORMULARZ DODAWANIA / EDYCJI -->
+        <div id="custom-acc-form" class="custom-form-card">
+            <h3 id="form-acc-title" style="margin-top:0; font-size: 1rem;">Nowa notatka</h3>
+            <input type="hidden" id="edit-acc-index" value="-1">
 
-    function calculateDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371;
-        const dLat = (lat2-lat1)*Math.PI/180;
-        const dLon = (lon2-lon1)*Math.PI/180;
-        const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    }
+            <label style="font-weight:bold; font-size:0.85rem;">Tytuł na pasku:</label>
+            <input type="text" id="acc-title-input" placeholder="np. Lokalny nadajnik - kanały...">
 
-    function calculateBearing(lat1, lon1, lat2, lon2) {
-        const l1 = lat1*Math.PI/180, l2 = lat2*Math.PI/180, dl = (lon2-lon1)*Math.PI/180;
-        const y = Math.sin(dl)*Math.cos(l2), x = Math.cos(l1)*Math.sin(l2)-Math.sin(l1)*Math.cos(l2)*Math.cos(dl);
-        return Math.round((Math.atan2(y, x)*180/Math.PI + 360) % 360);
-    }
+            <label style="font-weight:bold; font-size:0.85rem;">Treść notatki:</label>
+            <textarea id="acc-body-input" rows="5" placeholder="Wpisz treść..."></textarea>
 
-    function toggleFullscreen() {
-        const mapElement = document.getElementById('map');
-        if (!document.fullscreenElement) {
-            if (mapElement.requestFullscreen) mapElement.requestFullscreen();
-            else if (mapElement.webkitRequestFullscreen) mapElement.webkitRequestFullscreen();
-        } else {
-            if (document.exitFullscreen) document.exitFullscreen();
-            else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-        }
-    }
+            <div style="display:flex; gap:8px;">
+                <button onclick="zapiszCustomAcc()" style="flex:1; padding:10px; background:#2ecc71; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">Zapisz</button>
+                <button onclick="zamknijFormularzAcc()" style="flex:1; padding:10px; background:#7f8c8d; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">Anuluj</button>
+            </div>
+        </div></div>
+</div>
 
-    document.addEventListener("fullscreenchange", () => { setTimeout(() => { map.invalidateSize(); }, 200); });
-    document.addEventListener("webkitfullscreenchange", () => { setTimeout(() => { map.invalidateSize(); }, 200); });
-</script>
+<script src="dvbt.js"></script>
 </body>
 </html>

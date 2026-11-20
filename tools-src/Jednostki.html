@@ -6,119 +6,152 @@
     <title>Przelicznik dBµV / dBm</title>
     <link rel="stylesheet" href="../style.css">
     <style>
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-            margin: 0; 
-            background: #f0f2f5; 
-            color: #2c3e50; 
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            background: #f0f2f5;
+            color: #2c3e50;
             display: flex;
             flex-direction: column;
-            height: 100vh;
+            min-height: 100vh;
         }
 
-        /* NOWY, ELEGANCKI NAGŁÓWEK */
-        header { 
-        
-            padding: 0 16px; 
-            display: flex; 
-            align-items: center; 
+        header {
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
             height: 56px;
-            
-            position: relative; 
-            z-index: 1000; 
+            position: relative;
+            z-index: 1000;
+            background: #ffffff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
         }
-        
 
-
-        h1 { 
-            font-size: 1.1rem; 
-            margin: 0; 
-            position: absolute; 
-            left: 0; 
-            right: 0; 
-            text-align: center; 
-            pointer-events: none; 
+        h1 {
+            font-size: 1.08rem;
+            margin: 0;
+            position: absolute;
+            left: 0;
+            right: 0;
+            text-align: center;
+            pointer-events: none;
             font-weight: 600;
             letter-spacing: 0.3px;
         }
 
-        .container { 
-            padding: 20px; 
-            max-width: 400px; 
-            margin: auto; 
+        .container {
+            padding: 20px;
+            max-width: 400px;
+            margin: auto;
             width: 100%;
             box-sizing: border-box;
         }
-        
-        .card { 
-            background: #ffffff; 
-            padding: 25px; 
-            border-radius: 12px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.06); 
-            text-align: center; 
+
+        .card {
+            background: #ffffff;
+            padding: 22px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+            text-align: center;
             border: 1px solid rgba(0,0,0,0.05);
         }
-        
-        .input-group { 
-            margin-bottom: 20px; 
+
+        .ohm-switch {
+            display: flex;
+            gap: 6px;
+            background: #eef2f5;
+            padding: 4px;
+            border-radius: 8px;
+            margin-bottom: 18px;
         }
-        
-        label { 
-            display: block; 
-            margin-bottom: 8px; 
-            font-weight: 600; 
-            color: #555; 
+
+        .ohm-btn {
+            flex: 1;
+            padding: 9px 8px;
+            border: none;
+            border-radius: 6px;
+            background: transparent;
+            color: #455a64;
+            font-weight: 700;
+            font-size: 0.86rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .ohm-btn.active {
+            background: #455a64;
+            color: #ffffff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.16);
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
             font-size: 0.95rem;
         }
-        
-        input { 
-            width: 100%; 
-            padding: 14px; 
-            border: 2px solid #e0e0e0; 
+
+        input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e0e0e0;
             border-radius: 8px;
-            font-size: 1.4rem; 
-            text-align: center; 
-            box-sizing: border-box; 
-            transition: 0.2s; 
-            background: #fff; 
+            font-size: 1.35rem;
+            text-align: center;
+            box-sizing: border-box;
+            transition: 0.2s;
+            background: #fff;
             color: #2c3e50;
             font-weight: bold;
         }
-        
-        input:focus { 
-            border-color: #455a64; 
-            outline: none; 
-            background: #f8f9fa; 
+
+        input:focus {
+            border-color: #455a64;
+            outline: none;
+            background: #f8f9fa;
         }
 
-        .arrow { 
-            font-size: 1.8rem; 
-            color: #95a5a6; 
-            margin: 5px 0 15px 0; 
+        .arrow {
+            font-size: 1.7rem;
+            color: #95a5a6;
+            margin: 4px 0 12px 0;
         }
-        
-        .info-table { 
-            margin-top: 25px; 
-            width: 100%; 
-            border-collapse: collapse; 
-            font-size: 0.88rem; 
+
+        .offset-info {
+            font-size: 0.8rem;
+            color: #607d8b;
+            margin-top: 6px;
+            font-weight: 600;
+        }
+
+        .info-table {
+            margin-top: 20px;
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
             color: #2c3e50;
             text-align: left;
         }
-        
+
         .info-table tr {
             border-bottom: 1px solid #f0f0f0;
         }
-        
+
         .info-table tr:last-child {
             border-bottom: none;
         }
 
-        .info-table td { 
-            padding: 8px 4px; 
+        .info-table td {
+            padding: 8px 4px;
         }
-        
-        .info-table td:nth-child(2), .info-table td:nth-child(3) {
+
+        .info-table td:nth-child(2),
+        .info-table td:nth-child(3) {
             text-align: right;
             font-weight: 500;
         }
@@ -127,57 +160,35 @@
 <body>
 
 <header>
-
-    <h1>Przelicznik Jednostek 75 Ω</h1>
+    <h1 id="pageTitle">Przelicznik Jednostek 75 Ω</h1>
 </header>
 
 <div class="container">
     <div class="card">
+        <div class="ohm-switch">
+            <button type="button" id="btn-75" class="ohm-btn active" onclick="setImpedance(75, this)">75 Ω</button>
+            <button type="button" id="btn-50" class="ohm-btn" onclick="setImpedance(50, this)">50 Ω</button>
+        </div>
+
         <div class="input-group">
-            <label>Napięcie (dBµV)</label>
-            <input type="number" id="dbuv" placeholder="np. 60" oninput="convert('dbuv')">
+            <label for="dbuv">Napięcie (dBµV)</label>
+            <input type="number" id="dbuv" step="any" placeholder="np. 60" oninput="convert('dbuv')">
         </div>
 
         <div class="arrow">⇅</div>
 
         <div class="input-group">
-            <label>Moc (dBm)</label>
-            <input type="number" id="dbm" placeholder="np. -48" oninput="convert('dbm')">
+            <label for="dbm">Moc (dBm)</label>
+            <input type="number" id="dbm" step="any" placeholder="np. -48.75" oninput="convert('dbm')">
+            <div id="offsetInfo" class="offset-info">Impedancja: 75 Ω (offset 108.75)</div>
         </div>
 
         <table class="info-table">
-            <tr><td><b>DVB-T2 min:</b></td><td>48 dBµV</td><td>-60 dBm</td></tr>
-            <tr><td><b>DVB-T2 max:</b></td><td>74 dBµV</td><td>-35 dBm</td></tr>
-            <tr><td><b>SAT min:</b></td><td>47 dBµV</td><td>-62 dBm</td></tr>
-            <tr><td><b>SAT max:</b></td><td>77 dBµV</td><td>-32 dBm</td></tr>
+            <tbody id="refTableBody"></tbody>
         </table>
     </div>
 </div>
 
-<script>
-    const OFFSET = 108.75; // Stała dla impedancji 75 Ohm
-
-    function convert(source) {
-        const dbuvInput = document.getElementById('dbuv');
-        const dbmInput = document.getElementById('dbm');
-
-        if (source === 'dbuv') {
-            const val = parseFloat(dbuvInput.value);
-            if (!isNaN(val)) {
-                dbmInput.value = (val - OFFSET).toFixed(2);
-            } else {
-                dbmInput.value = '';
-            }
-        } else {
-            const val = parseFloat(dbmInput.value);
-            if (!isNaN(val)) {
-                dbuvInput.value = (val + OFFSET).toFixed(2);
-            } else {
-                dbuvInput.value = '';
-            }
-        }
-    }
-</script>
-
+<script src="jednostki.js"></script>
 </body>
 </html>
