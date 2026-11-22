@@ -1,5 +1,5 @@
 const metaVersionTag = document.querySelector('meta[name="version"]');
-const APP_VERSION = metaVersionTag ? metaVersionTag.getAttribute('content') : "3.2.0";
+const APP_VERSION = metaVersionTag ? metaVersionTag.getAttribute('content') : "3.3.0";
 
 // --- JEDNA, ZBIORCZA INICJALIZACJA STARTOWA ---
 document.addEventListener("DOMContentLoaded", async () => {
@@ -91,6 +91,7 @@ let notatki = JSON.parse(localStorage.getItem('ksiegowosc_notatki')) || [];
 let aktRok, aktMiesiac;
 let wybranaData = "";
 let trybPelnyKalendarz = false;
+let rozwinietyWizytaIndex = null;
 
 const ekranyKolejnosc = ['narzedzia', 'kalendarz', 'dziennik', 'notatki'];
 let aktualnyEkran = 'narzedzia';
@@ -405,34 +406,94 @@ function generujKalendarz() {
 
 function wybierzDzien(dataStr) {
     wybranaData = dataStr;
+    rozwinietyWizytaIndex = null;
     generujKalendarz();
     renderujWizytyDnia();
 }
 
-function toggleMenuAkcji(index, event) {
-    event.stopPropagation();
-
-    document.querySelectorAll('[id^="menu-akcji-"]').forEach(el => {
-        if (el.id !== `menu-akcji-${index}`) {
-            el.style.display = 'none';
-        }
-    });
-
-    const menu = document.getElementById(`menu-akcji-${index}`);
-    if (menu) {
-        menu.style.display = (menu.style.display === 'flex') ? 'none' : 'flex';
-    }
+// --- WIDOK DNIA: OSI 07:00-19:00 CO 30 MINUT, CAŁODNIOWE NA GÓRZE, DYMEK SZCZEGÓŁÓW ---
+function godzinaNaMinuty(godzStr) {
+    if (!godzStr || typeof godzStr !== 'string') return null;
+    const match = godzStr.trim().match(/^(\d{1,2}):(\d{2})$/);
+    if (!match) return null;
+    const h = parseInt(match[1], 10);
+    const m = parseInt(match[2], 10);
+    if (h < 0 || h > 23 || m < 0 || m > 59) return null;
+    return h * 60 + m;
 }
 
-document.addEventListener('click', () => {
-    document.querySelectorAll('[id^="menu-akcji-"]').forEach(el => {
-        el.style.display = 'none';
-    });
-});
+function minutyNaKluczSlotu30(minuty) {
+    const slotStart = Math.floor(minuty / 30) * 30;
+    const h = String(Math.floor(slotStart / 60)).padStart(2, '0');
+    const m = String(slotStart % 60).padStart(2, '0');
+    return `${h}:${m}`;
+}
+
+function przelaczDymekWizyty(globalIndex, event) {
+    if (event) event.stopPropagation();
+    rozwinietyWizytaIndex = (rozwinietyWizytaIndex === globalIndex) ? null : globalIndex;
+    renderujWizytyDnia();
+}
+
+function zbudujKafelekWizyty(w, globalIndex, pokazGodzine = true) {
+    const isPriv = w.typ === 'prywatny';
+    const isOpen = rozwinietyWizytaIndex === globalIndex;
+    const adresTekst = w.adres ? escapeNoteHTML(w.adres) : 'Brak adresu';
+    const godzTekst = w.calyDzien ? 'Cały dzień' : escapeNoteHTML(w.godzina || '');
+
+    return `
+        <div class="visit-chip ${isPriv ? 'prywatny' : ''} ${w.calyDzien ? 'calydzien-chip' : ''} ${isOpen ? 'is-open' : ''}"
+             onclick="przelaczDymekWizyty(${globalIndex}, event)">
+            ${pokazGodzine && godzTekst ? `<div class="visit-chip-head">🕒 ${godzTekst}</div>` : ''}
+            <div class="visit-chip-address">${adresTekst}</div>
+        </div>
+    `;
+}
+
+function zbudujDymekSzczegolow(w, globalIndex) {
+    const isPriv = w.typ === 'prywatny';
+    const czasInfo = w.calyDzien ? '📅 Cały dzień' : `🕒 ${escapeNoteHTML(w.godzina || '')}`;
+    const klientSafe = escapeNoteHTML(w.klient || 'Brak numeru');
+    const telHref = encodeURIComponent((w.klient || '').trim());
+
+    const adresHTML = w.adres
+        ? `<div class="visit-address-row">📍 <a href="geo:0,0?q=${encodeURIComponent(w.adres)}" style="color: #2980b9; text-decoration: underline; font-weight: 500;" onclick="event.stopPropagation()">${escapeNoteHTML(w.adres)}</a></div>`
+        : '';
+
+    const opisHTML = w.opis
+        ? `<div class="visit-desc-row">${escapeNoteHTML(w.opis)}</div>`
+        : '';
+
+    return `
+        <div class="visit-popover-card ${isPriv ? 'prywatny' : ''}" onclick="event.stopPropagation()">
+            <div class="visit-popover-header">
+                <strong style="font-size: 1rem; color: ${isPriv ? '#2980b9' : '#d35400'};">${czasInfo}</strong>
+                <button type="button" class="visit-popover-close" onclick="przelaczDymekWizyty(${globalIndex}, event)">✕</button>
+            </div>
+
+            <div class="visit-phone-row">
+                📞 <a href="tel:${telHref}" style="color: #2980b9; text-decoration: underline;" onclick="event.stopPropagation()">${klientSafe}</a>
+            </div>
+
+            ${adresHTML}
+            ${opisHTML}
+
+            <div class="visit-dropdown-menu">
+                <button style="background-color: #f39c12; color: white;" onclick="edytujWizyte(${globalIndex})">✏️ Edytuj wizytę</button>
+                <button style="background-color: #16a085; color: white;" onclick="kopiujWizyte(${globalIndex})">📋 Kopiuj wizytę</button>
+                <button style="background-color: #8e44ad; color: white;" onclick="przeniesDoDziennikaZwizyty(${globalIndex})">📋 Przenieś do Dziennika</button>
+                <button style="background-color: #e74c3c; color: white;" onclick="usunWizyte(${globalIndex})">🗑️ Usuń wizytę</button>
+            </div>
+        </div>
+    `;
+}
 
 function renderujWizytyDnia() {
+    const stickyCalodniowe = document.getElementById('wizyty-calodniowe-sticky');
     const kontener = document.getElementById('lista-wizyt-dnia');
     const tytulDnia = document.getElementById('selected-day-title');
+
+    stickyCalodniowe.innerHTML = "";
     kontener.innerHTML = "";
 
     tytulDnia.innerHTML = `Wizyty w dniu: <span style="font-size: 1.15rem; color: #e67e22;">${wybranaData}</span>`;
@@ -440,49 +501,115 @@ function renderujWizytyDnia() {
     const wizytyDnia = wizyty.filter(w => w.data === wybranaData);
     wizytyDnia.sort((a, b) => (a.godzina || "").localeCompare(b.godzina || ""));
 
-    if (wizytyDnia.length === 0) {
-        kontener.innerHTML = "<p style='text-align:center; color: #777; font-size: 0.9rem; margin: 15px 0;'>Brak wizyt w tym dniu.</p>";
-        return;
+    if (rozwinietyWizytaIndex !== null && !wizyty[rozwinietyWizytaIndex]) {
+        rozwinietyWizytaIndex = null;
+    }
+
+    const calodniowe = [];
+    const wczesniejsze = [];
+    const glowneSloty = new Map();
+    const pozniejsze = [];
+
+    // Siatka co 30 minut od 07:00 (420 min) do 19:00 (1140 min) włącznie
+    const startMin = 7 * 60;
+    const koniecMin = 19 * 60;
+    const kluczeGlowne = [];
+    for (let m = startMin; m <= koniecMin; m += 30) {
+        const klucz = minutyNaKluczSlotu30(m);
+        kluczeGlowne.push(klucz);
+        glowneSloty.set(klucz, []);
     }
 
     wizytyDnia.forEach(w => {
         const globalIndex = wizyty.indexOf(w);
-        const isPriv = w.typ === 'prywatny';
-        const czasInfo = w.calyDzien ? '📅 Cały dzień' : `🕒 ${w.godzina}`;
+        if (w.calyDzien) {
+            calodniowe.push({ w, globalIndex });
+            return;
+        }
 
-        const adresHTML = w.adres
-            ? `<div class="visit-address-row">📍 <a href="geo:0,0?q=${encodeURIComponent(w.adres)}" style="color: #2980b9; text-decoration: underline; font-weight: 500;" onclick="event.stopPropagation()">${w.adres}</a></div>`
-            : '';
+        const minuty = godzinaNaMinuty(w.godzina);
+        if (minuty === null) {
+            wczesniejsze.push({ w, globalIndex });
+            return;
+        }
 
-        const opisHTML = w.opis
-            ? `<div class="visit-desc-row">${w.opis}</div>`
-            : '';
+        if (minuty < startMin) {
+            wczesniejsze.push({ w, globalIndex });
+        } else if (minuty > koniecMin) {
+            pozniejsze.push({ w, globalIndex });
+        } else {
+            const kluczSlotu = minutyNaKluczSlotu30(minuty);
+            glowneSloty.get(kluczSlotu).push({ w, globalIndex });
+        }
+    });
 
-        kontener.innerHTML += `
-            <div class="visit-item ${isPriv ? 'prywatny' : ''}" style="position: relative;">
-                <div class="visit-info" style="margin-bottom: 0;">
-                    <div class="visit-header-row">
-                        <strong style="font-size: 1.15rem; color: ${isPriv ? '#2980b9' : '#d35400'};">${czasInfo}</strong>
-                        <button class="visit-menu-btn" onclick="toggleMenuAkcji(${globalIndex}, event)">⋮</button>
-                    </div>
+    // 1. Nieruchomy obszar wizyt całodniowych na samej górze widoku dnia
+    if (calodniowe.length > 0) {
+        let stickyHTML = `<div class="allday-label">📅 Cały dzień</div>`;
+        calodniowe.forEach(({ w, globalIndex }) => {
+            stickyHTML += zbudujKafelekWizyty(w, globalIndex, false);
+            if (rozwinietyWizytaIndex === globalIndex) {
+                stickyHTML += zbudujDymekSzczegolow(w, globalIndex);
+            }
+        });
+        stickyCalodniowe.innerHTML = stickyHTML;
+    }
 
-                    <div class="visit-phone-row">
-                        📞 <a href="tel:${w.klient}" style="color: #2980b9; text-decoration: underline;" onclick="event.stopPropagation()">${w.klient}</a>
-                    </div>
+    // 2. Zdarzenia wcześniejsze (< 07:00) między całodniowymi a osią 07:00-19:00
+    let html = "";
+    if (wczesniejsze.length > 0) {
+        html += `<div class="extra-band"><div class="extra-band-title">⏫ Przed 07:00</div><div class="extra-band-row">`;
+        wczesniejsze.forEach(({ w, globalIndex }) => {
+            html += zbudujKafelekWizyty(w, globalIndex, true);
+        });
+        html += `</div>`;
+        wczesniejsze.forEach(({ w, globalIndex }) => {
+            if (rozwinietyWizytaIndex === globalIndex) {
+                html += zbudujDymekSzczegolow(w, globalIndex);
+            }
+        });
+        html += `</div>`;
+    }
 
-                    ${adresHTML}
-                    ${opisHTML}
-                </div>
+    // 3. Oś 07:00 - 19:00 z podziałem co 30 minut
+    kluczeGlowne.forEach(klucz => {
+        const isHour = klucz.endsWith(":00");
+        const listaWSlot = glowneSloty.get(klucz) || [];
 
-                <div id="menu-akcji-${globalIndex}" class="visit-dropdown-menu" style="display: none;">
-                    <button style="background-color: #f39c12; color: white;" onclick="edytujWizyte(${globalIndex})">✏️ Edytuj wizytę</button>
-                    <button style="background-color: #16a085; color: white;" onclick="kopiujWizyte(${globalIndex})">📋 Kopiuj wizytę</button>
-                    <button style="background-color: #8e44ad; color: white;" onclick="przeniesDoDziennikaZwizyty(${globalIndex})">📋 Przenieś do Dziennika</button>
-                    <button style="background-color: #e74c3c; color: white;" onclick="usunWizyte(${globalIndex})">🗑️ Usuń wizytę</button>
-                </div>
+        const kafelkiHTML = listaWSlot.length > 0
+            ? listaWSlot.map(({ w, globalIndex }) => zbudujKafelekWizyty(w, globalIndex, true)).join('')
+            : `<div class="slot-empty-hint"></div>`;
+
+        html += `
+            <div class="slot-row ${isHour ? 'is-hour' : ''}">
+                <div class="slot-time-col" onclick="otworzFormularzWizytyDlaGodziny('${klucz}')">${isHour ? klucz : ''}</div>
+                <div class="slot-events-col" onclick="otworzFormularzWizytyDlaGodziny('${klucz}')">${kafelkiHTML}</div>
             </div>
         `;
+
+        listaWSlot.forEach(({ w, globalIndex }) => {
+            if (rozwinietyWizytaIndex === globalIndex) {
+                html += zbudujDymekSzczegolow(w, globalIndex);
+            }
+        });
     });
+
+    // 4. Zdarzenia późniejsze (> 19:00) za osią 07:00-19:00
+    if (pozniejsze.length > 0) {
+        html += `<div class="extra-band extra-band-bottom"><div class="extra-band-title">⏬ Po 19:00</div><div class="extra-band-row">`;
+        pozniejsze.forEach(({ w, globalIndex }) => {
+            html += zbudujKafelekWizyty(w, globalIndex, true);
+        });
+        html += `</div>`;
+        pozniejsze.forEach(({ w, globalIndex }) => {
+            if (rozwinietyWizytaIndex === globalIndex) {
+                html += zbudujDymekSzczegolow(w, globalIndex);
+            }
+        });
+        html += `</div>`;
+    }
+
+    kontener.innerHTML = html;
 }
 
 function przeniesDoDziennikaZwizyty(index) {
@@ -532,19 +659,23 @@ function toggleCałyDzień() {
     container.style.display = chk ? 'none' : 'block';
 }
 
-function otworzFormularzWizytyDlaWybranegoDnia() {
+function otworzFormularzWizytyDlaGodziny(godzinaStr = "10:00") {
     document.getElementById('edit-visit-index').value = "-1";
     document.getElementById('visit-form-title').innerText = "Nowa wizyta";
     document.getElementById('visit-type').value = "sluzbowy";
     document.getElementById('visit-client').value = "";
     document.getElementById('visit-address').value = "";
     document.getElementById('visit-desc').value = "";
-    document.getElementById('visit-time').value = "10:00";
+    document.getElementById('visit-time').value = godzinaStr || "10:00";
     document.getElementById('visit-all-day').checked = false;
     document.getElementById('container-godzina').style.display = 'block';
     document.getElementById('visit-date').value = wybranaData || new Date().toISOString().split('T')[0];
 
     pokazWidok('widok-formularza-wizyty');
+}
+
+function otworzFormularzWizytyDlaWybranegoDnia() {
+    otworzFormularzWizytyDlaGodziny("10:00");
 }
 
 function zamknijFormularzWizyty() {
@@ -582,6 +713,7 @@ function zapiszWizyte() {
     wybranaData = wizyta.data;
     aktRok = parseInt(wybranaData.split('-')[0]);
     aktMiesiac = parseInt(wybranaData.split('-')[1]) - 1;
+    rozwinietyWizytaIndex = null;
 
     generujKalendarz();
     renderujWizytyDnia();
@@ -608,6 +740,7 @@ function edytujWizyte(index) {
 function usunWizyte(index) {
     if(confirm("Czy na pewno chcesz usunąć tę wizytę?")) {
         wizyty.splice(index, 1);
+        rozwinietyWizytaIndex = null;
         localStorage.setItem('ksiegowosc_wizyty', JSON.stringify(wizyty));
         generujKalendarz();
         renderujWizytyDnia();

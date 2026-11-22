@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
     <title>Web-Asystent</title>
-    <meta name="version" content="3.2.6">
+    <meta name="version" content="3.3.0">
     <meta name="build-date" content="2026-11-22">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -56,12 +56,17 @@
             <button class="btn-toggle-cal" id="btn-toggle-cal" onclick="toggleKalendarzTryb()">▼ Rozwiń pełny miesiąc</button>
         </div>
 
-        <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <div class="card day-schedule-card">
+            <div class="day-top-bar">
                 <h3 id="selected-day-title" style="margin: 0; font-size: 1rem; font-weight: bold;">Wizyty w dniu</h3>
                 <button onclick="otworzFormularzWizytyDlaWybranegoDnia()" style="background: #e67e22; color: white; border: none; padding: 8px 12px; border-radius: 4px; font-weight: bold; cursor: pointer;">＋ Dodaj</button>
             </div>
-            <div id="lista-wizyt-dnia"></div>
+
+            <!-- Nieruchomy pasek wizyt całodniowych na samej górze widoku dnia -->
+            <div id="wizyty-calodniowe-sticky" class="allday-sticky-zone"></div>
+
+            <!-- Przewijany obszar godzin 07:00 - 19:00 (oraz ewentualne wcześniejsze/późniejsze) -->
+            <div id="lista-wizyt-dnia" class="day-timeline-scroll"></div>
 
             <div class="backup-panel-toggle" onclick="toggleBackupMenu()">⚙️ Kopia zapasowa / Przywracanie danych</div>
             <div class="backup-actions" id="backup-actions-container">
