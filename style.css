@@ -42,6 +42,139 @@ input[type="date"], input[type="time"], input[type="text"], input[type="number"]
 .btn-secondary { width: 100%; padding: 10px; background-color: #6c757d; color: white; border: none; cursor: pointer; border-radius: 4px; font-weight: bold; margin-top: 5px; }
 .btn-add-main { width: 100%; padding: 14px; background-color: #e67e22; color: white; border: none; font-size: 1.1rem; cursor: pointer; border-radius: 6px; font-weight: bold; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 
+/* WYSZUKIWARKA WIZYT I NOTATEK POD LUPKĄ */
+.day-top-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-search-toggle {
+    background: #f1f5f9;
+    color: #1e293b;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 7px 10px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-search-toggle.active {
+    background: #34495e;
+    color: #ffffff;
+    border-color: #34495e;
+}
+
+.day-search-drawer {
+    margin-bottom: 8px;
+    padding: 8px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background: #f8fafc;
+}
+
+.search-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-input {
+    width: 100%;
+    padding: 8px 32px 8px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 5px;
+    font-size: 0.86rem;
+    background: #ffffff;
+    -webkit-user-select: text;
+    user-select: text;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #3498db;
+}
+
+.search-clear-btn {
+    position: absolute;
+    right: 6px;
+    background: #e2e8f0;
+    color: #334155;
+    border: none;
+    border-radius: 4px;
+    padding: 3px 7px;
+    font-size: 0.78rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.search-results-panel {
+    margin-top: 8px;
+    max-height: 260px;
+    overflow-y: auto;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.search-section-label {
+    font-size: 0.7rem;
+    font-weight: bold;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-top: 2px;
+}
+
+.search-result-item {
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #e67e22;
+    border-radius: 5px;
+    padding: 6px 8px;
+    background: #ffffff;
+    cursor: pointer;
+    text-align: left;
+}
+
+.search-result-item.note-hit {
+    border-left-color: #3498db;
+}
+
+.search-result-item:active {
+    background: #f1f5f9;
+}
+
+.search-result-title {
+    font-size: 0.83rem;
+    font-weight: bold;
+    color: #1e293b;
+}
+
+.search-result-meta {
+    font-size: 0.73rem;
+    color: #64748b;
+    margin-top: 2px;
+}
+
+.search-result-snippet {
+    font-size: 0.77rem;
+    color: #334155;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.search-empty {
+    text-align: center;
+    font-size: 0.8rem;
+    color: #777;
+    padding: 6px 4px;
+}
+
 /* KALENDARZ */
 .cal-header-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 .cal-header-nav button { background: #34495e; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.9rem; }
@@ -133,6 +266,7 @@ input[type="date"], input[type="time"], input[type="text"], input[type="number"]
 }
 
 .slot-row {
+    position: relative;
     display: flex;
     align-items: stretch;
     min-height: 34px;
@@ -185,6 +319,29 @@ input[type="date"], input[type="time"], input[type="text"], input[type="number"]
     min-height: 26px;
 }
 
+/* WSKAŹNIK BIEŻĄCEJ GODZINY ("TERAZ") */
+.now-indicator-line {
+    position: absolute;
+    left: 44px;
+    right: 0;
+    height: 2px;
+    background-color: #e74c3c;
+    z-index: 15;
+    pointer-events: none;
+    box-shadow: 0 0 4px rgba(231, 76, 60, 0.45);
+}
+
+.now-indicator-line::before {
+    content: "";
+    position: absolute;
+    left: -4px;
+    top: -3px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #e74c3c;
+}
+
 /* KAFELEK WIZYTY NA OSI */
 .visit-chip {
     flex: 1;
@@ -221,7 +378,8 @@ input[type="date"], input[type="time"], input[type="text"], input[type="number"]
     margin-bottom: 0;
 }
 
-.visit-chip.is-open {
+.visit-chip.is-open,
+.visit-chip.is-highlighted {
     outline: 2px solid #2c3e50;
 }
 
@@ -343,6 +501,7 @@ input[type="date"], input[type="time"], input[type="text"], input[type="number"]
 
 .event-item, .note-item { background: white; border-left: 5px solid #2ecc71; padding: 12px; margin-top: 10px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
 .note-item { border-left-color: #3498db; }
+.note-item.is-highlighted { outline: 2.5px solid #2c3e50; }
 
 .event-info, .note-info { font-size: 0.95rem; margin-bottom: 8px; word-break: break-word; }
 .event-actions { display: flex; gap: 6px; }

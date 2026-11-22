@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
     <title>Web-Asystent</title>
-    <meta name="version" content="3.3.0">
+    <meta name="version" content="3.3.1">
     <meta name="build-date" content="2026-11-22">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -59,7 +59,22 @@
         <div class="card day-schedule-card">
             <div class="day-top-bar">
                 <h3 id="selected-day-title" style="margin: 0; font-size: 1rem; font-weight: bold;">Wizyty w dniu</h3>
-                <button onclick="otworzFormularzWizytyDlaWybranegoDnia()" style="background: #e67e22; color: white; border: none; padding: 8px 12px; border-radius: 4px; font-weight: bold; cursor: pointer;">＋ Dodaj</button>
+                <div class="day-top-actions">
+                    <button type="button" id="btn-toggle-search" class="btn-search-toggle" onclick="przelaczWyszukiwarke()" title="Szukaj w wizytach i notatkach">🔍</button>
+                    <button type="button" onclick="otworzFormularzWizytyDlaWybranegoDnia()" style="background: #e67e22; color: white; border: none; padding: 8px 12px; border-radius: 4px; font-weight: bold; cursor: pointer;">＋ Dodaj</button>
+                </div>
+            </div>
+
+            <!-- Ukrywana pod lupką wyszukiwarka wizyt i notatek -->
+            <div id="day-search-drawer" class="day-search-drawer" style="display: none;">
+                <div class="search-input-wrap">
+                    <input type="search" id="global-search-input" class="search-input"
+                           placeholder="Szukaj w wizytach i notatkach (adres, tel, treść)..."
+                           oninput="wykonajWyszukiwanie(this.value)">
+                    <button type="button" class="search-clear-btn"
+                            onclick="wyczyscIZamknijWyszukiwarke()" title="Wyczyść i zamknij">✕</button>
+                </div>
+                <div id="global-search-results" class="search-results-panel" style="display: none;"></div>
             </div>
 
             <!-- Nieruchomy pasek wizyt całodniowych na samej górze widoku dnia -->

@@ -1,5 +1,5 @@
 const metaVersionTag = document.querySelector('meta[name="version"]');
-const APP_VERSION = metaVersionTag ? metaVersionTag.getAttribute('content') : "3.3.0";
+const APP_VERSION = metaVersionTag ? metaVersionTag.getAttribute('content') : "3.4.1";
 
 // --- JEDNA, ZBIORCZA INICJALIZACJA STARTOWA ---
 document.addEventListener("DOMContentLoaded", async () => {
@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         versionEl.innerText = `v${APP_VERSION}`;
     }
 
-    const dzisiajStr = new Date().toISOString().split('T')[0];
+    const dzisiajStr = pobierzDzisiejszaDateStr();
     wybranaData = dzisiajStr;
     aktRok = new Date().getFullYear();
     aktMiesiac = new Date().getMonth();
@@ -24,12 +24,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // 4. Generowanie widoków
     generujKalendarz();
-    renderujWizytyDnia();
+    renderujWizytyDnia({ przewinDoTeraz: true });
     renderujListe();
     renderujNotatki();
     inicjalizujGesty();
     inicjalizujGestyLightboxu();
     inicjalizujPrzytrzymanieZakladek();
+    uruchomOdswiezanieWskaznikaTeraz();
 
     // 5. Automatyczne czyszczenie pola telefonu w formularzu wizyty
     const inputTelefon = document.getElementById('visit-client');
@@ -47,6 +48,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 });
+
+function pobierzDzisiejszaDateStr() {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
 
 // --- OBSŁUGA PRZYTRZYMANIA (LONG-PRESS) DLA DOMYŚLNEGO MODUŁU ---
 function inicjalizujPrzytrzymanieZakladek() {
@@ -92,6 +101,9 @@ let aktRok, aktMiesiac;
 let wybranaData = "";
 let trybPelnyKalendarz = false;
 let rozwinietyWizytaIndex = null;
+let podswietlonyWizytaIndex = null;
+let podswietlonaNotatkaId = null;
+let wyszukiwarkaOtwarta = false;
 
 const ekranyKolejnosc = ['narzedzia', 'kalendarz', 'dziennik', 'notatki'];
 let aktualnyEkran = 'narzedzia';
@@ -125,6 +137,7 @@ function zmienZakladka(ekran) {
         document.getElementById('tab-kalendarz').classList.add('active-tab');
         pokazWidok('widok-kalendarza');
         generujKalendarz();
+        renderujWizytyDnia({ przewinDoTeraz: true });
     } else if (ekran === 'dziennik') {
         document.getElementById('tab-dziennik').classList.add('active-tab');
         pokazWidok('widok-dziennika');
@@ -166,6 +179,165 @@ function przetworzGest() {
     } else if (roznica > progPrzesuniecia && currentIndex > 0) {
         zmienZakladka(ekranyKolejnosc[currentIndex - 1]);
     }
+}
+
+// --- WYSZUKIWARKA WIZYT I NOTATEK POD LUPKĄ ---
+function przelaczWyszukiwarke() {
+    wyszukiwarkaOtwarta = !wyszukiwarkaOtwarta;
+    const drawer = document.getElementById('day-search-drawer');
+    const btn = document.getElementById('btn-toggle-search');
+    const input = document.getElementById('global-search-input');
+
+    if (drawer) drawer.style.display = wyszukiwarkaOtwarta ? 'block' : 'none';
+    if (btn) btn.classList.toggle('active', wyszukiwarkaOtwarta);
+
+    if (wyszukiwarkaOtwarta && input) {
+        setTimeout(() => input.focus(), 30);
+    } else if (!wyszukiwarkaOtwarta) {
+        wyczyscWyszukiwanie();
+    }
+}
+
+function wyczyscIZamknijWyszukiwarke() {
+    wyszukiwarkaOtwarta = false;
+    const drawer = document.getElementById('day-search-drawer');
+    const btn = document.getElementById('btn-toggle-search');
+    if (drawer) drawer.style.display = 'none';
+    if (btn) btn.classList.remove('active');
+    wyczyscWyszukiwanie();
+}
+
+function normalizujTekstSzukania(str) {
+    return String(str ?? '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .trim();
+}
+
+function wykonajWyszukiwanie(frazaRaw) {
+    const panel = document.getElementById('global-search-results');
+    if (!panel) return;
+
+    const fraza = normalizujTekstSzukania(frazaRaw);
+
+    if (!fraza) {
+        panel.style.display = 'none';
+        panel.innerHTML = "";
+        return;
+    }
+
+    const cyfryFraza = fraza.replace(/\D+/g, '');
+
+    const dopasowaneWizyty = wizyty
+        .map((w, index) => ({ w, index }))
+        .filter(({ w }) => {
+            const polaczony = normalizujTekstSzukania(
+                `${w.data || ''} ${w.godzina || ''} ${w.klient || ''} ${w.adres || ''} ${w.opis || ''} ${w.calyDzien ? 'caly dzien' : ''}`
+            );
+            const telCyfry = String(w.klient || '').replace(/\D+/g, '');
+            const trafienieTekstu = polaczony.includes(fraza);
+            const trafienieTel = cyfryFraza.length >= 3 && telCyfry.includes(cyfryFraza);
+            return trafienieTekstu || trafienieTel;
+        })
+        .slice(0, 8);
+
+    const dopasowaneNotatki = notatki
+        .map((n, index) => ({ n, index }))
+        .filter(({ n }) => {
+            const polaczony = normalizujTekstSzukania(
+                `${n.data || ''} ${n.tytul || ''} ${n.tresc || ''}`
+            );
+            return polaczony.includes(fraza);
+        })
+        .slice(0, 8);
+
+    panel.style.display = 'flex';
+
+    if (dopasowaneWizyty.length === 0 && dopasowaneNotatki.length === 0) {
+        panel.innerHTML = `<div class="search-empty">Brak wyników w wizytach i notatkach.</div>`;
+        return;
+    }
+
+    let html = "";
+
+    if (dopasowaneWizyty.length > 0) {
+        html += `<div class="search-section-label">📅 Wizyty (${dopasowaneWizyty.length})</div>`;
+        dopasowaneWizyty.forEach(({ w, index }) => {
+            const czas = w.calyDzien ? 'Cały dzień' : (w.godzina || '--:--');
+            const naglowek = `${escapeNoteHTML(w.data || '')} · ${escapeNoteHTML(czas)} · ${escapeNoteHTML(w.adres || 'Brak adresu')}`;
+            const podtytul = [w.klient, w.opis].filter(Boolean).join(' · ');
+
+            html += `
+                <button type="button" class="search-result-item" onclick="przejdzDoWynikuWizyty(${index})">
+                    <div class="search-result-title">${naglowek}</div>
+                    ${podtytul ? `<div class="search-result-snippet">${escapeNoteHTML(podtytul)}</div>` : ''}
+                </button>
+            `;
+        });
+    }
+
+    if (dopasowaneNotatki.length > 0) {
+        html += `<div class="search-section-label">📝 Notatki (${dopasowaneNotatki.length})</div>`;
+        dopasowaneNotatki.forEach(({ n }) => {
+            const fotoBadge = n.liczbaZdjec > 0 ? ` · 📷 ${n.liczbaZdjec}` : '';
+            html += `
+                <button type="button" class="search-result-item note-hit" onclick="przejdzDoWynikuNotatki(${n.id})">
+                    <div class="search-result-title">${escapeNoteHTML(n.tytul || 'Bez tytułu')}</div>
+                    <div class="search-result-meta">${escapeNoteHTML(n.data || '')}${fotoBadge}</div>
+                    ${n.tresc ? `<div class="search-result-snippet">${escapeNoteHTML(n.tresc)}</div>` : ''}
+                </button>
+            `;
+        });
+    }
+
+    panel.innerHTML = html;
+}
+
+function wyczyscWyszukiwanie() {
+    const input = document.getElementById('global-search-input');
+    const panel = document.getElementById('global-search-results');
+    if (input) input.value = "";
+    if (panel) {
+        panel.style.display = 'none';
+        panel.innerHTML = "";
+    }
+    podswietlonyWizytaIndex = null;
+    podswietlonaNotatkaId = null;
+}
+
+function przejdzDoWynikuWizyty(globalIndex) {
+    const w = wizyty[globalIndex];
+    if (!w) return;
+
+    if (w.data) {
+        wybranaData = w.data;
+        const czesci = w.data.split('-');
+        if (czesci.length === 3) {
+            aktRok = parseInt(czesci[0], 10);
+            aktMiesiac = parseInt(czesci[1], 10) - 1;
+        }
+    }
+
+    rozwinietyWizytaIndex = globalIndex;
+    podswietlonyWizytaIndex = globalIndex;
+
+    zmienZakladka('kalendarz');
+    generujKalendarz();
+    renderujWizytyDnia({ przewinDoTeraz: false, docelowyWizytaIndex: globalIndex });
+}
+
+function przejdzDoWynikuNotatki(noteId) {
+    podswietlonaNotatkaId = noteId;
+    zmienZakladka('notatki');
+    renderujNotatki();
+
+    setTimeout(() => {
+        const el = document.getElementById(`notatka-karta-${noteId}`);
+        if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, 80);
 }
 
 // --- OBSŁUGA KOPII ZAPASOWEJ (JSON) ---
@@ -212,7 +384,7 @@ async function zapiszKopieBazy() {
 
         const downloadAnchor = document.createElement('a');
         downloadAnchor.href = url;
-        const dzisiajPlik = new Date().toISOString().split('T')[0];
+        const dzisiajPlik = pobierzDzisiejszaDateStr();
         downloadAnchor.download = `ksiegowy_backup_${dzisiajPlik}.json`;
 
         document.body.appendChild(downloadAnchor);
@@ -270,7 +442,7 @@ async function przywracajBaze(event) {
             await zaladujNotatkiZIndexedDB();
 
             generujKalendarz();
-            renderujWizytyDnia();
+            renderujWizytyDnia({ przewinDoTeraz: true });
             renderujListe();
             renderujNotatki();
 
@@ -311,7 +483,7 @@ function zmienMiesiac(kierunek) {
 }
 
 function renderujeKomorkeKalendarza(dataFmt, dzienNum, dObj) {
-    const dzisiajStr = new Date().toISOString().split('T')[0];
+    const dzisiajStr = pobierzDzisiejszaDateStr();
     const wizytyDnia = wizyty.filter(w => w.data === dataFmt);
 
     let klasy = "cal-cell";
@@ -407,11 +579,12 @@ function generujKalendarz() {
 function wybierzDzien(dataStr) {
     wybranaData = dataStr;
     rozwinietyWizytaIndex = null;
+    podswietlonyWizytaIndex = null;
     generujKalendarz();
-    renderujWizytyDnia();
+    renderujWizytyDnia({ przewinDoTeraz: true });
 }
 
-// --- WIDOK DNIA: OSI 07:00-19:00 CO 30 MINUT, CAŁODNIOWE NA GÓRZE, DYMEK SZCZEGÓŁÓW ---
+// --- WIDOK DNIA: OSI 07:00-19:00 CO 30 MINUT, LINIA "TERAZ" + AUTOSCROLL, DYMEK SZCZEGÓŁÓW ---
 function godzinaNaMinuty(godzStr) {
     if (!godzStr || typeof godzStr !== 'string') return null;
     const match = godzStr.trim().match(/^(\d{1,2}):(\d{2})$/);
@@ -432,17 +605,19 @@ function minutyNaKluczSlotu30(minuty) {
 function przelaczDymekWizyty(globalIndex, event) {
     if (event) event.stopPropagation();
     rozwinietyWizytaIndex = (rozwinietyWizytaIndex === globalIndex) ? null : globalIndex;
-    renderujWizytyDnia();
+    renderujWizytyDnia({ przewinDoTeraz: false });
 }
 
 function zbudujKafelekWizyty(w, globalIndex, pokazGodzine = true) {
     const isPriv = w.typ === 'prywatny';
     const isOpen = rozwinietyWizytaIndex === globalIndex;
+    const isHighlighted = podswietlonyWizytaIndex === globalIndex;
     const adresTekst = w.adres ? escapeNoteHTML(w.adres) : 'Brak adresu';
     const godzTekst = w.calyDzien ? 'Cały dzień' : escapeNoteHTML(w.godzina || '');
 
     return `
-        <div class="visit-chip ${isPriv ? 'prywatny' : ''} ${w.calyDzien ? 'calydzien-chip' : ''} ${isOpen ? 'is-open' : ''}"
+        <div id="wizyta-kafelek-${globalIndex}"
+             class="visit-chip ${isPriv ? 'prywatny' : ''} ${w.calyDzien ? 'calydzien-chip' : ''} ${isOpen ? 'is-open' : ''} ${isHighlighted ? 'is-highlighted' : ''}"
              onclick="przelaczDymekWizyty(${globalIndex}, event)">
             ${pokazGodzine && godzTekst ? `<div class="visit-chip-head">🕒 ${godzTekst}</div>` : ''}
             <div class="visit-chip-address">${adresTekst}</div>
@@ -488,7 +663,9 @@ function zbudujDymekSzczegolow(w, globalIndex) {
     `;
 }
 
-function renderujWizytyDnia() {
+function renderujWizytyDnia(opcje = {}) {
+    const { przewinDoTeraz = false, docelowyWizytaIndex = null } = opcje;
+
     const stickyCalodniowe = document.getElementById('wizyty-calodniowe-sticky');
     const kontener = document.getElementById('lista-wizyt-dnia');
     const tytulDnia = document.getElementById('selected-day-title');
@@ -543,6 +720,15 @@ function renderujWizytyDnia() {
         }
     });
 
+    // Wyliczenie pozycji linii "Teraz" dla dzisiejszego dnia
+    const terazObj = new Date();
+    const dzisiajStr = pobierzDzisiejszaDateStr();
+    const jestDzis = wybranaData === dzisiajStr;
+    const terazMinuty = terazObj.getHours() * 60 + terazObj.getMinutes();
+    const aktywnySlotTeraz = (jestDzis && terazMinuty >= startMin && terazMinuty <= koniecMin)
+        ? minutyNaKluczSlotu30(terazMinuty)
+        : null;
+
     // 1. Nieruchomy obszar wizyt całodniowych na samej górze widoku dnia
     if (calodniowe.length > 0) {
         let stickyHTML = `<div class="allday-label">📅 Cały dzień</div>`;
@@ -575,13 +761,21 @@ function renderujWizytyDnia() {
     kluczeGlowne.forEach(klucz => {
         const isHour = klucz.endsWith(":00");
         const listaWSlot = glowneSloty.get(klucz) || [];
+        const slotStartMin = godzinaNaMinuty(klucz);
+
+        let liniaTerazHTML = "";
+        if (aktywnySlotTeraz === klucz && slotStartMin !== null) {
+            const przesuniecieProcent = Math.max(0, Math.min(100, ((terazMinuty - slotStartMin) / 30) * 100));
+            liniaTerazHTML = `<div id="linia-teraz" class="now-indicator-line" style="top: ${przesuniecieProcent}%;"></div>`;
+        }
 
         const kafelkiHTML = listaWSlot.length > 0
             ? listaWSlot.map(({ w, globalIndex }) => zbudujKafelekWizyty(w, globalIndex, true)).join('')
             : `<div class="slot-empty-hint"></div>`;
 
         html += `
-            <div class="slot-row ${isHour ? 'is-hour' : ''}">
+            <div id="slot-${klucz.replace(':', '-')}" class="slot-row ${isHour ? 'is-hour' : ''}">
+                ${liniaTerazHTML}
                 <div class="slot-time-col" onclick="otworzFormularzWizytyDlaGodziny('${klucz}')">${isHour ? klucz : ''}</div>
                 <div class="slot-events-col" onclick="otworzFormularzWizytyDlaGodziny('${klucz}')">${kafelkiHTML}</div>
             </div>
@@ -610,6 +804,36 @@ function renderujWizytyDnia() {
     }
 
     kontener.innerHTML = html;
+
+    // Automatyczne przewinięcie do wybranej wizyty lub bieżącej godziny
+    requestAnimationFrame(() => {
+        if (docelowyWizytaIndex !== null) {
+            const kafelek = document.getElementById(`wizyta-kafelek-${docelowyWizytaIndex}`);
+            if (kafelek) {
+                kafelek.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+        }
+
+        if (przewinDoTeraz && jestDzis) {
+            const liniaTeraz = document.getElementById('linia-teraz');
+            if (liniaTeraz) {
+                liniaTeraz.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else if (terazMinuty > koniecMin) {
+                kontener.scrollTop = kontener.scrollHeight;
+            } else {
+                kontener.scrollTop = 0;
+            }
+        }
+    });
+}
+
+function uruchomOdswiezanieWskaznikaTeraz() {
+    setInterval(() => {
+        if (aktualnyEkran === 'kalendarz' && wybranaData === pobierzDzisiejszaDateStr() && rozwinietyWizytaIndex === null) {
+            renderujWizytyDnia({ przewinDoTeraz: false });
+        }
+    }, 60000);
 }
 
 function przeniesDoDziennikaZwizyty(index) {
@@ -648,7 +872,7 @@ function kopiujWizyte(index) {
     document.getElementById('visit-client').value = w.klient || "";
     document.getElementById('visit-address').value = w.adres || "";
     document.getElementById('visit-desc').value = w.opis || "";
-    document.getElementById('visit-date').value = wybranaData || new Date().toISOString().split('T')[0];
+    document.getElementById('visit-date').value = wybranaData || pobierzDzisiejszaDateStr();
 
     pokazWidok('widok-formularza-wizyty');
 }
@@ -669,7 +893,7 @@ function otworzFormularzWizytyDlaGodziny(godzinaStr = "10:00") {
     document.getElementById('visit-time').value = godzinaStr || "10:00";
     document.getElementById('visit-all-day').checked = false;
     document.getElementById('container-godzina').style.display = 'block';
-    document.getElementById('visit-date').value = wybranaData || new Date().toISOString().split('T')[0];
+    document.getElementById('visit-date').value = wybranaData || pobierzDzisiejszaDateStr();
 
     pokazWidok('widok-formularza-wizyty');
 }
@@ -714,9 +938,10 @@ function zapiszWizyte() {
     aktRok = parseInt(wybranaData.split('-')[0]);
     aktMiesiac = parseInt(wybranaData.split('-')[1]) - 1;
     rozwinietyWizytaIndex = null;
+    podswietlonyWizytaIndex = null;
 
     generujKalendarz();
-    renderujWizytyDnia();
+    renderujWizytyDnia({ przewinDoTeraz: true });
     pokazWidok('widok-kalendarza');
     zapiszDoSyncthing();
 }
@@ -741,9 +966,10 @@ function usunWizyte(index) {
     if(confirm("Czy na pewno chcesz usunąć tę wizytę?")) {
         wizyty.splice(index, 1);
         rozwinietyWizytaIndex = null;
+        podswietlonyWizytaIndex = null;
         localStorage.setItem('ksiegowosc_wizyty', JSON.stringify(wizyty));
         generujKalendarz();
-        renderujWizytyDnia();
+        renderujWizytyDnia({ przewinDoTeraz: false });
     }
 }
 
@@ -1058,7 +1284,7 @@ async function zaladujNotatkiZIndexedDB() {
                 const rekord = {
                     id: sn.id || (bazaCzasu + i),
                     kolejnosc: i,
-                    data: sn.data || new Date().toISOString().split('T')[0],
+                    data: sn.data || pobierzDzisiejszaDateStr(),
                     tytul: sn.tytul || 'Bez tytułu',
                     tresc: sn.tresc || ''
                 };
@@ -1097,7 +1323,7 @@ async function przywrocNotatkiIZdjeciaDoDB(listaNotatek, listaZdjec) {
         await dbOperacja(STORE_NOTATKI, 'readwrite', store => store.put({
             id: noweId,
             kolejnosc: i,
-            data: n.data || new Date().toISOString().split('T')[0],
+            data: n.data || pobierzDzisiejszaDateStr(),
             tytul: n.tytul || 'Bez tytułu',
             tresc: n.tresc || ''
         }));
@@ -1202,7 +1428,7 @@ async function zapiszNotatke() {
         const nowaNotatka = {
             id: noteId,
             kolejnosc: 0,
-            data: new Date().toISOString().split('T')[0],
+            data: pobierzDzisiejszaDateStr(),
             tytul: tytul || "Bez tytułu",
             tresc: tresc
         };
@@ -1213,7 +1439,7 @@ async function zapiszNotatke() {
         notatki[editIndex] = {
             ...edytowana,
             id: noteId,
-            data: edytowana.data || new Date().toISOString().split('T')[0],
+            data: edytowana.data || pobierzDzisiejszaDateStr(),
             tytul: tytul || "Bez tytułu",
             tresc: tresc
         };
@@ -1276,12 +1502,13 @@ function renderujNotatki() {
     }
 
     notatki.forEach((n, index) => {
+        const isHighlighted = podswietlonaNotatkaId === n.id;
         const przyciskZdjec = (n.liczbaZdjec && n.liczbaZdjec > 0)
             ? `<button class="btn-note-photos" onclick="otworzZdjeciaNotatki(${n.id})">📷 Zdjęcia (${n.liczbaZdjec})</button>`
             : '';
 
         kontener.innerHTML += `
-            <div class="note-item">
+            <div id="notatka-karta-${n.id}" class="note-item ${isHighlighted ? 'is-highlighted' : ''}">
                 <div class="note-info">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                         <strong style="font-size: 1.05rem; color: #2c3e50;">${escapeNoteHTML(n.tytul)}</strong>
