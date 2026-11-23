@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAT – Kierunki, Unicable, Parametry i Wiedza</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="sat.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+
+<header>
+    <div class="header-spacer"></div>
+    <h1>SAT / Anteny i Unicable</h1>
+    <button id="compass-btn" class="btn-compass" onclick="initCompass()">🧭 Kompas</button>
+</header>
+
+<div class="container">
+    <div class="main-tabs">
+        <button class="main-tab-btn active" onclick="switchSatTab('map', this)">🧭 Satelity</button>
+        <button class="main-tab-btn" onclick="switchSatTab('params', this)">📡 Pasmo i kable</button>
+        <button class="main-tab-btn" onclick="switchSatTab('unicable', this)">🔌 Unicable</button>
+        <button class="main-tab-btn" onclick="switchSatTab('kb', this)">📚 Wiedza</button>
+    </div>
+
+    <!-- ZAKŁADKA 1: MAPA, KOMPAS I SATELITY -->
+    <div id="tab-map" class="view-panel active">
+        <div class="compass-calibration">
+            <span>🧭 Korekta kompasu: <b id="offset-val">0</b>°</span>
+            <input type="range" id="offsetRange" min="-180" max="180" value="0" step="5" oninput="zmienOffset(this.value)">
+            <button type="button" class="btn-reset-offset" onclick="resetOffset()">Reset</button>
+        </div>
+
+        <div class="map-wrapper">
+            <div id="map"></div>
+            <button type="button" class="btn-recenter" title="Wycentruj na mojej pozycji" onclick="wycentrujMape()">⌖</button>
+            <button type="button" class="btn-fullscreen" title="Pełny ekran mapy" onclick="toggleFullscreen()">⛶</button>
+        </div>
+
+        <div class="section-box">
+            <div class="section-header-row">
+                <span class="section-title">⭐ Ulubione satelity</span>
+                <button type="button" id="btn-toggle-sat-form" class="btn-small-action" onclick="otworzFormularzSatelity()">＋ Dodaj</button>
+            </div>
+
+            <div id="custom-sat-form" class="custom-form-card" style="display: none; margin-top: 8px; margin-bottom: 10px;">
+                <h3 style="margin-top:0; font-size: 0.95rem;">Nowa pozycja satelitarna</h3>
+                <label class="sat-form-label">Nazwa satelity:</label>
+                <input type="text" id="sat-name-input" placeholder="np. Eutelsat 16°E">
+
+                <label class="sat-form-label">Długość orbitalna (np. 13.0 dla 13°E, -0.8 dla 0.8°W):</label>
+                <input type="text" id="sat-lon-input" inputmode="decimal" placeholder="np. 16.0">
+
+                <div class="sat-form-actions">
+                    <button type="button" class="btn-save-sat" onclick="zapiszNowegoSatelite()">Zapisz</button>
+                    <button type="button" class="btn-cancel-sat" onclick="zamknijFormularzSatelity()">Anuluj</button>
+                </div>
+            </div>
+
+            <div id="favorite-sat-list">
+                <div class="gps-placeholder">⏳ Pobieram pozycję GPS...</div>
+            </div>
+        </div>
+
+        <div class="section-box">
+            <button type="button" id="btn-toggle-other-sat" class="other-sat-toggle" onclick="przelaczPozostaleSatelity()">
+                <span>🛰️ Pozostałe satelity (<span id="other-sat-count">0</span>)</span>
+                <span id="other-sat-arrow">▼</span>
+            </button>
+
+            <div id="other-sat-drawer" class="other-sat-drawer" style="display: none;">
+                <input type="text" id="otherSatFilterInput" class="filter-input" style="margin-top: 10px;" placeholder="Szukaj satelity (np. Astra, Thor, Hispasat)..." oninput="displaySatellites()">
+                <div id="other-sat-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ZAKŁADKA 2: PARAMETRY PASMA KU, KABLE QUATTRO I PRZELICZNIK -->
+    <div id="tab-params" class="view-panel">
+        <div class="section-subtitle">Pasmo Ku (LNB uniwersalny: LO1 9,75 GHz / LO2 10,6 GHz)</div>
+        <div class="table-card">
+            <table class="sat-table" style="min-width: 560px;">
+                <thead>
+                    <tr>
+                        <th>Pasmo</th>
+                        <th>Polaryzacja</th>
+                        <th>Zakres [GHz]</th>
+                        <th>Przełącznik</th>
+                        <th>1 pośrednia</th>
+                        <th>Generator</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><b>Dolne</b></td>
+                        <td><span style="color:#1565c0; font-weight:700;">Pozioma</span></td>
+                        <td>10.700 – 11.700</td>
+                        <td>18 V</td>
+                        <td>950 – 1950 MHz</td>
+                        <td>LO1 9,75 GHz</td>
+                    </tr>
+                    <tr>
+                        <td><b>Dolne</b></td>
+                        <td><span style="color:#d32f2f; font-weight:700;">Pionowa</span></td>
+                        <td>10.700 – 11.700</td>
+                        <td>13 lub 14 V</td>
+                        <td>950 – 1950 MHz</td>
+                        <td>LO1 9,75 GHz</td>
+                    </tr>
+                    <tr>
+                        <td><b>Górne</b></td>
+                        <td><span style="color:#1565c0; font-weight:700;">Pozioma</span></td>
+                        <td>11.700 – 12.750</td>
+                        <td>18 V <span class="tone-badge">+ 22 kHz</span></td>
+                        <td>1100 – 2150 MHz</td>
+                        <td>LO2 10,6 GHz</td>
+                    </tr>
+                    <tr>
+                        <td><b>Górne</b></td>
+                        <td><span style="color:#d32f2f; font-weight:700;">Pionowa</span></td>
+                        <td>11.700 – 12.750</td>
+                        <td>13 lub 14 V <span class="tone-badge">+ 22 kHz</span></td>
+                        <td>1100 – 2150 MHz</td>
+                        <td>LO2 10,6 GHz</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section-subtitle">Oznaczenia kolorów kabli (QUATTRO / Multiswitch)</div>
+        <div class="table-card">
+            <table class="sat-table" style="min-width: 450px;">
+                <thead>
+                    <tr>
+                        <th>Kolor</th>
+                        <th>Oznaczenie</th>
+                        <th>Pasmo / Polaryzacja</th>
+                        <th>Sterowanie</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="dot bg-yellow"></span><b>Żółty</b></td>
+                        <td><span class="tag">H/H</span> (HH, Hi)</td>
+                        <td>Górne / Pozioma</td>
+                        <td><span class="voltage">18V / 22kHz</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="dot bg-green"></span><b>Zielony</b></td>
+                        <td><span class="tag">L/H</span> (HL, Lo)</td>
+                        <td>Dolne / Pozioma</td>
+                        <td><span class="voltage">18V / 0kHz</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="dot bg-red"></span><b>Czerwony</b></td>
+                        <td><span class="tag">H/V</span> (VH, Hi)</td>
+                        <td>Górne / Pionowa</td>
+                        <td><span class="voltage">13V / 22kHz</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="dot bg-black"></span><b>Czarny</b></td>
+                        <td><span class="tag">L/V</span> (VL, Lo)</td>
+                        <td>Dolne / Pionowa</td>
+                        <td><span class="voltage">13V / 0kHz</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="dot bg-white"></span><b>Biały</b></td>
+                        <td colspan="3">Terr.TV / Telewizja Naziemna</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="table-card unit-converter-card">
+            <div>
+                <div class="unit-converter-title">Przelicznik jednostek dBµV / dBm (75 Ω)</div>
+                <div class="unit-converter-sub">Przeliczanie poziomów sygnału SAT i DVB-T2</div>
+            </div>
+            <a href="Jednostki.html" class="unit-converter-link">Otwórz ↗</a>
+        </div>
+    </div>
+
+    <!-- ZAKŁADKA 3: UNICABLE (USER BANDS) -->
+    <div id="tab-unicable" class="view-panel">
+        <input type="text" id="ubFilterInput" class="filter-input" placeholder="Filtruj pasma UB (np. UB 1, 1210, 1420, 2084, 975)..." oninput="filterUnicableTable()">
+
+        <div class="table-card">
+            <table class="sat-table" style="min-width: 400px;">
+                <thead>
+                    <tr>
+                        <th>UB</th>
+                        <th>Polsat Box<span class="note-sub">(Inverto)</span></th>
+                        <th>Standard<span class="note-sub">(GT-Sat / Opticum)</span></th>
+                    </tr>
+                </thead>
+                <tbody id="unicableTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ZAKŁADKA 4: BIBLIOTEKA WIEDZY SAT + NOTATKI -->
+    <div id="tab-kb" class="view-panel">
+        <div class="accordion">
+            <div class="acc-header" onclick="toggleAcc(this)">1. PASMO KU, LNB UNIWERSALNY I PRZEŁĄCZANIE 13/18V + 22KHZ <span>+</span></div>
+            <div class="acc-content">
+                <p><b>Podstawy:</b> Konwerter uniwersalny (LNB) przetwarza sygnał z pasma Ku (<code>10,700–12,750 GHz</code>) na pierwszą pośrednią (IF) w zakresie odbieranym przez tuner satelitarny (zwykle <code>950–2150 MHz</code>).</p>
+                <ul>
+                    <li><b>Polaryzacja:</b> Napięcie ok. <code>13–14 V</code> wybiera polaryzację pionową (<b>V</b>), a ok. <code>18 V</code> — poziomą (<b>H</b>).</li>
+                    <li><b>Pasmo dolne vs górne:</b> Ton <code>22 kHz</code> przełącza oscylator lokalny między <b>LO1 = 9,75 GHz</b> (pasmo dolne <code>10,7–11,7 GHz</code>) a <b>LO2 = 10,6 GHz</b> (pasmo górne <code>11,7–12,75 GHz</code>).</li>
+                    <li><b>Wzorzec częstotliwości pośredniej:</b> Dla pasma dolnego <code>f_IF = |f_SAT - 9750|</code> (w MHz), a dla pasma górnego <code>f_IF = |f_SAT - 10600|</code> (w MHz).</li>
+                </ul>
+                <div class="pro-box">
+                    <b>Quattro vs Quad (PRO):</b><br>
+                    Konwerter <b>Quattro</b> ma 4 stałe wyjścia (<code>L/V</code>, <code>L/H</code>, <code>H/V</code>, <code>H/H</code>) do podłączenia pod multiswitch — nie wolno podłączać pojedynczego dekodera bezpośrednio pod wyjście Quattro i oczekiwać pełnego przełączania pasm/polaryzacji. Konwerter <b>Quad</b> ma 4 niezależne wyjścia uniwersalne.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion">
+            <div class="acc-header" onclick="toggleAcc(this)">2. UNICABLE / SCR (EN50494 / EN50607) I KONFLIKTY UB <span>+</span></div>
+            <div class="acc-content">
+                <p><b>Podstawy:</b> Technologia <b>Unicable / SCR</b> pozwala przesłać wiele niezależnych pasm użytkownika (<b>UB / User Bands</b>) jednym przewodem koncentrycznym do jednego lub wielu tunerów/głowic (np. dekodery z nagrywarką obsługujące kilka głowic jednocześnie).</p>
+                <ul>
+                    <li><b>Częstotliwości UB:</b> W tabeli Unicable znajdziesz przypisania UB 1–24 dla <b>Polsat Box / Inverto</b> oraz wariantu <b>Standard (GT-Sat / Opticum)</b>.</li>
+                    <li><b>Różnice między producentami:</b> Częstotliwości UB potrafią się różnić między konwerterami/multiswitchami różnych producentów — zawsze ustawiaj w tunerze częstotliwość odpowiadającą konkretnemu urządzeniu.</li>
+                </ul>
+                <div class="warn-box">
+                    <b>⚠️ Najczęstszy błąd w Unicable:</b><br>
+                    Przypisanie tego samego numeru/częstotliwości <b>UB</b> do dwóch różnych głowic lub dwóch odbiorników na tym samym przewodzie powoduje wzajemne zakłócanie/zrywanie kanałów przy przełączaniu.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion">
+            <div class="acc-header" onclick="toggleAcc(this)">3. USTAWIANIE ANTENY SAT: AZYMUT, ELEWACJA, SKOS (SKEW) I MER/C/N <span>+</span></div>
+            <div class="acc-content">
+                <p><b>Podstawy:</b> Precyzyjne ustawienie anteny satelitarnej wymaga ustawienia trzech elementów: <b>azymutu</b>, <b>elewacji</b> oraz <b>kąta skręcenia konwertera (skew)</b>.</p>
+                <ul>
+                    <li><b>Azymut i elewacja:</b> Wyznaczane na podstawie współrzędnych lokalizacji oraz pozycji orbitalnej satelity (np. Hotbird <code>13°E</code>, Astra <code>19.2°E</code>). Pamiętaj, że przy antenach offsetowych kąt fizycznego pochylenia czaszy różni się od elewacji geometrycznej satelity (offset jest uwzględniony w skali anteny).</li>
+                    <li><b>Skręcenie konwertera (Skew):</b> Obrót LNB w uchwycie poprawia separację polaryzacji H i V oraz podnosi jakość sygnału, szczególnie na skrajach pasma/obszaru pokrycia.</li>
+                    <li><b>Pomiar jakości:</b> Strojenie opieraj przede wszystkim na maksymalizacji parametrów jakościowych (np. <b>MER / C/N / SNR</b>) i minimalizacji błędów (<b>BER</b>), a nie wyłącznie na pasku poziomu.</li>
+                </ul>
+                <div class="pro-box">
+                    <b>Praktyka montażowa (PRO):</b><br>
+                    Przed dokręceniem śrub masztu i obejm sprawdź stabilność mocowania oraz stan uszczelnienia złączy F na zewnątrz (wulkanizacja / osłony) — najmniejszy luz lub wilgoć w złączu potrafi po czasie zbić jakość lub odciąć zasilanie LNB.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion">
+            <div class="acc-header" onclick="toggleAcc(this)">4. DISEQC, MULTISWITCHE I DIAGNOZA BRAKU SYGNAŁU <span>+</span></div>
+            <div class="acc-content">
+                <p><b>Podstawy:</b> Przełączniki <b>DiSEqC</b> pozwalają sterować kilkoma konwerterami/pozycjami satelitarnymi (np. Hotbird + Astra), a <b>multiswitche</b> dystrybuują sygnał z konwertera Quattro (oraz często naziemnej TV) do wielu gniazd.</p>
+                <ul>
+                    <li><b>Brak sygnału na wszystkich transponderach:</b> Sprawdź napięcie zasilania konwertera (13/18 V), ciągłość przewodu, zwarcie na złączu F, poprawność wyboru wejścia/portu DiSEqC lub ustawienia Unicable.</li>
+                    <li><b>Brak części kanałów / polaryzacji / pasma:</b> Często wskazuje na zamienione przewody (np. L/H z H/H lub V z H), niesprawny port multiswitcha/DiSEqC, błędny skew lub lekko rozregulowaną antenę.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="accordion">
+            <div class="acc-header" onclick="toggleAcc(this)">5. KODY RESETU DUALBOX I ULTRABOX4K <span>+</span></div>
+            <div class="acc-content">
+                <div style="margin-bottom: 10px;">
+                    <b>Bez kasowania nagrań:</b><br>
+                    <code>MENU</code> → czerwony → czerwony → <code>27</code> → <code>37</code> → <code>38</code>
+                </div>
+                <div>
+                    <b>Całkowity:</b><br>
+                    <code>MENU</code> → czerwony → czerwony → <code>73</code> → <code>73</code> → <code>38</code>
+                </div>
+            </div>
+        </div>
+
+        <!-- KONTENER NA WŁASNE AKORDEONY -->
+        <div id="custom-accordions-list"></div>
+
+        <!-- PRZYCISK DODAWANIA -->
+        <button type="button" id="btn-show-form" class="btn-add-acc" onclick="otworzFormularzAcc()">＋ Dodaj własną notatkę</button>
+
+        <!-- FORMULARZ DODAWANIA / EDYCJI -->
+        <div id="custom-acc-form" class="custom-form-card" style="display: none;">
+            <h3 id="form-acc-title" style="margin-top:0; font-size: 1rem;">Nowa notatka</h3>
+            <input type="hidden" id="edit-acc-index" value="-1">
+
+            <label style="font-weight:bold; font-size:0.85rem;">Tytuł na pasku:</label>
+            <input type="text" id="acc-title-input" placeholder="np. Kody serwisowe dekoderów...">
+
+            <label style="font-weight:bold; font-size:0.85rem;">Treść notatki:</label>
+            <textarea id="acc-body-input" rows="5" placeholder="Wpisz treść..."></textarea>
+
+            <div style="display:flex; gap:8px;">
+                <button type="button" onclick="zapiszCustomAcc()" style="flex:1; padding:10px; background:#2ecc71; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">Zapisz</button>
+                <button type="button" onclick="zamknijFormularzAcc()" style="flex:1; padding:10px; background:#7f8c8d; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">Anuluj</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="sat.js"></script>
+</body>
+</html>

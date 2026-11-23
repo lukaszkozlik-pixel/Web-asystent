@@ -1,17 +1,41 @@
-let map, userMarker, headingMarker;
+let map, userMarker, headingMarker, targetMarker;
 let currentLine = null;
 let userCoords = null;
 let currentHeading = 0;
+let selectedTxId = null;
+let otherTxExpanded = false;
 
 let compassOffset = parseInt(localStorage.getItem('compass_offset') || '0', 10);
 if (Number.isNaN(compassOffset)) compassOffset = 0;
 
-const transmitters = [
-    { name: "RTCN Katowice / Kosztowy", lat: 50.1878, lon: 19.1161, info: "UHF / VHF" },
-    { name: "RTON Wisła / Skrzyczne", lat: 49.6844, lon: 19.0303, info: "UHF / VHF" },
-    { name: "Ostrava / Hostálkovice", lat: 49.8514, lon: 18.2111, info: "CZ DVB-T2" },
-    { name: "Rybnik / Chwałowice", lat: 50.0658, lon: 18.5539, info: "Lokalny / L2" }
+const STORAGE_FAV_TX_KEY = 'dvbt_ulubione_tx';
+const STORAGE_CUSTOM_TX_KEY = 'dvbt_wlasne_tx';
+
+const defaultTransmitters = [
+    { id: "katowice-kosztowy", name: "RTCN Katowice / Kosztowy", lat: 50.1878, lon: 19.1161, info: "UHF / VHF" },
+    { id: "wisla-skrzyczne", name: "RTON Wisła / Skrzyczne", lat: 49.6844, lon: 19.0303, info: "UHF / VHF" },
+    { id: "ostrava-hostalkovice", name: "Ostrava / Hostálkovice", lat: 49.8514, lon: 18.2111, info: "CZ DVB-T2" },
+    { id: "rybnik-chwalowice", name: "Rybnik / Chwałowice", lat: 50.0658, lon: 18.5539, info: "Lokalny / L2" },
+    { id: "krakow-choragwica", name: "RTCN Kraków / Chorągwica", lat: 50.0086, lon: 20.1381, info: "UHF / VHF" },
+    { id: "czestochowa-wreczyca", name: "RTCN Częstochowa / Wręczyca", lat: 50.8850, lon: 18.8050, info: "UHF / VHF" },
+    { id: "kielce-swiety-krzyz", name: "RTCN Kielce / Święty Krzyż", lat: 50.8781, lon: 21.0556, info: "UHF / VHF" },
+    { id: "wroclaw-sleza", name: "RTCN Wrocław / Ślęża", lat: 50.8658, lon: 16.7089, info: "UHF / VHF" },
+    { id: "klodzko-czarna-gora", name: "RTON Kłodzko / Czarna Góra", lat: 50.2519, lon: 16.8439, info: "UHF / VHF" }
 ];
+
+const defaultFavoriteIds = [
+    "katowice-kosztowy",
+    "wisla-skrzyczne",
+    "ostrava-hostalkovice",
+    "rybnik-chwalowice"
+];
+
+let customTransmitters = JSON.parse(localStorage.getItem(STORAGE_CUSTOM_TX_KEY)) || [];
+let favoriteTxIds = JSON.parse(localStorage.getItem(STORAGE_FAV_TX_KEY));
+if (!Array.isArray(favoriteTxIds)) {
+    favoriteTxIds = [...defaultFavoriteIds];
+    localStorage.setItem(STORAGE_FAV_TX_KEY, JSON.stringify(favoriteTxIds));
+}
 
 const freqReferenceData = [
     { ch: 5,  mhz: "177.5", band: "VHF", mux: "" },
@@ -63,6 +87,10 @@ document.addEventListener("DOMContentLoaded", () => {
     setupCompass();
     renderujCustomAccs();
 });
+
+function getAllTransmitters() {
+    return [...defaultTransmitters, ...customTransmitters];
+}
 
 /* --- PRZEŁĄCZANIE ZAKŁADEK GŁÓWNYCH --- */
 function switchDvbtTab(tabName, btn) {
@@ -195,14 +223,24 @@ function initMap(lat, lon) {
                 userMarker.setLatLng(userCoords);
                 headingMarker.setLatLng(userCoords);
             }
+
+            if (selectedTxId) {
+                const wybranyTx = getAllTransmitters().find(t => t.id === selectedTxId);
+                if (wybranyTx) {
+                    rysujLinieDoNadajnika(wybranyTx, false);
+                }
+            }
+
             renderList();
         }, err => {
             console.error("Błąd GPS:", err);
-            document.getElementById("transmitter-list").innerHTML =
-                `<div style="padding:20px; text-align:center; color:#d93025; font-weight:bold;">
+            document.getElementById("favorite-transmitter-list").innerHTML =
+                `<div class="gps-placeholder" style="color:#d93025; font-weight:bold;">
                     ⚠️ Brak sygnału GPS (${err.message}).<br><small style="color:#666;">Włącz lokalizację w ustawieniach.</small>
                  </div>`;
         }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 });
+    } else {
+        renderList();
     }
 }
 
@@ -271,64 +309,226 @@ function wycentrujMape() {
     }
 }
 
-function renderList() {
-    const list = document.getElementById("transmitter-list");
-    if (!userCoords) return;
-
-    list.innerHTML = "";
-
-    const results = transmitters.map(tx => ({
-        ...tx,
-        dist: calculateDistance(userCoords[0], userCoords[1], tx.lat, tx.lon),
-        bear: calculateBearing(userCoords[0], userCoords[1], tx.lat, tx.lon)
-    })).sort((a, b) => a.dist - b.dist);
-
-    results.forEach(tx => {
-        const card = document.createElement('div');
-        card.className = 'transmitter-card';
-        card.onclick = function() { drawLine(tx, this); };
-
-        card.innerHTML = `
-            <div>
-                <div class="tx-name">${tx.name}</div>
-                <div class="distance">Odległość: <b>${tx.dist.toFixed(1)} km</b></div>
-                <div class="tx-meta">${tx.info}</div>
-            </div>
-            <div class="azimuth-container">
-                <div class="azimuth-val">${tx.bear}°</div>
-                <div style="font-size: 0.65rem; color: #888; text-transform: uppercase; font-weight: bold;">Azymut</div>
-            </div>
-        `;
-        list.appendChild(card);
-    });
+/* --- ULUBIONE, ROZWIJANA LISTA I FORMULARZ WŁASNEGO NADAJNIKA --- */
+function przelaczPozostaleNadajniki() {
+    otherTxExpanded = !otherTxExpanded;
+    const drawer = document.getElementById('other-tx-drawer');
+    const arrow = document.getElementById('other-tx-arrow');
+    if (drawer) drawer.style.display = otherTxExpanded ? 'block' : 'none';
+    if (arrow) arrow.innerText = otherTxExpanded ? '▲' : '▼';
 }
 
-function drawLine(tx, card) {
-    if (!userCoords) return;
+function przelaczUlubiony(txId, event) {
+    if (event) event.stopPropagation();
+    const idx = favoriteTxIds.indexOf(txId);
+    if (idx >= 0) {
+        favoriteTxIds.splice(idx, 1);
+    } else {
+        favoriteTxIds.push(txId);
+    }
+    localStorage.setItem(STORAGE_FAV_TX_KEY, JSON.stringify(favoriteTxIds));
+    renderList();
+}
 
-    document.querySelectorAll('.transmitter-card').forEach(c => c.classList.remove('active'));
-    card.classList.add('active');
+function otworzFormularzNadajnika() {
+    document.getElementById('tx-name-input').value = "";
+    document.getElementById('tx-lat-input').value = "";
+    document.getElementById('tx-lon-input').value = "";
+    document.getElementById('tx-info-input').value = "";
+    document.getElementById('custom-tx-form').style.display = "block";
+    document.getElementById('btn-toggle-tx-form').style.display = "none";
+    document.getElementById('tx-name-input').focus();
+}
 
-    if (currentLine) map.removeLayer(currentLine);
+function zamknijFormularzNadajnika() {
+    document.getElementById('custom-tx-form').style.display = "none";
+    document.getElementById('btn-toggle-tx-form').style.display = "inline-block";
+}
 
-    const R = 6371;
-    const lat1 = userCoords[0] * Math.PI / 180;
-    const lon1 = userCoords[1] * Math.PI / 180;
-    const brng = calculateBearing(userCoords[0], userCoords[1], tx.lat, tx.lon) * Math.PI / 180;
+function zapiszNowyNadajnik() {
+    const name = document.getElementById('tx-name-input').value.trim();
+    const latRaw = document.getElementById('tx-lat-input').value.trim().replace(',', '.');
+    const lonRaw = document.getElementById('tx-lon-input').value.trim().replace(',', '.');
+    const info = document.getElementById('tx-info-input').value.trim() || "Własny nadajnik";
 
-    const dR = 5.0 / R;
-    const lat2 = Math.asin(Math.sin(lat1) * Math.cos(dR) + Math.cos(lat1) * Math.sin(dR) * Math.cos(brng));
-    const lon2 = lon1 + Math.atan2(Math.sin(brng) * Math.sin(dR) * Math.cos(lat1), Math.cos(dR) - Math.sin(lat1) * Math.sin(lat2));
+    const lat = parseFloat(latRaw);
+    const lon = parseFloat(lonRaw);
 
-    const endPoint = [lat2 * 180 / Math.PI, lon2 * 180 / Math.PI];
+    if (!name) {
+        alert("Podaj nazwę nadajnika!");
+        return;
+    }
+    if (!Number.isFinite(lat) || lat < -90 || lat > 90 || !Number.isFinite(lon) || lon < -180 || lon > 180) {
+        alert("Podaj poprawne współrzędne geograficzne (lat i lon).");
+        return;
+    }
 
-    currentLine = L.polyline([userCoords, endPoint], {
-        color: '#d93025',
-        weight: 5,
-        dashArray: '8, 8'
-    }).addTo(map);
+    const newTx = {
+        id: "custom-" + Date.now(),
+        name,
+        lat,
+        lon,
+        info
+    };
 
-    map.setView(userCoords, 16, { animate: true });
+    customTransmitters.push(newTx);
+    localStorage.setItem(STORAGE_CUSTOM_TX_KEY, JSON.stringify(customTransmitters));
+
+    if (!favoriteTxIds.includes(newTx.id)) {
+        favoriteTxIds.push(newTx.id);
+        localStorage.setItem(STORAGE_FAV_TX_KEY, JSON.stringify(favoriteTxIds));
+    }
+
+    zamknijFormularzNadajnika();
+    renderList();
+}
+
+function zbudujKarteNadajnika(tx) {
+    const isFav = favoriteTxIds.includes(tx.id);
+    const isActive = selectedTxId === tx.id;
+    const distText = typeof tx.dist === 'number' ? `${tx.dist.toFixed(1)} km` : "—";
+    const bearText = typeof tx.bear === 'number' ? `${tx.bear}°` : "—";
+
+    const card = document.createElement('div');
+    card.className = `transmitter-card ${isActive ? 'active' : ''}`;
+    card.onclick = () => wybierzNadajnik(tx.id);
+
+    card.innerHTML = `
+        <div class="tx-left">
+            <button type="button"
+                    class="btn-fav-star ${isFav ? 'is-fav' : ''}"
+                    title="${isFav ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}"
+                    onclick="przelaczUlubiony('${tx.id}', event)">${isFav ? '★' : '☆'}</button>
+            <div style="min-width:0;">
+                <div class="tx-name">${escapeHTML(tx.name)}</div>
+                <div class="distance">Odległość: <b>${distText}</b></div>
+                <div class="tx-meta">${escapeHTML(tx.info || '')}</div>
+            </div>
+        </div>
+        <div class="azimuth-container">
+            <div class="azimuth-val">${bearText}</div>
+            <div style="font-size: 0.65rem; color: #888; text-transform: uppercase; font-weight: bold;">Azymut</div>
+        </div>
+    `;
+    return card;
+}
+
+function renderList() {
+    const favContainer = document.getElementById("favorite-transmitter-list");
+    const otherContainer = document.getElementById("other-transmitter-list");
+    const otherCountEl = document.getElementById("other-tx-count");
+    if (!favContainer || !otherContainer) return;
+
+    const all = getAllTransmitters().map(tx => {
+        if (!userCoords) {
+            return { ...tx, dist: null, bear: null };
+        }
+        return {
+            ...tx,
+            dist: calculateDistance(userCoords[0], userCoords[1], tx.lat, tx.lon),
+            bear: calculateBearing(userCoords[0], userCoords[1], tx.lat, tx.lon)
+        };
+    });
+
+    if (userCoords) {
+        all.sort((a, b) => a.dist - b.dist);
+    }
+
+    const favorites = all.filter(tx => favoriteTxIds.includes(tx.id));
+    const filterQ = (document.getElementById('otherTxFilterInput')?.value || '').trim().toLowerCase();
+    const others = all.filter(tx => {
+        if (favoriteTxIds.includes(tx.id)) return false;
+        if (!filterQ) return true;
+        return (
+            tx.name.toLowerCase().includes(filterQ) ||
+            (tx.info || '').toLowerCase().includes(filterQ)
+        );
+    });
+
+    if (otherCountEl) {
+        otherCountEl.innerText = String(all.filter(tx => !favoriteTxIds.includes(tx.id)).length);
+    }
+
+    favContainer.innerHTML = "";
+    if (favorites.length === 0) {
+        favContainer.innerHTML = `<div class="gps-placeholder">Brak ulubionych nadajników. Kliknij ☆ przy wybranym obiekcie lub dodaj własny.</div>`;
+    } else {
+        favorites.forEach(tx => favContainer.appendChild(zbudujKarteNadajnika(tx)));
+    }
+
+    otherContainer.innerHTML = "";
+    if (others.length === 0) {
+        otherContainer.innerHTML = `<div class="gps-placeholder" style="padding: 12px;">Brak pasujących nadajników.</div>`;
+    } else {
+        others.forEach(tx => otherContainer.appendChild(zbudujKarteNadajnika(tx)));
+    }
+}
+
+function wybierzNadajnik(txId) {
+    const tx = getAllTransmitters().find(t => t.id === txId);
+    if (!tx) return;
+
+    if (selectedTxId === txId) {
+        wyczyscLinieNadajnika();
+        selectedTxId = null;
+        renderList();
+        return;
+    }
+
+    selectedTxId = txId;
+    renderList();
+    rysujLinieDoNadajnika(tx, true);
+}
+
+function wyczyscLinieNadajnika() {
+    if (currentLine && map) {
+        map.removeLayer(currentLine);
+        currentLine = null;
+    }
+    if (targetMarker && map) {
+        map.removeLayer(targetMarker);
+        targetMarker = null;
+    }
+}
+
+function rysujLinieDoNadajnika(tx, dopasujWidok = true) {
+    if (!map || !tx) return;
+
+    wyczyscLinieNadajnika();
+
+    const txCoords = [tx.lat, tx.lon];
+    const targetIcon = L.divIcon({
+        className: '',
+        html: '<div class="tx-target-dot"></div>',
+        iconSize: [14, 14],
+        iconAnchor: [7, 7]
+    });
+
+    targetMarker = L.marker(txCoords, { icon: targetIcon }).addTo(map);
+
+    if (userCoords) {
+        const dist = calculateDistance(userCoords[0], userCoords[1], tx.lat, tx.lon).toFixed(1);
+        const bear = calculateBearing(userCoords[0], userCoords[1], tx.lat, tx.lon);
+
+        currentLine = L.polyline([userCoords, txCoords], {
+            color: '#d93025',
+            weight: 4,
+            dashArray: '8, 8'
+        }).addTo(map);
+
+        targetMarker.bindPopup(`<b>${escapeHTML(tx.name)}</b><br>Odległość: <b>${dist} km</b> · Azymut: <b>${bear}°</b>`);
+        if (dopasujWidok) {
+            targetMarker.openPopup();
+            const bounds = L.latLngBounds([userCoords, txCoords]);
+            map.fitBounds(bounds, { padding: [36, 36], maxZoom: 16 });
+        }
+    } else {
+        targetMarker.bindPopup(`<b>${escapeHTML(tx.name)}</b><br><small>Brak pozycji GPS do wyznaczenia linii</small>`);
+        if (dopasujWidok) {
+            targetMarker.openPopup();
+            map.setView(txCoords, 13, { animate: true });
+        }
+    }
 }
 
 function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -359,6 +559,7 @@ function toggleFullscreen() {
     }
 }
 
+/* --- WŁASNE NOTATKI (AKORDEONY) --- */
 const STORAGE_KEY = 'wlasne_acc_dvbt';
 let customAccs = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
@@ -377,8 +578,8 @@ function renderujCustomAccs() {
                 <div class="acc-content">
                     <div class="custom-note-body">${escapeHTML(item.tresc)}</div>
                     <div class="custom-note-actions">
-                        <button style="background:#f39c12; color:white;" onclick="edytujCustomAcc(${index})">✏️ Edytuj</button>
-                        <button style="background:#e74c3c; color:white;" onclick="usunCustomAcc(${index})">🗑️ Usuń</button>
+                        <button type="button" style="background:#f39c12; color:white;" onclick="edytujCustomAcc(${index})">✏️ Edytuj</button>
+                        <button type="button" style="background:#e74c3c; color:white;" onclick="usunCustomAcc(${index})">🗑️ Usuń</button>
                     </div>
                 </div>
             </div>
@@ -455,4 +656,3 @@ document.addEventListener("fullscreenchange", () => {
 document.addEventListener("webkitfullscreenchange", () => {
     setTimeout(() => { if (map) map.invalidateSize(); }, 200);
 });
-

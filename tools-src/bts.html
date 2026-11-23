@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BTS – Mapa stacji bazowych i azymuty</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="bts.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+
+<header>
+    <div class="header-spacer"></div>
+    <h1>BTS / Stacje bazowe</h1>
+    <button type="button" id="compass-btn" class="btn-compass" onclick="initCompass()">🧭 Kompas</button>
+</header>
+
+<div class="container">
+    <div class="compass-calibration">
+        <span>🧭 Korekta kompasu: <b id="offset-val">0</b>°</span>
+        <input type="range" id="offsetRange" min="-180" max="180" value="0" step="5" oninput="zmienOffset(this.value)">
+        <button type="button" class="btn-reset-offset" onclick="resetOffset()">Reset</button>
+    </div>
+
+    <div class="map-wrapper">
+        <div id="map"></div>
+        <button type="button" class="btn-recenter" title="Wycentruj na mojej pozycji" onclick="wycentrujMape()">⌖</button>
+        <button type="button" class="btn-fullscreen" title="Pełny ekran mapy" onclick="toggleFullscreen()">⛶</button>
+    </div>
+
+    <div class="section-box">
+        <div class="section-header-row">
+            <span class="section-title" id="bts-source-label">📡 Baza BTS (wbudowana)</span>
+            <button type="button" class="btn-small-action" onclick="triggerBtsJsonImport()">📂 Wczytaj JSON</button>
+            <input type="file" id="bts-json-input" style="display: none;" accept=".json,application/json" onchange="importujPlikBtsJSON(event)">
+        </div>
+
+        <div class="operator-filters" id="operator-filters">
+            <button type="button" class="op-btn active" data-op="ALL" onclick="ustawOperatora('ALL', this)">Wszyscy</button>
+            <button type="button" class="op-btn" data-op="Orange" onclick="ustawOperatora('Orange', this)">Orange</button>
+            <button type="button" class="op-btn" data-op="Play" onclick="ustawOperatora('Play', this)">Play</button>
+            <button type="button" class="op-btn" data-op="Plus" onclick="ustawOperatora('Plus', this)">Plus</button>
+            <button type="button" class="op-btn" data-op="T-Mobile" onclick="ustawOperatora('T-Mobile', this)">T-Mobile</button>
+        </div>
+
+        <div class="radius-filters" id="radius-filters">
+            <span class="radius-label">📏 Zasięg:</span>
+            <button type="button" class="rad-btn" data-km="5" onclick="ustawLimitKm(5, this)">5 km</button>
+            <button type="button" class="rad-btn active" data-km="10" onclick="ustawLimitKm(10, this)">10 km</button>
+            <button type="button" class="rad-btn" data-km="25" onclick="ustawLimitKm(25, this)">25 km</button>
+            <button type="button" class="rad-btn" data-km="50" onclick="ustawLimitKm(50, this)">50 km</button>
+            <button type="button" class="rad-btn" data-km="ALL" onclick="ustawLimitKm('ALL', this)">Wszystkie</button>
+        </div>
+
+        <input type="text" id="btsFilterInput" class="filter-input" placeholder="Szukaj po miejscowości, ulicy lub paśmie (np. 800, 1800, 2100, 5G)..." oninput="renderBtsList()">
+
+        <div id="bts-list">
+            <div class="gps-placeholder">⏳ Pobieram pozycję GPS i ładuję stacje BTS...</div>
+        </div>
+    </div>
+</div>
+
+<script src="bts.js"></script>
+</body>
+</html>

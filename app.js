@@ -620,7 +620,11 @@ async function zbudujPelnaBazeDoKopi() {
         wlasneAccSat: JSON.parse(localStorage.getItem('wlasne_acc_sat')) || [],
         wlasneAccDvbt: JSON.parse(localStorage.getItem('wlasne_acc_dvbt')) || [],
         wlasneAccInternet: JSON.parse(localStorage.getItem('wlasne_acc_internet')) || [],
-        wlasneAccMonitoring: JSON.parse(localStorage.getItem('wlasne_acc_monitoring')) || []
+        wlasneAccMonitoring: JSON.parse(localStorage.getItem('wlasne_acc_monitoring')) || [],
+        dvbtUlubioneTx: JSON.parse(localStorage.getItem('dvbt_ulubione_tx')) || [],
+        dvbtWlasneTx: JSON.parse(localStorage.getItem('dvbt_wlasne_tx')) || [],
+        satUlubione: JSON.parse(localStorage.getItem('sat_ulubione')) || [],
+        satWlasne: JSON.parse(localStorage.getItem('sat_wlasne')) || []
     };
 }
 
@@ -1098,11 +1102,6 @@ function przeniesDoDziennikaZwizyty(index) {
     document.getElementById('przychod').value = "0,00";
     document.getElementById('koszt').value = "0,00";
 
-    let opisTekst = "";
-    if (w.klient) opisTekst += `Tel/Klient: ${w.klient}. `;
-    if (w.opis) opisTekst += w.opis;
-    document.getElementById('opis').innerHTML = opisTekst;
-
     pokazWidok('widok-formularza');
 }
 
@@ -1237,37 +1236,134 @@ function zamknijFormularzWpisu() {
     pokazWidok('widok-dziennika');
 }
 
+function przywrocKursorZaWezlem(kontener, wezel) {
+    const selection = window.getSelection();
+    if (!selection || !kontener || !wezel) return;
+
+    const range = document.createRange();
+    range.setStartAfter(wezel);
+    range.collapse(true);
+
+    selection.removeAllRanges();
+    selection.addRange(range);
+    kontener.focus();
+}
+
 function formatText(command) {
-    document.execCommand(command, false, null);
+    const opisEl = document.getElementById('opis');
+    const selection = window.getSelection();
+    if (!opisEl || !selection || !selection.rangeCount) {
+        if (opisEl) opisEl.focus();
+        return;
+    }
+
+    const range = selection.getRangeAt(0);
+    if (!opisEl.contains(range.commonAncestorContainer)) {
+        opisEl.focus();
+        return;
+    }
+
+    const selectedText = range.toString();
+    if (!selectedText) {
+        opisEl.focus();
+        return;
+    }
+
+    const styleMap = {
+        bold: { prop: 'fontWeight', val: 'bold' },
+        italic: { prop: 'fontStyle', val: 'italic' },
+        underline: { prop: 'textDecoration', val: 'underline' }
+    };
+
+    const cfg = styleMap[command];
+    if (!cfg) {
+        opisEl.focus();
+        return;
+    }
+
+    const parentEl = range.commonAncestorContainer.nodeType === Node.ELEMENT_NODE
+        ? range.commonAncestorContainer
+        : range.commonAncestorContainer.parentElement;
+
+    const existingStyled = parentEl && opisEl.contains(parentEl) && parentEl !== opisEl
+        ? parentEl.closest('span, strong, b, em, i, u')
+        : null;
+
+    if (existingStyled && existingStyled.style[cfg.prop] === cfg.val) {
+        existingStyled.style[cfg.prop] = '';
+        if (!existingStyled.getAttribute('style')) {
+            existingStyled.removeAttribute('style');
+        }
+        przywrocKursorZaWezlem(opisEl, existingStyled);
+        return;
+    }
+
+    const span = document.createElement('span');
+    span.style[cfg.prop] = cfg.val;
+    span.textContent = selectedText;
+
+    range.deleteContents();
+    range.insertNode(span);
+    przywrocKursorZaWezlem(opisEl, span);
 }
 
 function usunFormatowanie() {
+    const opisEl = document.getElementById('opis');
     const selection = window.getSelection();
-    if (!selection.rangeCount) return;
+    if (!opisEl || !selection || !selection.rangeCount) {
+        if (opisEl) opisEl.focus();
+        return;
+    }
+
     const range = selection.getRangeAt(0);
+    if (!opisEl.contains(range.commonAncestorContainer)) {
+        opisEl.focus();
+        return;
+    }
+
     const selectedText = range.toString();
-    if (!selectedText) return;
+    if (!selectedText) {
+        opisEl.focus();
+        return;
+    }
+
+    const textNode = document.createTextNode(selectedText);
     range.deleteContents();
-    range.insertNode(document.createTextNode(selectedText));
+    range.insertNode(textNode);
+    przywrocKursorZaWezlem(opisEl, textNode);
 }
 
 function zastosujSchemat(bgColor, textColor) {
+    const opisEl = document.getElementById('opis');
     const selection = window.getSelection();
-    if (!selection.rangeCount) return;
+    if (!selection || !selection.rangeCount) {
+        if (opisEl) opisEl.focus();
+        return;
+    }
+
     const range = selection.getRangeAt(0);
+    if (opisEl && !opisEl.contains(range.commonAncestorContainer)) {
+        opisEl.focus();
+        return;
+    }
+
     const selectedText = range.toString();
     if (!selectedText) {
         alert("Zaznacz tekst w polu Opis!");
+        if (opisEl) opisEl.focus();
         return;
     }
+
     const span = document.createElement('span');
     span.style.backgroundColor = bgColor;
     span.style.color = textColor;
     span.style.padding = "2px 4px";
     span.style.borderRadius = "3px";
     span.textContent = selectedText;
+
     range.deleteContents();
     range.insertNode(span);
+    przywrocKursorZaWezlem(opisEl, span);
 }
 
 function sformatujKwote(value) {

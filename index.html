@@ -22,12 +22,12 @@
     <!-- WIDOK 0: KAFLE NARZĘDZI TECHNICZNYCH -->
     <div id="widok-narzedzia" class="view">
         <div class="tile-grid">
-            <div class="tile" onclick="location.href='tools-src/nadajniki.html'">
+            <div class="tile" onclick="location.href='tools-src/dvbt.html'">
                 <span class="icon">🗼</span>
                 <span class="label">TV Naziemna DVBT-2</span>
             </div>
 
-            <div class="tile" onclick="location.href='tools-src/satelity.html'">
+            <div class="tile" onclick="location.href='tools-src/sat.html'">
                 <span class="icon">📡</span>
                 <span class="label">TV Satelitarna</span>
             </div>
@@ -41,6 +41,12 @@
                 <span class="icon">🌐</span>
                 <span class="label">Internet i LTE</span>
             </div>
+
+            <div class="tile" onclick="location.href='tools-src/bts.html'">
+                <span class="icon">📶</span>
+                <span class="label">Mapa BTS</span>
+            </div>
+
         </div>
     </div>
 
@@ -171,20 +177,20 @@
 
         <label>Formatowanie:</label>
         <div class="toolbar">
-            <button onclick="formatText('bold')">B</button>
-            <button onclick="formatText('italic')">I</button>
-            <button onclick="formatText('underline')">U</button>
-            <button class="btn-clear-format" onclick="usunFormatowanie()">❌</button>
+            <button type="button" onmousedown="event.preventDefault()" onclick="formatText('bold')">B</button>
+            <button type="button" onmousedown="event.preventDefault()" onclick="formatText('italic')">I</button>
+            <button type="button" onmousedown="event.preventDefault()" onclick="formatText('underline')">U</button>
+            <button type="button" class="btn-clear-format" onmousedown="event.preventDefault()" onclick="usunFormatowanie()">❌</button>
         </div>
 
         <label>Typ:</label>
         <div class="types-bar">
-            <button class="btn-type btn-karta" onclick="zastosujSchemat('#e74c3c', 'white')">Karta/Blik</button>
-            <button class="btn-type btn-koszt" onclick="zastosujSchemat('#ffaa00', 'black')">koszt</button>
-            <button class="btn-type btn-przychod" onclick="zastosujSchemat('#ffff00', 'black')">przychód</button>
-            <button class="btn-type btn-sklep" onclick="zastosujSchemat('#55ffff', 'black')">Sklep</button>
-            <button class="btn-type btn-opis" onclick="zastosujSchemat('#dddcd8', 'black')">Opis</button>
-            <button class="btn-type btn-zus" onclick="zastosujSchemat('#ffaaff', 'white')">ZUS</button>
+            <button type="button" class="btn-type btn-karta" onmousedown="event.preventDefault()" onclick="zastosujSchemat('#e74c3c', 'white')">Karta/Blik</button>
+            <button type="button" class="btn-type btn-koszt" onmousedown="event.preventDefault()" onclick="zastosujSchemat('#ffaa00', 'black')">koszt</button>
+            <button type="button" class="btn-type btn-przychod" onmousedown="event.preventDefault()" onclick="zastosujSchemat('#ffff00', 'black')">przychód</button>
+            <button type="button" class="btn-type btn-sklep" onmousedown="event.preventDefault()" onclick="zastosujSchemat('#55ffff', 'black')">Sklep</button>
+            <button type="button" class="btn-type btn-opis" onmousedown="event.preventDefault()" onclick="zastosujSchemat('#dddcd8', 'black')">Opis</button>
+            <button type="button" class="btn-type btn-zus" onmousedown="event.preventDefault()" onclick="zastosujSchemat('#ffaaff', 'white')">ZUS</button>
         </div>
 
         <label>Opis:</label>

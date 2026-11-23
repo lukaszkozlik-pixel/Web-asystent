@@ -1,20 +1,37 @@
 let map, userMarker, headingMarker, currentLine;
 let userCoords = null;
 let currentHeading = 0;
+let selectedSatId = null;
+let otherSatExpanded = false;
 
 let compassOffset = parseInt(localStorage.getItem('compass_offset') || '0', 10);
 if (Number.isNaN(compassOffset)) compassOffset = 0;
 
 const STORAGE_KEY = 'wlasne_acc_sat';
+const STORAGE_FAV_SAT_KEY = 'sat_ulubione';
+const STORAGE_CUSTOM_SAT_KEY = 'sat_wlasne';
+
 let customAccs = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
-const satellites = [
-    { name: "Hotbird 13°E", lon: 13.0, lat: 0.0 },
-    { name: "Astra 19.2°E", lon: 19.2, lat: 0.0 },
-    { name: "Astra 23.5°E", lon: 23.5, lat: 0.0 },
-    { name: "Thor 0.8°W", lon: -0.8, lat: 0.0 },
-    { name: "Hispasat 30°W", lon: -30.0, lat: 0.0 }
+const defaultSatellites = [
+    { id: "hotbird-13e",   name: "Hotbird 13°E",   lon: 13.0,  lat: 0.0 },
+    { id: "astra-19-2e",   name: "Astra 19.2°E",   lon: 19.2,  lat: 0.0 },
+    { id: "astra-23-5e",   name: "Astra 23.5°E",   lon: 23.5,  lat: 0.0 },
+    { id: "thor-0-8w",     name: "Thor 0.8°W",     lon: -0.8,  lat: 0.0 },
+    { id: "hispasat-30w",  name: "Hispasat 30°W",  lon: -30.0, lat: 0.0 }
 ];
+
+const defaultFavoriteSatIds = [
+    "hotbird-13e",
+    "astra-19-2e"
+];
+
+let customSatellites = JSON.parse(localStorage.getItem(STORAGE_CUSTOM_SAT_KEY)) || [];
+let favoriteSatIds = JSON.parse(localStorage.getItem(STORAGE_FAV_SAT_KEY));
+if (!Array.isArray(favoriteSatIds)) {
+    favoriteSatIds = [...defaultFavoriteSatIds];
+    localStorage.setItem(STORAGE_FAV_SAT_KEY, JSON.stringify(favoriteSatIds));
+}
 
 const unicableData = [
     { ub: "UB 1",  pb: 1210, std: 1210, diff: false },
@@ -55,6 +72,10 @@ document.addEventListener("DOMContentLoaded", () => {
     setupCompass();
 });
 
+function getAllSatellites() {
+    return [...defaultSatellites, ...customSatellites];
+}
+
 /* --- ZAKŁADKI --- */
 function switchSatTab(tabName, btn) {
     const targetPanel = document.getElementById('tab-' + tabName);
@@ -83,11 +104,7 @@ function toggleAcc(header) {
         const s = h.querySelector('span');
         if (c && c.classList.contains('acc-content')) {
             c.classList.remove('show');
-            if (s && !h.classList.contains('custom-note')) {
-                s.innerText = '+';
-            } else if (s && h.classList.contains('custom-note')) {
-                s.innerText = '+';
-            }
+            if (s) s.innerText = '+';
         }
     });
 
@@ -185,11 +202,22 @@ function initMap() {
                 headingMarker.setLatLng(userCoords);
             }
 
+            if (selectedSatId) {
+                const wybranySat = getAllSatellites().find(s => s.id === selectedSatId);
+                if (wybranySat) {
+                    const az = calculateAzimuth(userCoords[0], userCoords[1], wybranySat.lon);
+                    const el = calculateElevation(userCoords[0], userCoords[1], wybranySat.lon);
+                    rysujLinieKierunku(wybranySat, az, el, false);
+                }
+            }
+
             displaySatellites();
         }, () => {
-            document.getElementById('satList').innerHTML =
-                "<p style='text-align:center; padding:20px; color:#d93025; font-weight:bold;'>Błąd GPS. Włącz lokalizację w telefonie.</p>";
+            document.getElementById('favorite-sat-list').innerHTML =
+                "<div class='gps-placeholder' style='color:#d93025; font-weight:bold;'>Błąd GPS. Włącz lokalizację w telefonie.</div>";
         }, { enableHighAccuracy: true });
+    } else {
+        displaySatellites();
     }
 }
 
@@ -258,38 +286,172 @@ function wycentrujMape() {
     }
 }
 
-function displaySatellites() {
-    const list = document.getElementById('satList');
-    if (!list || !userCoords) return;
-    list.innerHTML = "";
-
-    satellites.forEach(sat => {
-        const az = calculateAzimuth(userCoords[0], userCoords[1], sat.lon);
-        const el = calculateElevation(userCoords[0], userCoords[1], sat.lon);
-
-        const card = document.createElement('div');
-        card.className = 'sat-card';
-        card.innerHTML = `
-            <div class="sat-info">
-                <span class="sat-name">${sat.name}</span>
-                <span class="sat-pos">Pozycja: ${sat.lon}°</span>
-                <span class="sat-angles">Azymut: ${az}° | Elewacja: ${el}°</span>
-            </div>
-            <button class="btn-line" onclick="drawLine(${az}, this)">WYBIERZ</button>
-        `;
-        list.appendChild(card);
-    });
+/* --- ULUBIONE, ROZWIJANA LISTA I FORMULARZ WŁASNEGO SATELITY --- */
+function przelaczPozostaleSatelity() {
+    otherSatExpanded = !otherSatExpanded;
+    const drawer = document.getElementById('other-sat-drawer');
+    const arrow = document.getElementById('other-sat-arrow');
+    if (drawer) drawer.style.display = otherSatExpanded ? 'block' : 'none';
+    if (arrow) arrow.innerText = otherSatExpanded ? '▲' : '▼';
 }
 
-function drawLine(az, btn) {
-    if (!userCoords) return;
+function przelaczUlubionySat(satId, event) {
+    if (event) event.stopPropagation();
+    const idx = favoriteSatIds.indexOf(satId);
+    if (idx >= 0) {
+        favoriteSatIds.splice(idx, 1);
+    } else {
+        favoriteSatIds.push(satId);
+    }
+    localStorage.setItem(STORAGE_FAV_SAT_KEY, JSON.stringify(favoriteSatIds));
+    displaySatellites();
+}
 
-    document.querySelectorAll('.sat-card').forEach(c => c.classList.remove('active'));
-    if (btn && btn.closest('.sat-card')) {
-        btn.closest('.sat-card').classList.add('active');
+function otworzFormularzSatelity() {
+    document.getElementById('sat-name-input').value = "";
+    document.getElementById('sat-lon-input').value = "";
+    document.getElementById('custom-sat-form').style.display = "block";
+    document.getElementById('btn-toggle-sat-form').style.display = "none";
+    document.getElementById('sat-name-input').focus();
+}
+
+function zamknijFormularzSatelity() {
+    document.getElementById('custom-sat-form').style.display = "none";
+    document.getElementById('btn-toggle-sat-form').style.display = "inline-block";
+}
+
+function formatujPozycjeOrbitalna(lon) {
+    const absVal = Math.abs(lon);
+    const kierunek = lon >= 0 ? '°E' : '°W';
+    return `${absVal}${kierunek}`;
+}
+
+function zapiszNowegoSatelite() {
+    const name = document.getElementById('sat-name-input').value.trim();
+    const lonRaw = document.getElementById('sat-lon-input').value.trim().replace(',', '.');
+    const lon = parseFloat(lonRaw);
+
+    if (!name) {
+        alert("Podaj nazwę satelity!");
+        return;
+    }
+    if (!Number.isFinite(lon) || lon < -180 || lon > 180) {
+        alert("Podaj poprawną długość orbitalną (od -180 do 180).");
+        return;
     }
 
-    if (currentLine) map.removeLayer(currentLine);
+    const newSat = {
+        id: "custom-sat-" + Date.now(),
+        name,
+        lon,
+        lat: 0.0
+    };
+
+    customSatellites.push(newSat);
+    localStorage.setItem(STORAGE_CUSTOM_SAT_KEY, JSON.stringify(customSatellites));
+
+    if (!favoriteSatIds.includes(newSat.id)) {
+        favoriteSatIds.push(newSat.id);
+        localStorage.setItem(STORAGE_FAV_SAT_KEY, JSON.stringify(favoriteSatIds));
+    }
+
+    zamknijFormularzSatelity();
+    displaySatellites();
+}
+
+function zbudujKarteSatelity(sat) {
+    const isFav = favoriteSatIds.includes(sat.id);
+    const isActive = selectedSatId === sat.id;
+    const az = userCoords ? `${calculateAzimuth(userCoords[0], userCoords[1], sat.lon)}°` : "—";
+    const el = userCoords ? `${calculateElevation(userCoords[0], userCoords[1], sat.lon)}°` : "—";
+    const posLabel = formatujPozycjeOrbitalna(sat.lon);
+
+    const card = document.createElement('div');
+    card.className = `sat-card ${isActive ? 'active' : ''}`;
+    card.innerHTML = `
+        <div class="sat-left">
+            <button type="button"
+                    class="btn-fav-star ${isFav ? 'is-fav' : ''}"
+                    title="${isFav ? 'Usuń z ulubionych' : 'Dodaj do ulubionych'}"
+                    onclick="przelaczUlubionySat('${sat.id}', event)">${isFav ? '★' : '☆'}</button>
+            <div class="sat-info">
+                <span class="sat-name">${escapeHTML(sat.name)}</span>
+                <span class="sat-pos">Pozycja: ${escapeHTML(posLabel)}</span>
+                <span class="sat-angles">Azymut: ${az} | Elewacja: ${el}</span>
+            </div>
+        </div>
+        <button type="button" class="btn-line" onclick="wybierzSatelite('${sat.id}')">${isActive ? 'WYBRANY' : 'WYBIERZ'}</button>
+    `;
+    return card;
+}
+
+function displaySatellites() {
+    const favContainer = document.getElementById('favorite-sat-list');
+    const otherContainer = document.getElementById('other-sat-list');
+    const otherCountEl = document.getElementById('other-sat-count');
+    if (!favContainer || !otherContainer) return;
+
+    const all = getAllSatellites();
+    const favorites = all.filter(s => favoriteSatIds.includes(s.id));
+    const filterQ = (document.getElementById('otherSatFilterInput')?.value || '').trim().toLowerCase();
+
+    const others = all.filter(s => {
+        if (favoriteSatIds.includes(s.id)) return false;
+        if (!filterQ) return true;
+        return (
+            s.name.toLowerCase().includes(filterQ) ||
+            formatujPozycjeOrbitalna(s.lon).toLowerCase().includes(filterQ)
+        );
+    });
+
+    if (otherCountEl) {
+        otherCountEl.innerText = String(all.filter(s => !favoriteSatIds.includes(s.id)).length);
+    }
+
+    favContainer.innerHTML = "";
+    if (favorites.length === 0) {
+        favContainer.innerHTML = `<div class="gps-placeholder">Brak ulubionych satelitów. Kliknij ☆ przy wybranej pozycji lub dodaj własną.</div>`;
+    } else {
+        favorites.forEach(sat => favContainer.appendChild(zbudujKarteSatelity(sat)));
+    }
+
+    otherContainer.innerHTML = "";
+    if (others.length === 0) {
+        otherContainer.innerHTML = `<div class="gps-placeholder" style="padding: 12px;">Brak pasujących satelitów.</div>`;
+    } else {
+        others.forEach(sat => otherContainer.appendChild(zbudujKarteSatelity(sat)));
+    }
+}
+
+function wybierzSatelite(satId) {
+    const sat = getAllSatellites().find(s => s.id === satId);
+    if (!sat || !userCoords) return;
+
+    if (selectedSatId === satId) {
+        if (currentLine && map) {
+            map.removeLayer(currentLine);
+            currentLine = null;
+        }
+        selectedSatId = null;
+        displaySatellites();
+        return;
+    }
+
+    selectedSatId = satId;
+    displaySatellites();
+
+    const az = calculateAzimuth(userCoords[0], userCoords[1], sat.lon);
+    const el = calculateElevation(userCoords[0], userCoords[1], sat.lon);
+    rysujLinieKierunku(sat, az, el, true);
+}
+
+function rysujLinieKierunku(sat, az, el, wycentruj = true) {
+    if (!userCoords || !map) return;
+
+    if (currentLine) {
+        map.removeLayer(currentLine);
+        currentLine = null;
+    }
 
     const R = 6371;
     const lat1 = userCoords[0] * Math.PI / 180;
@@ -308,7 +470,11 @@ function drawLine(az, btn) {
         dashArray: '8, 8'
     }).addTo(map);
 
-    map.setView(userCoords, 16, { animate: true });
+    currentLine.bindPopup(`<b>${escapeHTML(sat.name)}</b><br>Azymut: <b>${az}°</b> · Elewacja: <b>${el}°</b>`);
+    if (wycentruj) {
+        currentLine.openPopup();
+        map.setView(userCoords, 16, { animate: true });
+    }
 }
 
 function calculateAzimuth(lat, lon, satLon) {
@@ -356,8 +522,8 @@ function renderujCustomAccs() {
                 <div class="acc-content">
                     <div class="custom-note-body">${escapeHTML(item.tresc)}</div>
                     <div class="custom-note-actions">
-                        <button style="background:#f39c12; color:white;" onclick="edytujCustomAcc(${index})">✏️ Edytuj</button>
-                        <button style="background:#e74c3c; color:white;" onclick="usunCustomAcc(${index})">🗑️ Usuń</button>
+                        <button type="button" style="background:#f39c12; color:white;" onclick="edytujCustomAcc(${index})">✏️ Edytuj</button>
+                        <button type="button" style="background:#e74c3c; color:white;" onclick="usunCustomAcc(${index})">🗑️ Usuń</button>
                     </div>
                 </div>
             </div>
