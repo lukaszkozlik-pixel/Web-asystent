@@ -1,20 +1,25 @@
-const CACHE_NAME = 'Web-aystent-v3.4.0';
+const CACHE_NAME = 'Web-aystent-v3.4.1';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './style.css',
   './app.js',
   './manifest.json',
-  './tools-src/nadajniki.html',
+  './tools-src/dvbt.html',
   './tools-src/dvbt.js',
-  './tools-src/satelity.html',
+  './tools-src/dvbt.css',
+  './tools-src/sat.html',
   './tools-src/sat.js',
+  './tools-src/sat.css',
   './tools-src/Jednostki.html',
   './tools-src/jednostki.js',
   './tools-src/internet.html',
   './tools-src/internet.js',
   './tools-src/monitoring.html',
   './tools-src/monitoring.js',
+  './tools-src/bts.css',
+  './tools-src/bts.js',
+  './tools-src/bts.html'
   
 
 ];
