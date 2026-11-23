@@ -341,6 +341,254 @@ function przejdzDoWynikuNotatki(noteId) {
 }
 
 // --- OBSŁUGA KOPII ZAPASOWEJ (JSON) ---
+
+function triggerICSImport() {
+    const input = document.getElementById('ics-file-input');
+    if (input) input.click();
+}
+
+function rozwinZawijaneLinieICS(tekst) {
+    return String(tekst ?? '')
+        .replace(/\r\n/g, '\n')
+        .replace(/\r/g, '\n')
+        .replace(/\n[ \t]/g, '');
+}
+
+function odkodujTekstICS(tekst) {
+    return String(tekst ?? '')
+        .replace(/\\n/gi, '\n')
+        .replace(/\\,/g, ',')
+        .replace(/\\;/g, ';')
+        .replace(/\\\\/g, '\\')
+        .trim();
+}
+
+function parsujDateIGodzineICS(surowaWartosc, parametry = '') {
+    const czysta = String(surowaWartosc ?? '').trim();
+    if (!czysta) return null;
+
+    const czyDateOnly = /VALUE=DATE\b/i.test(parametry) || /^\d{8}$/.test(czysta);
+    const dopasowanie = czysta.match(/^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2})?(Z)?)?$/i);
+    if (!dopasowanie) return null;
+
+    const rok = dopasowanie[1];
+    const miesiac = dopasowanie[2];
+    const dzien = dopasowanie[3];
+
+    if (czyDateOnly || !dopasowanie[4]) {
+        return {
+            data: `${rok}-${miesiac}-${dzien}`,
+            calyDzien: true,
+            godzina: ""
+        };
+    }
+
+    const godz = parseInt(dopasowanie[4], 10);
+    const min = parseInt(dopasowanie[5], 10);
+    const sek = parseInt(dopasowanie[6] || '0', 10);
+    const czyUTC = Boolean(dopasowanie[7]);
+
+    if (czyUTC) {
+        const dUtc = new Date(Date.UTC(
+            parseInt(rok, 10),
+            parseInt(miesiac, 10) - 1,
+            parseInt(dzien, 10),
+            godz,
+            min,
+            sek
+        ));
+        const y = dUtc.getFullYear();
+        const m = String(dUtc.getMonth() + 1).padStart(2, '0');
+        const day = String(dUtc.getDate()).padStart(2, '0');
+        const h = String(dUtc.getHours()).padStart(2, '0');
+        const mm = String(dUtc.getMinutes()).padStart(2, '0');
+        return {
+            data: `${y}-${m}-${day}`,
+            calyDzien: false,
+            godzina: `${h}:${mm}`
+        };
+    }
+
+    return {
+        data: `${rok}-${miesiac}-${dzien}`,
+        calyDzien: false,
+        godzina: `${String(godz).padStart(2, '0')}:${String(min).padStart(2, '0')}`
+    };
+}
+
+function wyciagnijTelefonZNapisu(tekst) {
+    const dopasowanie = String(tekst ?? '').match(/(?:\+?\d[\d\s\-()]{6,}\d)/);
+    return dopasowanie ? dopasowanie[0].trim() : "";
+}
+
+function parsujPlikICS(zawartoscICS) {
+    const rozwiniety = rozwinZawijaneLinieICS(zawartoscICS);
+    const linie = rozwiniety.split('\n');
+
+    const zaimportowane = [];
+    let wZdarzeniu = false;
+    let wAlarmie = false;
+    let biezace = null;
+
+    for (const linia of linie) {
+        const trimmed = linia.trim();
+        if (!trimmed) continue;
+
+        if (/^BEGIN:VEVENT$/i.test(trimmed)) {
+            wZdarzeniu = true;
+            wAlarmie = false;
+            biezace = {
+                dtstartRaw: "",
+                dtstartParams: "",
+                summary: "",
+                location: "",
+                description: ""
+            };
+            continue;
+        }
+
+        if (/^BEGIN:VALARM$/i.test(trimmed)) {
+            if (wZdarzeniu) wAlarmie = true;
+            continue;
+        }
+
+        if (/^END:VALARM$/i.test(trimmed)) {
+            wAlarmie = false;
+            continue;
+        }
+
+        if (/^END:VEVENT$/i.test(trimmed)) {
+            if (wZdarzeniu && biezace) {
+                const czas = parsujDateIGodzineICS(biezace.dtstartRaw, biezace.dtstartParams);
+                if (czas && czas.data) {
+                    const summary = odkodujTekstICS(biezace.summary);
+                    const location = odkodujTekstICS(biezace.location);
+                    const description = odkodujTekstICS(biezace.description);
+
+                    // Tytuł (SUMMARY) traktujemy jako adres; jeśli jest pełniejsze LOCATION, używamy jego
+                    const adres = location || summary;
+
+                    // Telefon wyciągamy z opisu (DESCRIPTION)
+                    const wykrytyTelefon = wyciagnijTelefonZNapisu(description);
+
+                    const czesciOpisu = [];
+                    if (summary && summary.toLowerCase() !== adres.toLowerCase()) {
+                        czesciOpisu.push(summary);
+                    }
+                    if (description && description !== wykrytyTelefon) {
+                        czesciOpisu.push(description);
+                    }
+
+                    zaimportowane.push({
+                        typ: 'sluzbowy',
+                        data: czas.data,
+                        calyDzien: czas.calyDzien,
+                        godzina: czas.godzina,
+                        klient: wykrytyTelefon || "Brak numeru",
+                        adres: adres,
+                        opis: czesciOpisu.join('\n')
+                    });
+                }
+            }
+            wZdarzeniu = false;
+            wAlarmie = false;
+            biezace = null;
+            continue;
+        }
+
+        if (!wZdarzeniu || wAlarmie || !biezace) continue;
+
+        const dwukropekIdx = linia.indexOf(':');
+        if (dwukropekIdx === -1) continue;
+
+        const lewaStrona = linia.slice(0, dwukropekIdx);
+        const wartosc = linia.slice(dwukropekIdx + 1);
+        const czesciLewa = lewaStrona.split(';');
+        const nazwaWlasciwosci = czesciLewa[0].trim().toUpperCase();
+        const parametry = czesciLewa.slice(1).join(';');
+
+        if (nazwaWlasciwosci === 'DTSTART') {
+            biezace.dtstartRaw = wartosc;
+            biezace.dtstartParams = parametry;
+        } else if (nazwaWlasciwosci === 'SUMMARY') {
+            biezace.summary = wartosc;
+        } else if (nazwaWlasciwosci === 'LOCATION') {
+            biezace.location = wartosc;
+        } else if (nazwaWlasciwosci === 'DESCRIPTION') {
+            biezace.description = wartosc;
+        }
+    }
+
+    return zaimportowane;
+}
+
+async function importujZPlikuICS(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    try {
+        const tekst = await file.text();
+        if (!/BEGIN:VCALENDAR/i.test(tekst) && !/BEGIN:VEVENT/i.test(tekst)) {
+            alert("Wybrany plik nie wygląda na poprawny kalendarz ICS.");
+            event.target.value = "";
+            return;
+        }
+
+        const kandydaci = parsujPlikICS(tekst);
+        if (kandydaci.length === 0) {
+            alert("W pliku ICS nie znaleziono żadnych wizyt (VEVENT) z poprawną datą.");
+            event.target.value = "";
+            return;
+        }
+
+        const istniejaceKlucze = new Set(
+            wizyty.map(w => `${w.data}|${w.godzina || ''}|${w.calyDzien ? '1' : '0'}|${(w.adres || '').trim().toLowerCase()}|${(w.klient || '').trim().toLowerCase()}`)
+        );
+
+        let dodano = 0;
+        let pominietoDuplikaty = 0;
+
+        for (const nowa of kandydaci) {
+            const klucz = `${nowa.data}|${nowa.godzina || ''}|${nowa.calyDzien ? '1' : '0'}|${(nowa.adres || '').trim().toLowerCase()}|${(nowa.klient || '').trim().toLowerCase()}`;
+            if (istniejaceKlucze.has(klucz)) {
+                pominietoDuplikaty++;
+                continue;
+            }
+            istniejaceKlucze.add(klucz);
+            wizyty.push(nowa);
+            dodano++;
+        }
+
+        if (dodano > 0) {
+            wizyty.sort((a, b) => (a.data + (a.godzina || "00:00")).localeCompare(b.data + (b.godzina || "00:00")));
+            localStorage.setItem('ksiegowosc_wizyty', JSON.stringify(wizyty));
+
+            const pierwszaNowa = kandydaci[0];
+            if (pierwszaNowa && pierwszaNowa.data) {
+                wybranaData = pierwszaNowa.data;
+                const czesci = pierwszaNowa.data.split('-');
+                if (czesci.length === 3) {
+                    aktRok = parseInt(czesci[0], 10);
+                    aktMiesiac = parseInt(czesci[1], 10) - 1;
+                }
+            }
+
+            rozwinietyWizytaIndex = null;
+            podswietlonyWizytaIndex = null;
+            generujKalendarz();
+            renderujWizytyDnia({ przewinDoTeraz: true });
+            await zapiszDoSyncthing();
+        }
+
+        const infoDuplikaty = pominietoDuplikaty > 0 ? `\nPominięto duplikatów: ${pominietoDuplikaty}` : "";
+        alert(`📥 Zaimportowano wizyt: ${dodano}${infoDuplikaty}`);
+    } catch (err) {
+        alert("Błąd podczas importu pliku ICS: " + err.message);
+    }
+
+    event.target.value = "";
+}
+
 function toggleBackupMenu() {
     const panel = document.getElementById('backup-actions-container');
     panel.classList.toggle('open');

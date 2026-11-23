@@ -644,3 +644,15 @@ input[type="date"], input[type="time"], input[type="text"], input[type="number"]
     opacity: 0.35;
     cursor: default;
 }
+
+.btn-ics { 
+    background-color: #2980b9;
+    color: white;
+    border: none; 
+    padding: 8px; 
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: bold; 
+    cursor: pointer; 
+    width: 100%; 
+}

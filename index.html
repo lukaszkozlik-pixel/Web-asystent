@@ -2,8 +2,8 @@
 <html lang="pl">
 <head>
     <title>Web-Asystent</title>
-    <meta name="version" content="3.3.1">
-    <meta name="build-date" content="2026-11-22">
+    <meta name="version" content="3.3.2">
+    <meta name="build-date" content="2026-11-23">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="manifest" href="manifest.json">
@@ -83,13 +83,16 @@
             <!-- Przewijany obszar godzin 07:00 - 19:00 (oraz ewentualne wcześniejsze/późniejsze) -->
             <div id="lista-wizyt-dnia" class="day-timeline-scroll"></div>
 
-            <div class="backup-panel-toggle" onclick="toggleBackupMenu()">⚙️ Kopia zapasowa / Przywracanie danych</div>
+           <div class="backup-panel-toggle" onclick="toggleBackupMenu()">⚙️ Kopia zapasowa / Przywracanie danych</div>
             <div class="backup-actions" id="backup-actions-container">
                 <button class="btn-backup" onclick="podlaczFolderSyncthing()">🔗 Połącz z folderem Syncthing</button>
                 <button class="btn-backup" onclick="zapiszKopieBazy()">💾 Pobierz kopię zapasową (JSON)</button>
                 <button class="btn-restore" onclick="triggerRestore()">📂 Przywróć dane z pliku</button>
+                <button class="btn-ics" onclick="triggerICSImport()">📥 Importuj wizyty z pliku (.ics)</button>
                 <input type="file" id="restore-file-input" style="display: none;" accept=".json" onchange="przywracajBaze(event)">
+                <input type="file" id="ics-file-input" style="display: none;" accept=".ics,text/calendar" onchange="importujZPlikuICS(event)">
             </div>
+
         </div>
     </div>
 
