@@ -1,4 +1,4 @@
-const CACHE_NAME = 'Web-aystent-v3.3.2';
+const CACHE_NAME = 'Web-aystent-v3.4.0';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
